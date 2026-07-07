@@ -1,0 +1,17 @@
+{
+  "name": "ホタテ稚貝養殖 記録・分析ツール",
+  "short_name": "ホタテ養殖",
+  "description": "サロマ湖ホタテ稚貝養殖の記録・のし在庫・浮力管理・育成計算・配置予定を一気通貫で管理",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f8fb",
+  "theme_color": "#123a5e",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

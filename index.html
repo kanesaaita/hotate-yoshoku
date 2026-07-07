@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ホタテ養殖">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#123a5e">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>ホタテ稚貝養殖 記録・分析ツール</title>
+<style>
+  :root{
+    --navy:#123a5e; --navy2:#1d5b8f; --ice:#eaf3fa; --ice2:#d6e8f4;
+    --line:#c9dcea; --ink:#1c2a36; --sub:#5a7186; --bg:#f4f8fb;
+    --ok:#2e7d5b; --warn:#c2691a; --danger:#b23b3b; --card:#ffffff;
+    --shadow:0 1px 3px rgba(18,58,94,.08),0 4px 16px rgba(18,58,94,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;-webkit-text-size-adjust:100%}
+  header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.02em}
+  header .sub{font-size:12px;opacity:.85;margin-top:2px}
+  .season-pick{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px}
+  .season-pick select{padding:4px 8px;border-radius:6px;border:none;font-size:13px}
+  nav{display:flex;gap:2px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:19;-webkit-overflow-scrolling:touch}
+  nav button{flex:0 0 auto;border:none;background:none;padding:12px 14px;font-size:14px;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;font-weight:600}
+  nav button.active{color:var(--navy);border-bottom-color:var(--navy2)}
+  main{max-width:1000px;margin:0 auto;padding:16px}
+  section{display:none}
+  section.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 12px;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px}
+  .card h3{margin:16px 0 8px;font-size:14px;color:var(--navy2)}
+  label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px;font-weight:600}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:16px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(29,91,143,.12)}
+  textarea{min-height:60px;resize:vertical}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .field{margin-bottom:0}
+  .btn{background:var(--navy2);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--navy)}
+  .btn.ghost{background:#fff;color:var(--navy2);border:1px solid var(--navy2)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .btn.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)}
+  .btn.warn{background:var(--warn)}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--ice);color:var(--navy);font-weight:700;position:sticky;top:0}
+  tbody tr:hover{background:var(--ice)}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .muted{color:var(--sub)}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .kpi{background:var(--ice);border-radius:10px;padding:12px 14px}
+  .kpi .v{font-size:22px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+  .kpi .l{font-size:12px;color:var(--sub);margin-top:2px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:end}
+  .filters .field{min-width:120px}
+  .empty{text-align:center;color:var(--sub);padding:28px;font-size:14px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--ice2);font-size:12px;margin:2px}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+  .bar-row .lbl{flex:0 0 96px;text-align:right;color:var(--sub);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;background:var(--ice);border-radius:6px;height:22px;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--navy2),var(--navy));display:flex;align-items:center;justify-content:flex-end;padding-right:6px;color:#fff;font-size:11px;font-weight:700;min-width:2px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:100;opacity:0;transition:opacity .25s;box-shadow:var(--shadow)}
+  .toast.show{opacity:1}
+  .noshi-manage{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .noshi-item{display:flex;align-items:center;gap:6px;background:var(--ice);border-radius:8px;padding:6px 10px;font-size:13px}
+  .noshi-item button{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 2px}
+  details summary{cursor:pointer;font-weight:700;color:var(--navy2);font-size:14px}
+  .hint{font-size:12px;color:var(--sub);margin-top:4px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:6px 0}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  @media(max-width:640px){ .bar-row .lbl{flex-basis:70px} main{padding:12px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐚 ホタテ稚貝養殖 記録・分析ツール</h1>
+  <div class="sub">採苗器投入 → 早撮り → 丸籠育成 → のし管理 → 販売・放流 まで一気通貫</div>
+  <div class="season-pick">
+    <span>シーズン</span>
+    <select id="seasonSel" onchange="setSeason(this.value)"></select>
+    <span class="muted" id="seasonNote"></span>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="entry" class="active">📥 記録入力</button>
+  <button data-tab="list">📋 記録一覧</button>
+  <button data-tab="noshi">🎣 のし在庫</button>
+  <button data-tab="buoy">🎈 浮力管理</button>
+  <button data-tab="analysis">📊 分析</button>
+  <button data-tab="calc">🧮 育成計算</button>
+  <button data-tab="data">⚙️ 設定・データ</button>
+</nav>
+
+<main>
+  <div id="updateBar" style="display:none;margin-bottom:12px"></div>
+  <div id="backupBar" style="display:none;margin-bottom:14px"></div>
+  <!-- ===== 記録入力 ===== -->
+  <section id="entry" class="active">
+    <div id="welcomeBox" style="display:none"></div>
+    <div class="card">
+      <h2>📥 工程を選んで記録</h2>
+      <div class="field" style="max-width:320px;margin-bottom:14px">
+        <label>工程</label>
+        <select id="kouteiSel" onchange="renderForm()"></select>
+      </div>
+      <div id="formArea"></div>
+      <div class="row-actions">
+        <button class="btn" onclick="saveRecord()">💾 この記録を保存</button>
+        <button class="btn ghost" onclick="resetForm()">クリア</button>
+        <span id="editingBadge" class="muted" style="align-self:center"></span>
+      </div>
+      <div id="saveFlash" style="display:none;margin-top:12px;background:#eaf6ee;border:1px solid #b9e4d0;color:#2e7d5b;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700"></div>
+    </div>
+    <div class="card">
+      <h2>🕒 直近の記録（このシーズン）</h2>
+      <div id="recentList"></div>
+    </div>
+  </section>
+
+  <!-- ===== 記録一覧 ===== -->
+  <section id="list">
+    <div class="card">
+      <h2>📋 記録一覧</h2>
+      <div class="filters">
+        <div class="field"><label>工程</label><select id="fltKoutei" onchange="renderList()"><option value="">すべて</option></select></div>
+        <div class="field"><label>のし場所</label><select id="fltNoshi" onchange="renderList()"><option value="">すべて</option></select></div>
+        <div class="field"><label>キーワード</label><input id="fltText" oninput="renderList()" placeholder="メモ・海区など"></div>
+      </div>
+      <div id="listArea"></div>
+    </div>
+  </section>
+
+  <!-- ===== のし在庫 ===== -->
+  <section id="noshi">
+    <div class="card">
+      <h2>🎣 のし場所ごとの在庫（現在）</h2>
+      <div class="hint">「今そこに下がっている数」を、採苗器（連）と丸籠（籠）の2本立てで表示します。移動で採苗器＋、水揚げで採苗器−・丸籠＋、販売・放流で丸籠−。</div>
+      <div id="noshiKpi" class="kpi-grid" style="margin:12px 0"></div>
+      <div id="noshiInv"></div>
+    </div>
+    <div class="card">
+      <h2>📦 場所別の状態・最終作業</h2>
+      <div id="noshiState"></div>
+    </div>
+  </section>
+
+  <!-- ===== 浮力管理 ===== -->
+  <section id="buoy">
+    <div class="card">
+      <h2>🎈 浮力管理（のしごとの吊り下げ・浮き玉・深さ）</h2>
+      <div class="hint">今どののしに何が下がっていて（記録から自動）、浮き玉がいくつ・海面から何mの深さに設定しているかを管理します。水深はマスターから。浮き玉・深さは各のしで入れて保存。</div>
+      <div id="buoyList"></div>
+    </div>
+  </section>
+
+  <!-- ===== 分析 ===== -->
+  <section id="analysis">
+    <div class="card">
+      <h2>⚓ 採苗器 台帳（投入 → サロマ湖移動）</h2>
+      <div class="hint">最重要ファクター。海への投入日・サロマ湖への移動日・投入場所（3海区）と、投入からの経過日数を一覧化します。</div>
+      <div id="saibyoDaicho"></div>
+    </div>
+    <div class="card">
+      <h2>📈 歩留まりファネル（このシーズン）</h2>
+      <div class="hint">投入した採苗器から、最終的に何籠・何個まで残ったかの流れ。</div>
+      <div id="funnel"></div>
+    </div>
+    <div class="card">
+      <h2>🐚 のし場所別 付着稚貝数（水揚げ・袋あたり平均）</h2>
+      <div id="chakusoByKaiku"></div>
+    </div>
+    <div class="card">
+      <h2>📅 年次比較（全シーズン）</h2>
+      <div id="yearCompare"></div>
+    </div>
+  </section>
+
+  <!-- ===== 育成計算 ===== -->
+  <section id="calc">
+    <div class="card">
+      <h2>🎯 ゴール逆算ダッシュボード<span id="houseTag"></span></h2>
+      <div class="hint">春のゴール（放流・転換販売）と目減り率から、本どり・早どりで確保すべき数を自動逆算します。数値は編集できます。<b>初期値は例</b>なので、自分の家の数値に書き換えてください。</div>
+      <div class="field" style="max-width:260px;margin-bottom:10px"><label>家名・屋号（表示用）</label><input id="c_houseName" oninput="saveHouseName()" placeholder="例：〇〇水産"></div>
+      <div class="grid" style="margin-bottom:12px">
+        <div class="field"><label>放流 目標（粒・翌5月）</label><input type="number" id="c_houryuTarget" oninput="saveCalc()"></div>
+        <div class="field"><label>転換販売 目標（粒・4月）</label><input type="number" id="c_tenkanTarget" oninput="saveCalc()"></div>
+        <div class="field"><label>放流 連数（固定ルール）</label><input type="number" id="c_houryuRen" oninput="saveCalc()"></div>
+        <div class="field"><label>本どり密度（枚/連）</label><input type="number" id="c_density" oninput="saveCalc()"></div>
+        <div class="field"><label>放流 目減り率（%）</label><input type="number" step="any" id="c_houryuLoss" oninput="saveCalc()"></div>
+        <div class="field"><label>転換 目減り率（%・放流より厚め）</label><input type="number" step="any" id="c_tenkanLoss" oninput="saveCalc()"></div>
+        <div class="field"><label>①丸籠 在庫（早どり・連）</label><input type="number" id="c_cage1" oninput="saveCalc()"></div>
+        <div class="field"><label>②丸籠 在庫（3部5厘・連）</label><input type="number" id="c_cage2" oninput="saveCalc()"></div>
+        <div class="field"><label>早どり→本どり 目減り率(%)</label><input type="number" step="any" id="c_earlyLoss" oninput="saveCalc()"></div>
+        <div class="field"><label>のし1本の連数</label><input type="number" step="any" id="c_renPerNoshi" oninput="saveCalc()"></div>
+        <div class="field"><label>放流ののし本数</label><input type="number" step="any" id="c_houryuNoshi" oninput="saveCalc()"></div>
+      </div>
+      <div id="gyakusanOut"></div>
+    </div>
+    <div class="card">
+      <h2>🗺️ 配置予定（早どり・本どり どののしに何連下げるか）</h2>
+      <div class="hint">基本は<b>本どり142連/のし・放流19本（=142×19）</b>。「AI基本計画」で叩き台を自動作成でき、あとは手で足し引き・用途変更できます。用途（放流／転換販売）は各行のプルダウンで変更可。工程ごとの合計と過不足も出ます。</div>
+      <div class="row-actions" style="margin-top:0;margin-bottom:8px">
+        <button class="btn" onclick="genBasePlan()">🤖 AI基本計画を作成</button>
+        <button class="btn ghost" onclick="clearBasePlan()">🗑 AI作成分をクリア</button>
+      </div>
+      <div class="filters" style="margin-bottom:6px">
+        <div class="field" style="min-width:110px"><label>工程</label><select id="p_phase"><option value="早どり">早どり（①丸籠）</option><option value="本どり">本どり（②丸籠）</option></select></div>
+        <div class="field" style="min-width:100px"><label>用途</label><select id="p_purpose"><option value="">—</option><option>放流</option><option>転換販売</option></select></div>
+        <div class="field" style="min-width:120px"><label>のし場所</label><select id="p_noshi"></select></div>
+        <div class="field" style="min-width:90px"><label>網目</label><select id="p_amime"><option>1部2厘</option><option>1部5厘</option><option>1部8厘</option><option>3部5厘</option></select></div>
+        <div class="field" style="min-width:70px"><label>連数</label><input type="number" step="any" inputmode="decimal" id="p_ren" placeholder="連"></div>
+        <div class="field" style="min-width:90px"><label>メモ</label><input id="p_memo" placeholder="任意"></div>
+        <button class="btn sm" onclick="addPlace()" style="height:38px">＋予定に追加</button>
+      </div>
+      <div id="placeOut"></div>
+    </div>
+    <div class="card">
+      <h2>🧪 試運転（通しベース・早どり見込み）</h2>
+      <div class="hint">場所（外海投入地×サロマ湖漁場）ごとにサンプルを通しにかけ、残った稚貝を計数 → 1連あたり・漁場総数・全体見込みを自動計算します。</div>
+      <div class="filters" style="margin-bottom:6px">
+        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t_place" placeholder="例：ちやA"></div>
+        <div class="field" style="min-width:100px"><label>投入海区</label><select id="t_kaiku"><option value="">—</option><option>A海区</option><option>B海区</option><option>トウフツ沖</option></select></div>
+        <div class="field" style="min-width:90px"><label>通し目</label><input id="t_mesh" placeholder="6mm"></div>
+        <div class="field" style="min-width:90px"><label>サンプル連数</label><input type="number" id="t_sampleRen" placeholder="5"></div>
+        <div class="field" style="min-width:110px"><label>残った稚貝(計数)</label><input type="number" id="t_count" placeholder="50000"></div>
+        <div class="field" style="min-width:110px"><label>その漁場の総連数</label><input type="number" id="t_totalRen" placeholder="200"></div>
+        <button class="btn sm" onclick="addTrial()" style="height:38px">＋追加</button>
+      </div>
+      <div id="trialsOut"></div>
+    </div>
+    <div class="card">
+      <h2>🔬 早どり見込み（付着調査ベース）</h2>
+      <div class="hint">1袋あたり「殻高(mm)」と「付着枚数」を入れると、連数×袋/連 から合計見込みを計算します（通し試運転とは別軸）。ゴール逆算の「早どり確保必要」と自動で比較。</div>
+      <div class="filters" style="margin-bottom:6px">
+        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t2_place" placeholder="例：ちやA"></div>
+        <div class="field" style="min-width:100px"><label>投入海区</label><select id="t2_kaiku"><option value="">—</option><option>A海区</option><option>B海区</option><option>トウフツ沖</option></select></div>
+        <div class="field" style="min-width:80px"><label>殻高(mm)</label><input type="number" step="any" inputmode="decimal" id="t2_mm" placeholder="1.7"></div>
+        <div class="field" style="min-width:100px"><label>付着(枚/袋)</label><input type="number" step="any" inputmode="decimal" id="t2_perbag" placeholder="6000"></div>
+        <div class="field" style="min-width:80px"><label>連数</label><input type="number" step="any" inputmode="decimal" id="t2_ren" placeholder="200"></div>
+        <div class="field" style="min-width:80px"><label>袋/連</label><input type="number" step="any" inputmode="decimal" id="t2_bpr" placeholder="8"></div>
+        <button class="btn sm" onclick="addTrial2()" style="height:38px">＋追加</button>
+      </div>
+      <div id="trials2Out"></div>
+    </div>
+    <div class="card">
+      <h2>📆 早どり・本どり 日次集計</h2>
+      <div class="hint">本操業の日ごとに「工程・連数・枚/連」を入れると、累計と目標到達率が出ます。</div>
+      <div class="filters" style="margin-bottom:6px">
+        <div class="field" style="min-width:110px"><label>日付</label><input type="date" id="d_date"></div>
+        <div class="field" style="min-width:110px"><label>工程</label><select id="d_phase"><option value="早どり">早どり（→①丸籠）</option><option value="本どり">本どり（→②丸籠）</option></select></div>
+        <div class="field" style="min-width:90px"><label>連数</label><input type="number" id="d_ren" placeholder="30"></div>
+        <div class="field" style="min-width:100px"><label>枚/連</label><input type="number" id="d_mep" placeholder="1750"></div>
+        <button class="btn sm" onclick="addDaily()" style="height:38px">＋追加</button>
+      </div>
+      <div id="dailyOut"></div>
+    </div>
+  </section>
+
+  <!-- ===== 設定・データ ===== -->
+  <section id="data">
+    <div class="card">
+      <h2>🎣 のし場所マスター</h2>
+      <div class="hint">実際ののし・場所を登録すると、各工程の入力で選べます。</div>
+      <div id="noshiMaster" class="noshi-manage"></div>
+      <div class="filters" style="margin-top:8px">
+        <div class="field" style="min-width:150px"><label>場所名</label><input id="newNoshiName" placeholder="例：長いのし"></div>
+        <div class="field" style="min-width:110px"><label>海区/エリア</label><input id="newNoshiArea" placeholder="例：湖内"></div>
+        <div class="field" style="min-width:90px"><label>水深(m)</label><input type="number" step="any" inputmode="decimal" id="newNoshiDepth" placeholder="任意"></div>
+        <button class="btn sm" onclick="addNoshi()" style="height:38px">＋追加</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>💾 バックアップ・データ移行</h2>
+      <div class="hint">データはこの端末のブラウザ内に保存されます。機種変更や共有の前に必ずバックアップを。</div>
+      <div class="row-actions">
+        <button class="btn ghost" onclick="exportJSON()">⬇️ 全データ書き出し（JSON・完全バックアップ）</button>
+        <label class="btn ghost" style="cursor:pointer">⬆️ JSON読み込み<input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
+      </div>
+      <div class="row-actions">
+        <button class="btn ghost" onclick="exportCSV()">⬇️ 記録をCSV書き出し（Excel用）</button>
+        <button class="btn ghost" onclick="restorePrev()">↩️ 直前の自動控えに戻す（1手前）</button>
+      </div>
+      <h3>復元・危険な操作</h3>
+      <div class="row-actions">
+        <button class="btn ghost" onclick="restoreAutobak()">↩️ 更新前の状態に戻す</button>
+        <button class="btn danger" onclick="wipeAll()">全データ削除</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🕘 復元ポイント（自動保存）</h2>
+      <div class="hint">記録を追加・変更するたびに、その時点が自動で保存されます（最新15件）。いつでも好きな時点に戻せます。※更新（アプリの更新）でも消えません。</div>
+      <div id="histList"></div>
+    </div>
+    <div class="card">
+      <h2>ℹ️ 使い方メモ</h2>
+      <div class="muted" style="font-size:13.5px;line-height:1.7">
+        ・工程は<b>投入→移動→水揚げ（早撮り）→丸籠1→丸籠2入替→生育管理→沈下/浮上→転換販売→放流</b>の順で進みます。<br>
+        ・「のし在庫」タブで、場所ごとに今何が下がっているか（ちょうちん／丸籠）が一目で分かります。<br>
+        ・移動（引き上げ）は<b>1回の記録で複数の下げ先</b>を入れられます。<br>
+        ・<b>アプリを更新しても過去データは引き継がれます</b>（更新前の控えも自動保存）。機種変更・共有はJSON書き出しで。<br>
+        ・データはブラウザ内（この端末）だけに保存。
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:10px" id="verLabel"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============ 定数：工程スキーマ ============ */
+const AREAS = ["A海区","B海区","トウフツ沖","その他"];
+/* のしマスターの初期リスト（公開版は空。各家で自分ののしを登録） */
+const NOSHI_LIST = []; /* 公開版: 各家で自分ののしを登録 */
+const KOUTEI = [
+  { key:"tounyu", name:"採苗器投入（海へ）", icon:"⚓", inv:()=>[], dateLabel:"海への投入日",
+    fields:[
+      {k:"kaiku", label:"投入場所（3海区）", type:"area"},
+      {k:"kukaku", label:"区画番号（例 2-2A）", type:"text"},
+      {k:"saibyoRen", label:"投入 連数（採苗器/ちょうちん）", type:"number"},
+      {k:"danInput", label:"投入時の段数", type:"number", def:16},
+      {k:"suishin", label:"投入水深(m)", type:"number"},
+      {k:"tenko", label:"投入時の天候", type:"text"},
+      {k:"chinkaMemo", label:"沈下方法（尺玉・石など）", type:"text"},
+    ]},
+  { key:"iko", name:"海→サロマ湖 移動（引き上げ）", icon:"🚚", dateLabel:"引き上げ日",
+    inv:(r)=> ikoDests(r).map(d=>({noshi:d.noshi, delta:num(d.ren), unit:"ren"})),
+    fields:[
+      {k:"kaikuFrom", label:"引き上げた海区", type:"area"},
+      {k:"danMove", label:"移動後の段数（半割）", type:"number", def:8},
+      {k:"dests", label:"下げ先（のし場所＋連数）※複数OK", type:"dests"},
+    ]},
+  { key:"mizuage", name:"水揚げ（早撮り）", icon:"🪝",
+    inv:(r)=>[{noshi:r.noshiFrom, delta:-num(r.renUp), unit:"ren"},{noshi:r.noshiTo, delta:num(r.marukago), unit:"kago"}],
+    fields:[
+      {k:"noshiFrom", label:"採苗器のある のし場所", type:"noshi"},
+      {k:"renUp", label:"引き上げた採苗器 連数", type:"number"},
+      {k:"chakusoPerBukuro", label:"付着稚貝数(個/袋)", type:"number"},
+      {k:"igaiPerBukuro", label:"イガイ数(個/袋)", type:"number"},
+      {k:"kakcho", label:"殻長(mm)", type:"number"},
+      {k:"marukago", label:"→ 丸籠1 の籠数", type:"number"},
+      {k:"amime", label:"丸籠1 の網目", type:"select", opts:["1部2厘","1部5厘","1部8厘"]},
+      {k:"noshiTo", label:"丸籠の下げ場所（のし）", type:"noshi"},
+    ]},
+  { key:"irekae", name:"丸籠1→丸籠2 入替（本どり）", icon:"🔄",
+    inv:(r)=>[{noshi:r.noshiFrom, delta:-num(r.kagoBefore), unit:"kago"},{noshi:r.noshiTo, delta:num(r.kagoAfter), unit:"kago"}],
+    fields:[
+      {k:"noshiFrom", label:"元ののし場所", type:"noshi"},
+      {k:"noshiTo", label:"移動先ののし場所", type:"noshi"},
+      {k:"kagoBefore", label:"入替前 籠数(丸籠1)", type:"number"},
+      {k:"kagoAfter", label:"入替後 籠数(丸籠2)", type:"number"},
+      {k:"amime", label:"丸籠2 の網目", type:"select", opts:["3部5厘"]},
+      {k:"chigaiPerKago", label:"稚貝数(個/籠)", type:"number"},
+      {k:"kakcho", label:"殻長(mm)", type:"number"},
+    ]},
+  { key:"seiiku", name:"生育管理（浮力）", icon:"🎈", inv:()=>[],
+    fields:[
+      {k:"noshi", label:"のし場所", type:"noshi"},
+      {k:"sagyo", label:"作業内容", type:"select", opts:["浮力調整","清掃","点検","水温測定","その他"]},
+      {k:"taishoKago", label:"対象籠数", type:"number"},
+      {k:"suion", label:"水温(℃)", type:"number"},
+    ]},
+  { key:"chinka", name:"沈下", icon:"⬇️", inv:()=>[], state:"沈下中",
+    fields:[
+      {k:"noshi", label:"のし場所", type:"noshi"},
+      {k:"taishoKago", label:"対象籠数", type:"number"},
+      {k:"suishin", label:"沈下水深(m)", type:"number"},
+    ]},
+  { key:"fujo", name:"浮上", icon:"⬆️", inv:()=>[], state:"浮上中",
+    fields:[
+      {k:"noshi", label:"のし場所", type:"noshi"},
+      {k:"taishoKago", label:"対象籠数", type:"number"},
+    ]},
+  { key:"tenkan", name:"転換販売", icon:"💰",
+    inv:(r)=>[{noshi:r.noshi, delta:-num(r.hanbaiKago), unit:"kago"}],
+    fields:[
+      {k:"noshi", label:"のし場所", type:"noshi"},
+      {k:"hanbaiKago", label:"販売した籠数", type:"number"},
+      {k:"suryo", label:"販売数量(個)", type:"number"},
+      {k:"tanka", label:"単価(円)", type:"number"},
+      {k:"uriage", label:"売上(円)", type:"number", auto:"uriage"},
+      {k:"hanbaisaki", label:"販売先", type:"text"},
+    ]},
+  { key:"houryu", name:"放流", icon:"🌊",
+    inv:(r)=>[{noshi:r.noshi, delta:-num(r.houryuKago), unit:"kago"}],
+    fields:[
+      {k:"noshi", label:"のし場所（あれば）", type:"noshi"},
+      {k:"basho", label:"放流場所", type:"text"},
+      {k:"houryuKago", label:"放流した籠数", type:"number"},
+      {k:"houryuSuryo", label:"放流数(個)", type:"number"},
+    ]},
+];
+const KMAP = Object.fromEntries(KOUTEI.map(k=>[k.key,k]));
+/* 移動(iko)の下げ先明細。新形式 r.dests[] を優先、旧単一形式(noshiTo/renTo)も互換 */
+function ikoDests(r){ if(r&&r.dests&&r.dests.length) return r.dests; if(r&&r.noshiTo) return [{noshi:r.noshiTo, ren:r.renTo, gawa:r.gawa}]; return []; }
+
+/* ============ 状態 ============ */
+// ⚠️ この保存キーは絶対に変更しないこと（変えると過去データが見えなくなる）。
+//   アプリを更新してもデータは同じキーから引き継がれる。スキーマ変更は下の migrate() で対応する。
+const LS_KEY = "hotate_saibou_v1";
+const APP_VERSION = "2026.07.07-8";
+let VERSION_BUMPED = false;
+let editingId = null;
+function migrate(d, from){
+  // 将来アプリを更新してスキーマが変わった時は、過去データを壊さずここで変換する。
+  // 現状：移動の単一→複数下げ先は読み取り時 ikoDests() で互換済み。破壊的変換は不要。
+  return d;
+}
+
+const CALC_DEFAULTS = {
+  houryuTarget:3000000, tenkanTarget:1000000,
+  houryuRen:2700, density:1750,
+  houryuLoss:22.5, tenkanLoss:30,
+  cage1:1500, cage2:4000,
+  earlyMin:10000, earlyMax:12000,
+  earlyLoss:0,
+  renPerNoshi:142, houryuNoshi:19
+};
+// load() は CALC_DEFAULTS を参照するため、宣言後に呼ぶ（TDZ回避）
+let DB = load();
+function load(){
+  let d=null;
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw) d=JSON.parse(raw); }catch(e){}
+  if(!d) d={
+    version:1,
+    season: new Date().getFullYear(),
+    noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
+    records: []
+  };
+  d.calc = Object.assign({}, CALC_DEFAULTS, d.calc||{});
+  d.trials = d.trials||[];
+  d.trials2 = d.trials2||[];
+  d.placePlan = d.placePlan||[];
+  d.saibyoEst = d.saibyoEst||{};
+  d.houseName = d.houseName!=null ? d.houseName : "";
+  d.dailyCalc = d.dailyCalc||[];
+  d.lastBackupAt = d.lastBackupAt||null;
+  // --- アプリ更新（バージョン変化）検知：データは引き継ぎ、更新前を自動バックアップ ---
+  if(d.appVersion !== APP_VERSION){
+    if(d.records && d.records.length){
+      try{ localStorage.setItem(LS_KEY+"_autobak", JSON.stringify(d)); localStorage.setItem(LS_KEY+"_autobak_at", new Date().toISOString()); }catch(e){}
+    }
+    if(d.appVersion) VERSION_BUMPED = true; // 前バージョンありの実更新のみ通知
+    d = migrate(d, d.appVersion);
+    d.appVersion = APP_VERSION;
+  }
+  return d;
+}
+let _skipHist=false;
+function save(){
+  try{ const cur=localStorage.getItem(LS_KEY); if(cur) localStorage.setItem(LS_KEY+"_prev", cur); }catch(e){}
+  localStorage.setItem(LS_KEY, JSON.stringify(DB));
+  if(!_skipHist) pushHistory(); // 追加・変更のたびに復元ポイントを自動保存（計算の入力中だけは除外）
+}
+function pushHistory(){
+  try{
+    const key=LS_KEY+"_hist"; let h=[];
+    try{ h=JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){}
+    const cur=localStorage.getItem(LS_KEY); if(!cur) return;
+    h.push({ at:new Date().toISOString(), label:`記録${(DB.records||[]).length}件`, json:cur });
+    while(h.length>15) h.shift();
+    localStorage.setItem(key, JSON.stringify(h));
+    if(document.getElementById("histList")) renderHistory();
+  }catch(e){}
+}
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function fmt(n){ return (n||0).toLocaleString("ja-JP"); }
+function noshiName(id){ const x=DB.noshi.find(n=>n.id===id); return x?x.name:(id||"—"); }
+function daysBetween(a,b){ if(!a||!b) return "—"; const d=(new Date(b)-new Date(a))/86400000; return isNaN(d)?"—":Math.round(d); }
+function uid(){ return "r"+Date.now().toString(36)+(_idc++).toString(36)+Math.floor(Math.random()*1e6).toString(36); }
+let _idc=0;
+function noshiUid(){ return "n"+Date.now().toString(36)+(_idc++).toString(36)+Math.floor(Math.random()*1e6).toString(36); }
+
+/* ============ タブ ============ */
+document.querySelectorAll("#tabs button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
+    if(b.dataset.tab==="list") renderList();
+    if(b.dataset.tab==="noshi") renderNoshiInv();
+    if(b.dataset.tab==="buoy") renderBuoy();
+    if(b.dataset.tab==="analysis") renderAnalysis();
+    if(b.dataset.tab==="calc") renderCalc();
+    if(b.dataset.tab==="data"){ renderNoshiMaster(); renderHistory(); }
+  };
+});
+
+/* ============ シーズン ============ */
+function seasons(){
+  const ys = new Set(DB.records.map(r=>r.season));
+  ys.add(DB.season);
+  return [...ys].sort((a,b)=>b-a);
+}
+function setSeason(y){ DB.season=parseInt(y); save(); refreshAll(); }
+function renderSeasonSel(){
+  const sel=document.getElementById("seasonSel");
+  const list=seasons();
+  const curY=new Date().getFullYear();
+  for(let y=curY+1;y>=2020;y--){ if(!list.includes(y)) list.push(y); }
+  list.sort((a,b)=>b-a);
+  sel.innerHTML=list.map(y=>`<option value="${y}" ${y===DB.season?"selected":""}>${y}年 シーズン</option>`).join("");
+  const cnt=DB.records.filter(r=>r.season===DB.season).length;
+  document.getElementById("seasonNote").textContent=`（記録 ${cnt} 件）`;
+}
+
+/* ============ 入力フォーム ============ */
+function initKouteiSel(){
+  document.getElementById("kouteiSel").innerHTML = KOUTEI.map(k=>`<option value="${k.key}">${k.icon} ${k.name}</option>`).join("");
+  document.getElementById("fltKoutei").innerHTML = `<option value="">すべて</option>`+KOUTEI.map(k=>`<option value="${k.key}">${k.icon} ${k.name}</option>`).join("");
+}
+function areaOptions(v){ return AREAS.map(a=>`<option ${a===v?"selected":""}>${a}</option>`).join(""); }
+function noshiOptions(v){ return `<option value="">— 選択 —</option>`+DB.noshi.map(n=>`<option value="${n.id}" ${n.id===v?"selected":""}>${escapeHtml(n.name)}</option>`).join(""); }
+
+function renderForm(data){
+  const k=KMAP[document.getElementById("kouteiSel").value];
+  data=data||{};
+  const today=new Date().toISOString().slice(0,10);
+  let html=`<div class="grid">
+    <div class="field"><label>${k.dateLabel||"日付"}</label><input type="date" id="f_date" value="${data.date||today}"></div>`;
+  k.fields.forEach(f=>{
+    const has=data[f.k]!=null && data[f.k]!=="";
+    const val=has?data[f.k]:((f.def!=null && !editingId)?f.def:"");
+    let input="";
+    if(f.type==="number") input=`<input type="number" step="any" inputmode="decimal" id="f_${f.k}" value="${val}" ${f.auto?`data-auto="${f.auto}"`:""}>`;
+    else if(f.type==="date") input=`<input type="date" id="f_${f.k}" value="${val}">`;
+    else if(f.type==="text") input=`<input type="text" id="f_${f.k}" value="${escapeHtml(val)}">`;
+    else if(f.type==="area") input=`<select id="f_${f.k}">${areaOptions(val)}</select>`;
+    else if(f.type==="noshi") input=`<select id="f_${f.k}">${noshiOptions(val)}</select>`;
+    else if(f.type==="select") input=`<select id="f_${f.k}">${f.opts.map(o=>`<option ${o===val?"selected":""}>${o}</option>`).join("")}</select>`;
+    else if(f.type==="dests") input=`<div id="destsWrap"></div><button type="button" class="btn sm ghost" onclick="addDestRow()" style="margin-top:4px">＋ 下げ先を追加</button>`;
+    html+=`<div class="field"${f.type==="dests"?' style="grid-column:1/-1"':''}><label>${f.label}</label>${input}</div>`;
+  });
+  html+=`</div><div class="field" style="margin-top:12px"><label>メモ・気づき</label><textarea id="f_memo">${escapeHtml(data.memo||"")}</textarea></div>`;
+  document.getElementById("formArea").innerHTML=html;
+  if(k.fields.some(f=>f.type==="dests")) renderDestRows(ikoDests(data));
+  // 投入場所→水深の自動補完（A28/B15/トウフツ25m）
+  if(k.key==="tounyu"){
+    const ksel=document.getElementById("f_kaiku"), dep=document.getElementById("f_suishin");
+    const AREA_DEPTH={"A海区":28,"B海区":15,"トウフツ沖":25};
+    if(ksel&&dep){
+      if(!dep.value && AREA_DEPTH[ksel.value]) dep.value=AREA_DEPTH[ksel.value];
+      ksel.addEventListener("change",()=>{ if(!dep.value||Object.values(AREA_DEPTH).includes(num(dep.value))) dep.value=AREA_DEPTH[ksel.value]||dep.value; });
+    }
+  }
+  // 売上自動計算
+  const tanka=document.getElementById("f_tanka"), suryo=document.getElementById("f_suryo"), uriage=document.getElementById("f_uriage");
+  if(tanka&&suryo&&uriage){
+    const calc=()=>{ if(num(tanka.value)&&num(suryo.value)) uriage.value=Math.round(num(tanka.value)*num(suryo.value)); };
+    tanka.addEventListener("input",calc); suryo.addEventListener("input",calc);
+  }
+  document.getElementById("editingBadge").textContent = editingId ? "✏️ 既存の記録を編集中" : "";
+}
+function resetForm(){ editingId=null; renderForm(); }
+
+function saveRecord(){
+  const k=KMAP[document.getElementById("kouteiSel").value];
+  const rec={ id: editingId||uid(), koutei:k.key, season:DB.season, date:document.getElementById("f_date").value, memo:val("memo") };
+  k.fields.forEach(f=>{ if(f.type==="dests") rec[f.k]=collectDests(); else rec[f.k]=val(f.k); });
+  if(k.key==="tenkan" && !num(rec.uriage) && num(rec.tanka) && num(rec.suryo)) rec.uriage=Math.round(num(rec.tanka)*num(rec.suryo));
+  if(!rec.date){ toast("日付を入れてください"); return; }
+  if(k.fields.some(f=>f.type==="dests") && (!rec.dests||!rec.dests.length)){ toast("下げ先（のし場所＋連数）を1つ以上入れてください"); return; }
+  const wasEditing=!!editingId;
+  if(editingId){
+    const i=DB.records.findIndex(r=>r.id===editingId);
+    if(i>=0) DB.records[i]=rec;
+  }else{
+    DB.records.push(rec);
+  }
+  save(); editingId=null;
+  renderForm(); renderRecent(); renderSeasonSel();
+  flashSaved(k, wasEditing);
+}
+function flashSaved(k, wasEditing){
+  const el=document.getElementById("saveFlash");
+  if(el){ el.style.display="block";
+    el.innerHTML=`✅ ${wasEditing?"更新":"記録"}しました！ <span style="font-weight:400;color:var(--sub)">（${k.icon} ${k.name}）</span>`;
+    clearTimeout(window._sfT); window._sfT=setTimeout(()=>{ el.style.display="none"; }, 3500);
+  }
+  toast("✅ "+k.name+" を保存しました");
+}
+function collectDests(){ return [...document.querySelectorAll("#destsWrap .dest-row")].map(row=>({
+  noshi: row.querySelector(".dest-noshi").value,
+  ren: num(row.querySelector(".dest-ren").value),
+  gawa: (row.querySelector(".dest-gawa").value||"").trim()
+})).filter(d=>d.noshi && d.ren>0); }
+function destRowHtml(d){ d=d||{};
+  return `<div class="dest-row" style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:#fbfdff">
+    <div style="display:grid;grid-template-columns:1fr 96px;gap:6px">
+      <div><select class="dest-noshi">${noshiOptions(d.noshi||"")}</select></div>
+      <div><input type="number" step="any" inputmode="decimal" class="dest-ren" placeholder="連数" value="${(d.ren!=null&&d.ren!=="")?d.ren:""}"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+      <input type="text" class="dest-gawa" placeholder="メモ（上側/下側/分岐など）" value="${escapeHtml(d.gawa||"")}" style="flex:1">
+      <button type="button" class="btn sm danger" onclick="this.closest('.dest-row').remove()">✕</button>
+    </div>
+  </div>`;
+}
+function renderDestRows(dests){ const w=document.getElementById("destsWrap"); if(!w) return; const arr=(dests&&dests.length)?dests:[{}]; w.innerHTML=arr.map(destRowHtml).join(""); }
+function addDestRow(){ const w=document.getElementById("destsWrap"); if(!w) return; w.insertAdjacentHTML("beforeend", destRowHtml({})); }
+function val(id){ const el=document.getElementById("f_"+id); return el?el.value:""; }
+
+function editRecord(id){
+  const r=DB.records.find(x=>x.id===id); if(!r) return;
+  editingId=id;
+  document.getElementById("kouteiSel").value=r.koutei;
+  // switch to entry tab
+  document.querySelector('#tabs button[data-tab="entry"]').click();
+  renderForm(r);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function deleteRecord(id){
+  if(!confirm("この記録を削除しますか？")) return;
+  DB.records=DB.records.filter(r=>r.id!==id);
+  save(); refreshAll();
+  toast("削除しました");
+}
+
+/* ============ 直近リスト ============ */
+function renderRecent(){
+  const rs=DB.records.filter(r=>r.season===DB.season).sort(byDateDesc).slice(0,8);
+  document.getElementById("recentList").innerHTML = rs.length? recordTable(rs) : `<div class="empty">まだ記録がありません。上のフォームから最初の記録を入れてみてください。</div>`;
+}
+function byDateDesc(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.id).localeCompare(a.id); }
+
+/* ============ 記録一覧 ============ */
+function renderList(){
+  const fk=document.getElementById("fltKoutei").value;
+  const fn=document.getElementById("fltNoshi").value;
+  const ft=(document.getElementById("fltText").value||"").toLowerCase();
+  let rs=DB.records.filter(r=>r.season===DB.season);
+  if(fk) rs=rs.filter(r=>r.koutei===fk);
+  if(fn) rs=rs.filter(r=>[r.noshi,r.noshiTo,r.noshiFrom].includes(fn) || ikoDests(r).some(d=>d.noshi===fn));
+  if(ft) rs=rs.filter(r=>JSON.stringify(r).toLowerCase().includes(ft));
+  rs.sort(byDateDesc);
+  document.getElementById("listArea").innerHTML = rs.length? recordTable(rs,true) : `<div class="empty">該当する記録がありません。</div>`;
+}
+function recordTable(rs, full){
+  const rows=rs.map(r=>{
+    const k=KMAP[r.koutei];
+    return `<tr>
+      <td>${r.date||"—"}</td>
+      <td><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:r.koutei}</span></td>
+      <td>${summary(r)}</td>
+      <td class="muted">${escapeHtml(r.memo||"")}</td>
+      <td><button class="btn sm ghost" onclick="editRecord('${r.id}')">編集</button> <button class="btn sm danger" onclick="deleteRecord('${r.id}')">削除</button></td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-wrap"><table><thead><tr><th>日付</th><th>工程</th><th>内容</th><th>メモ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function summary(r){
+  switch(r.koutei){
+    case "tounyu": return `<b>${r.kaiku||"?"}</b>${r.kukaku?" "+r.kukaku:""}／${fmt(num(r.saibyoRen))}連・${r.danInput||16}段・水深${r.suishin||"?"}m`;
+    case "iko": { const ds=ikoDests(r); return `<b>${r.kaikuFrom||"?"}</b> 引き上げ → ${ds.map(d=>noshiName(d.noshi)+" "+fmt(num(d.ren))+"連"+(d.gawa?"("+escapeHtml(d.gawa)+")":"")).join("・")||"—"}（${r.danMove||8}段）`; }
+    case "mizuage": return `${noshiName(r.noshiFrom)} → ${noshiName(r.noshiTo)}／採苗器${fmt(num(r.renUp))}連・付着${fmt(num(r.chakusoPerBukuro))}個/袋・丸籠${r.amime||""} ${fmt(num(r.marukago))}籠`;
+    case "irekae": return `${noshiName(r.noshiFrom)}(${fmt(num(r.kagoBefore))}籠) → ${noshiName(r.noshiTo)} 丸籠${r.amime||"3部5厘"}(${fmt(num(r.kagoAfter))}籠)`;
+    case "seiiku": return `${noshiName(r.noshi)}／${r.sagyo||""}・${fmt(num(r.taishoKago))}籠`;
+    case "chinka": return `${noshiName(r.noshi)}／沈下 ${fmt(num(r.taishoKago))}籠・水深${r.suishin||"?"}m`;
+    case "fujo": return `${noshiName(r.noshi)}／浮上 ${fmt(num(r.taishoKago))}籠`;
+    case "tenkan": return `${noshiName(r.noshi)}／${fmt(num(r.hanbaiKago))}籠・${fmt(num(r.suryo))}個・売上¥${fmt(num(r.uriage))}${r.hanbaisaki?"・"+r.hanbaisaki:""}`;
+    case "houryu": return `${r.basho||noshiName(r.noshi)}／放流 ${fmt(num(r.houryuKago))}籠・${fmt(num(r.houryuSuryo))}個`;
+    default: return "";
+  }
+}
+function tagColor(key){
+  const c={larva:"#dcecd6",tounyu:"#d6e8f4",iko:"#c9e4d6",mizuage:"#cfe4f2",irekae:"#e5ddf2",seiiku:"#fdeecb",chinka:"#d9e7f0",fujo:"#e7f0d9",tenkan:"#fbe0cf",houryu:"#cfeef0"};
+  return c[key]||"#eee";
+}
+
+/* ============ のし在庫 ============ */
+function computeInventory(){
+  const ren={}, kago={}; DB.noshi.forEach(n=>{ren[n.id]=0;kago[n.id]=0;});
+  DB.records.filter(r=>r.season===DB.season).forEach(r=>{
+    const k=KMAP[r.koutei]; if(!k||!k.inv) return;
+    k.inv(r).forEach(m=>{ if(!m.noshi) return; const bag=(m.unit==="kago")?kago:ren; if(bag[m.noshi]!=null) bag[m.noshi]+=m.delta; });
+  });
+  return {ren,kago};
+}
+function noshiState(){
+  const st={};
+  DB.records.filter(r=>r.season===DB.season && (r.koutei==="chinka"||r.koutei==="fujo"))
+    .sort((a,b)=>(a.date||"").localeCompare(b.date||""))
+    .forEach(r=>{ if(r.noshi) st[r.noshi]={state:KMAP[r.koutei].state,date:r.date}; });
+  return st;
+}
+function bars(rows, unit){
+  if(!rows.length) return `<div class="empty">記録が入ると集計されます。</div>`;
+  const max=Math.max(...rows.map(r=>r.v),1);
+  return rows.map(r=>`<div class="bar-row"><div class="lbl">${r.name}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,r.v/max*100)}%">${fmt(r.v)}${unit}</div></div></div>`).join("");
+}
+/* のしごとに「何が下がっているか」（ちょうちん＝元海区別／丸籠＝網目別）を集計 */
+function reduceBucket(obj, amt){ let left=num(amt);
+  Object.keys(obj).sort((a,b)=>obj[b]-obj[a]).forEach(k=>{ if(left<=0)return; const t=Math.min(obj[k],left); obj[k]-=t; left-=t; if(obj[k]<=0) delete obj[k]; });
+}
+function noshiItems(){
+  const map={}; const ens=id=>{ if(!map[id]) map[id]={chochin:{},kago:{}}; return map[id]; };
+  DB.records.filter(r=>r.season===DB.season).forEach(r=>{
+    if(r.koutei==="iko"){ const o=r.kaikuFrom||"?"; ikoDests(r).forEach(d=>{ if(!d.noshi) return; const m=ens(d.noshi); m.chochin[o]=(m.chochin[o]||0)+num(d.ren); }); }
+    else if(r.koutei==="mizuage"){
+      if(r.noshiFrom) reduceBucket(ens(r.noshiFrom).chochin, num(r.renUp));
+      if(r.noshiTo && num(r.marukago)){ const mesh=r.amime||"(網目未記入)"; const m=ens(r.noshiTo); m.kago[mesh]=(m.kago[mesh]||0)+num(r.marukago); }
+    }
+    else if(r.koutei==="irekae"){
+      if(r.noshiFrom) reduceBucket(ens(r.noshiFrom).kago, num(r.kagoBefore));
+      if(r.noshiTo){ const mesh=r.amime||"3部5厘"; const m=ens(r.noshiTo); m.kago[mesh]=(m.kago[mesh]||0)+num(r.kagoAfter); }
+    }
+    else if(r.koutei==="tenkan" && r.noshi) reduceBucket(ens(r.noshi).kago, num(r.hanbaiKago));
+    else if(r.koutei==="houryu" && r.noshi) reduceBucket(ens(r.noshi).kago, num(r.houryuKago));
+  });
+  return map;
+}
+function renderNoshiInv(){
+  const {ren,kago}=computeInventory();
+  const renIds=DB.noshi.map(n=>n.id).filter(id=>(ren[id]||0)>0);
+  const kagoIds=DB.noshi.map(n=>n.id).filter(id=>(kago[id]||0)>0);
+  const totalRen=Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0);
+  const totalKago=Object.values(kago).reduce((a,b)=>a+Math.max(0,b),0);
+  const active=new Set([...renIds,...kagoIds]).size;
+  const hasNeg=Object.values(ren).some(v=>v<0)||Object.values(kago).some(v=>v<0);
+  document.getElementById("noshiKpi").innerHTML=`
+    <div class="kpi"><div class="v">${fmt(totalRen)}<span style="font-size:13px">連</span></div><div class="l">採苗器 下がり合計</div></div>
+    <div class="kpi"><div class="v">${fmt(totalKago)}<span style="font-size:13px">籠</span></div><div class="l">丸籠 下がり合計</div></div>
+    <div class="kpi"><div class="v">${active}</div><div class="l">稼働中ののし場所</div></div>`;
+  const items=noshiItems();
+  const brk=DB.noshi.map(n=>{
+    const it=items[n.id]; if(!it) return "";
+    const chips=[];
+    Object.entries(it.chochin).forEach(([o,v])=>{ if(v>0) chips.push(`<span class="chip">🏮 ちょうちん(元${o}) ${fmt(v)}連</span>`); });
+    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(`<span class="chip" style="background:#e5ddf2">📦 丸籠${m} ${fmt(v)}籠</span>`); });
+    if(!chips.length) return "";
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${escapeHtml(n.name)}</b>${n.depth?`<span class="muted" style="font-size:11px"> ・${escapeHtml(n.area||"")} ${n.depth}m</span>`:""}<div style="margin-top:5px">${chips.join(" ")}</div></div>`;
+  }).filter(Boolean).join("");
+  const warn = hasNeg? `<div style="background:#fdeee0;border:1px solid #f0c7a0;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#b45309;margin-bottom:8px">⚠️ 差し引きがマイナスになった場所があります。記録の順序（移動→水揚げ→販売）や連数・籠数をご確認ください。</div>`:"";
+  document.getElementById("noshiInv").innerHTML = warn + (brk || `<div class="empty">移動・水揚げを記録すると、のしごとに「何が下がっているか」（ちょうちん／丸籠の網目別）が出ます。</div>`);
+  // 状態
+  const st=noshiState();
+  const stRows=DB.noshi.map(n=>{
+    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
+    if(!s && rv===0 && kv===0) return "";
+    const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${s.date}）</span>`:`<span class="muted">—</span>`;
+    return `<tr><td>${n.name}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td></tr>`;
+  }).filter(Boolean).join("");
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+}
+
+/* ============ 浮力管理 ============ */
+function numOrNull(v){ if(v===""||v==null) return null; const x=parseFloat(v); return isNaN(x)?null:x; }
+function buoyDiagram(n, b){
+  const wd=(n.depth!=null&&n.depth>0)?n.depth:18;
+  const H=160,W=108,top=22,bot=H-16,ih=bot-top;
+  const yFor=m=> top + Math.max(0,Math.min(1,m/wd))*ih;
+  const setD=(b.depth!=null)?Math.max(0,Math.min(b.depth,wd)):null;
+  const gy=setD!=null?yFor(setD):top+8;
+  let g="";
+  g+=`<rect x="30" y="${top}" width="44" height="${ih}" fill="#dcecf7" stroke="#c9dcea"/>`;
+  g+=`<line x1="16" y1="${top}" x2="92" y2="${top}" stroke="#1d5b8f" stroke-width="2"/><text x="16" y="${top-6}" font-size="9" fill="#1d5b8f">海面 0m</text>`;
+  g+=`<line x1="16" y1="${bot}" x2="96" y2="${bot}" stroke="#7a5a33" stroke-width="2" stroke-dasharray="3 2"/><text x="96" y="${bot+11}" font-size="9" fill="#7a5a33" text-anchor="end">水深 ${wd}m</text>`;
+  g+=`<circle cx="52" cy="${top-2}" r="6" fill="#ffcf3f" stroke="#c2691a"/>`;
+  if(b.floats!=null) g+=`<text x="60" y="${top+2}" font-size="9" fill="#c2691a">×${fmt(b.floats)}</text>`;
+  g+=`<line x1="52" y1="${top}" x2="52" y2="${gy}" stroke="#8aa" stroke-dasharray="2 2"/>`;
+  g+=`<rect x="42" y="${gy}" width="20" height="${Math.max(10,Math.min(bot-gy-3,34))}" rx="3" fill="#1d5b8f"/>`;
+  if(setD!=null){ g+=`<line x1="68" y1="${top}" x2="68" y2="${gy}" stroke="#c2691a"/><text x="71" y="${(top+gy)/2+3}" font-size="9" fill="#c2691a">${setD}m</text>`; }
+  else g+=`<text x="66" y="${gy+3}" font-size="9" fill="#999">深さ?</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="flex:0 0 auto">${g}</svg>`;
+}
+function renderBuoy(){
+  const items=noshiItems();
+  const rows=DB.noshi.map(n=>{
+    const it=items[n.id]; const b=n.buoy||{};
+    const chochin=it?Object.values(it.chochin).reduce((a,v)=>a+v,0):0;
+    const kago=it?Object.values(it.kago).reduce((a,v)=>a+v,0):0;
+    const hasLoad=chochin>0||kago>0;
+    const hasBuoy=b.floats!=null||b.depth!=null||b.stones!=null||(b.memo&&b.memo.length);
+    if(!hasLoad&&!hasBuoy) return "";
+    const loadChips=[];
+    if(chochin>0) loadChips.push(`🏮 ちょうちん ${fmt(chochin)}連`);
+    if(kago>0) loadChips.push(`📦 丸籠 ${fmt(kago)}籠`);
+    return `<div class="card" style="box-shadow:none;background:var(--ice);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div><b style="color:var(--navy);font-size:15px">${escapeHtml(n.name)}</b> <span class="muted" style="font-size:12px">${escapeHtml(n.area||"")}${n.depth?" ・水深"+n.depth+"m":""}</span></div>
+        <div class="muted" style="font-size:12px">${loadChips.join(" ／ ")||"吊り下げなし"}</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start">
+        ${buoyDiagram(n,b)}
+        <div style="flex:1;min-width:210px">
+          <div class="grid" style="grid-template-columns:1fr 1fr">
+            <div class="field"><label>浮き玉（個）</label><input type="number" step="any" inputmode="decimal" id="b_floats_${n.id}" value="${b.floats!=null?b.floats:""}"></div>
+            <div class="field"><label>海面からの深さ(m)</label><input type="number" step="any" inputmode="decimal" id="b_depth_${n.id}" value="${b.depth!=null?b.depth:""}"></div>
+            <div class="field"><label>石・沈子（個）</label><input type="number" step="any" inputmode="decimal" id="b_stones_${n.id}" value="${b.stones!=null?b.stones:""}"></div>
+            <div class="field"><label>メモ</label><input type="text" id="b_memo_${n.id}" value="${escapeHtml(b.memo||"")}"></div>
+          </div>
+          <div class="row-actions" style="margin-top:8px">
+            <button class="btn sm" onclick="saveBuoy('${n.id}')">💾 保存</button>
+            <span class="muted" style="font-size:11px;align-self:center">${b.updatedAt?("更新 "+b.updatedAt.slice(0,10)):"未設定"}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).filter(Boolean).join("");
+  document.getElementById("buoyList").innerHTML = rows || `<div class="empty">移動・水揚げで何かを下げると、のしごとの浮力管理が出ます。</div>`;
+}
+function saveBuoy(id){
+  const n=DB.noshi.find(x=>x.id===id); if(!n) return;
+  n.buoy={ floats:numOrNull(document.getElementById("b_floats_"+id).value),
+    depth:numOrNull(document.getElementById("b_depth_"+id).value),
+    stones:numOrNull(document.getElementById("b_stones_"+id).value),
+    memo:(document.getElementById("b_memo_"+id).value||"").trim(),
+    updatedAt:new Date().toISOString() };
+  save(); renderBuoy(); toast("🎈 "+n.name+" の浮力設定を保存しました");
+}
+
+/* ============ 分析 ============ */
+function renderAnalysis(){ renderSaibyoDaicho(); renderFunnel(); renderChakuso(); renderYearCompare(); }
+
+/* 海区ごとの付着見込み（枚/連）：手入力があれば優先、無ければ付着ベース見込み→試運転から自動参照 */
+function autoEstForKaiku(a){
+  const t2=(DB.trials2||[]).filter(t=>t.season===DB.season && t.kaiku===a && num(t.perbag)>0);
+  if(t2.length){ return t2.reduce((s,t)=>s+num(t.perbag)*(num(t.bpr)||8),0)/t2.length; }
+  const t1=(DB.trials||[]).filter(t=>t.season===DB.season && t.kaiku===a && num(t.sampleRen)>0);
+  if(t1.length){ return t1.reduce((s,t)=>s+num(t.count)/num(t.sampleRen),0)/t1.length; }
+  return 0;
+}
+function estForKaiku(a){ const o=DB.saibyoEst&&DB.saibyoEst[a]; return (o!=null&&o!=="")?num(o):autoEstForKaiku(a); }
+function saveSaibyoEst(a,v){ DB.saibyoEst=DB.saibyoEst||{}; if(v===""||v==null){ delete DB.saibyoEst[a]; } else { DB.saibyoEst[a]=num(v); } _skipHist=true; save(); _skipHist=false; renderSaibyoDaicho(); }
+function renderSaibyoDaicho(){
+  const inRs=DB.records.filter(r=>r.koutei==="tounyu" && r.season===DB.season);
+  const mvRs=DB.records.filter(r=>r.koutei==="iko" && r.season===DB.season);
+  const el=document.getElementById("saibyoDaicho");
+  if(!inRs.length && !mvRs.length){ el.innerHTML=`<div class="empty">採苗器投入・移動の記録を入れると、投入日・移動日・下げ場所の台帳がここに出ます。</div>`; return; }
+  const areaOrder=["A海区","B海区","トウフツ沖","その他","不明"];
+  const areas=[...new Set([...inRs.map(r=>r.kaiku||"不明"),...mvRs.map(r=>r.kaikuFrom||"不明")])]
+    .sort((a,b)=>areaOrder.indexOf(a)-areaOrder.indexOf(b));
+  const totalIn=inRs.reduce((a,r)=>a+num(r.saibyoRen),0);
+  const totalMv=mvRs.reduce((a,r)=>a+ikoDests(r).reduce((x,d)=>x+num(d.ren),0),0);
+  let grandGrain=0;
+  const cards=areas.map(a=>{
+    const ins=inRs.filter(r=>(r.kaiku||"不明")===a).sort((x,y)=>(x.date||"").localeCompare(y.date||""));
+    const mvs=mvRs.filter(r=>(r.kaikuFrom||"不明")===a).sort((x,y)=>(x.date||"").localeCompare(y.date||""));
+    const baseDate=ins[0]?ins[0].date:null;
+    const inRen=ins.reduce((x,r)=>x+num(r.saibyoRen),0);
+    const mvRen=mvs.reduce((x,r)=>x+ikoDests(r).reduce((y,d)=>y+num(d.ren),0),0);
+    const est=estForKaiku(a), auto=autoEstForKaiku(a);
+    const overridden=DB.saibyoEst && DB.saibyoEst[a]!=null && DB.saibyoEst[a]!=="";
+    const areaGrain=mvRen*est; grandGrain+=areaGrain;
+    const inLine=ins.length?ins.map(r=>`${r.date}：<b>${fmt(num(r.saibyoRen))}連</b>${r.kukaku?"（"+r.kukaku+"）":""}`).join(" ／ "):'<span class="muted">投入記録なし</span>';
+    const estBox=`<div style="font-size:12px;margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="muted">付着見込み（枚/連）</span><input type="number" step="any" inputmode="decimal" value="${overridden?DB.saibyoEst[a]:(auto>0?Math.round(auto):"")}" onchange="saveSaibyoEst('${a}',this.value)" style="width:120px;padding:6px 8px">${auto>0?`<span class="muted" style="font-size:11px">自動参照 ${fmt(Math.round(auto))}${overridden?"（手入力優先中）":""}</span>`:`<span class="muted" style="font-size:11px">試運転/付着見込みを入れると自動参照</span>`}</div>`;
+    const mvTable=mvs.length?`<div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>引き上げ日</th><th class="num">経過</th><th>下げた のし</th><th class="num">連数</th><th class="num">見込み粒</th><th>メモ</th><th></th></tr></thead><tbody>`+
+      mvs.map(r=>{ const ds=ikoDests(r); return (ds.length?ds:[{}]).map((d,i)=>`<tr><td>${i===0?r.date:""}</td><td class="num">${(i===0&&baseDate)?daysBetween(baseDate,r.date)+"日":""}</td><td>${noshiName(d.noshi)}</td><td class="num">${fmt(num(d.ren))}連</td><td class="num">${est>0?"<b>"+fmt(Math.round(num(d.ren)*est))+"</b>":"—"}</td><td class="muted">${escapeHtml(d.gawa||"")}</td><td>${i===0?`<button class="btn sm ghost" onclick="editRecord('${r.id}')">編集</button>`:""}</td></tr>`).join(""); }).join("")+
+      `<tr style="background:#dfeaf4"><td colspan="4"><b>${a} 見込み合計</b></td><td class="num"><b>${est>0?fmt(Math.round(areaGrain))+"粒":"—"}</b></td><td colspan="2"></td></tr></tbody></table></div>`:'<div class="muted" style="margin-top:6px">まだ引き上げ（移動）記録なし＝海に投入中</div>';
+    const moved=mvs.length>0;
+    return `<div class="card" style="box-shadow:none;background:var(--ice);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div><b style="color:var(--navy);font-size:15px">${a}</b> <span class="tag" style="background:${moved?"#dcecd6":"#fbe0cf"}">${moved?"移動済":"海に投入中"}</span></div>
+        <div class="muted" style="font-size:12px">投入 ${fmt(inRen)}連 → 移動 ${fmt(mvRen)}連${est>0?` → <b style="color:var(--navy)">見込み ${fmt(Math.round(areaGrain))}粒</b>`:""}</div>
+      </div>
+      <div style="font-size:13px;margin-top:6px">海への投入：${inLine}</div>
+      ${estBox}
+      ${mvTable}
+    </div>`;
+  }).join("");
+  const kpi=`<div class="kpi"><div class="v">${fmt(totalIn)}<span style="font-size:13px">連</span></div><div class="l">海へ投入 合計</div></div>
+    <div class="kpi"><div class="v">${fmt(totalMv)}<span style="font-size:13px">連</span></div><div class="l">湖内へ移動 合計（半割後）</div></div>
+    <div class="kpi"><div class="v" style="color:var(--navy)">${grandGrain>0?fmt(Math.round(grandGrain)):"—"}</div><div class="l">総見込み 粒</div></div>`;
+  el.innerHTML=`<div class="kpi-grid" style="margin-bottom:12px">${kpi}</div>${cards}`;
+}
+
+function renderFunnel(){
+  const rs=DB.records.filter(r=>r.season===DB.season);
+  const tounyu=rs.filter(r=>r.koutei==="tounyu").reduce((a,r)=>a+num(r.saibyoRen),0);
+  const ikoRen=rs.filter(r=>r.koutei==="iko").reduce((a,r)=>a+ikoDests(r).reduce((x,d)=>x+num(d.ren),0),0);
+  const mizuageRen=rs.filter(r=>r.koutei==="mizuage").reduce((a,r)=>a+num(r.renUp),0);
+  const marukago=rs.filter(r=>r.koutei==="mizuage").reduce((a,r)=>a+num(r.marukago),0);
+  const chigaiTotal=rs.filter(r=>r.koutei==="mizuage").reduce((a,r)=>a+num(r.chakusoPerBukuro)*num(r.renUp),0);
+  const hanbai=rs.filter(r=>r.koutei==="tenkan").reduce((a,r)=>a+num(r.suryo),0);
+  const houryu=rs.filter(r=>r.koutei==="houryu").reduce((a,r)=>a+num(r.houryuSuryo),0);
+  const uriage=rs.filter(r=>r.koutei==="tenkan").reduce((a,r)=>a+num(r.uriage),0);
+  const steps=[
+    {l:"投入 採苗器(海)",v:tounyu,u:"連"},
+    {l:"湖内へ移動",v:ikoRen,u:"連"},
+    {l:"水揚げ 採苗器",v:mizuageRen,u:"連"},
+    {l:"付着稚貝 推定",v:chigaiTotal,u:"個"},
+    {l:"丸籠 投入",v:marukago,u:"籠"},
+    {l:"販売+放流",v:hanbai+houryu,u:"個"},
+  ];
+  const max=Math.max(...steps.map(s=>s.v),1);
+  const bars=steps.map(s=>`<div class="bar-row"><div class="lbl">${s.l}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,s.v/max*100)}%">${fmt(Math.round(s.v))}${s.u}</div></div></div>`).join("");
+  const kpi=`<div class="kpi-grid" style="margin-bottom:12px">
+    <div class="kpi"><div class="v">${fmt(tounyu)}</div><div class="l">投入 採苗器(連)</div></div>
+    <div class="kpi"><div class="v">${fmt(marukago)}</div><div class="l">丸籠 投入(籠)</div></div>
+    <div class="kpi"><div class="v">¥${fmt(uriage)}</div><div class="l">転換販売 売上</div></div>
+  </div>`;
+  document.getElementById("funnel").innerHTML = (tounyu||mizuageRen||marukago)? kpi+bars : `<div class="empty">投入・水揚げの記録が入ると、ここに歩留まりが出ます。</div>`;
+}
+
+function renderChakuso(){
+  const rs=DB.records.filter(r=>r.season===DB.season && r.koutei==="mizuage");
+  const byNoshi={};
+  rs.forEach(r=>{ const a=noshiName(r.noshiFrom)||"不明"; byNoshi[a]=byNoshi[a]||{sum:0,n:0}; byNoshi[a].sum+=num(r.chakusoPerBukuro); byNoshi[a].n++; });
+  const rows=Object.entries(byNoshi).map(([a,o])=>({a,avg:o.n?o.sum/o.n:0})).sort((x,y)=>y.avg-x.avg);
+  if(!rows.length){ document.getElementById("chakusoByKaiku").innerHTML=`<div class="empty">水揚げ記録が入ると、のし場所別の付着数が出ます。</div>`; return; }
+  const max=Math.max(...rows.map(r=>r.avg),1);
+  document.getElementById("chakusoByKaiku").innerHTML = rows.map(r=>`<div class="bar-row"><div class="lbl">${r.a}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,r.avg/max*100)}%">${fmt(Math.round(r.avg))}個/袋</div></div></div>`).join("");
+}
+
+function renderYearCompare(){
+  const bySeason={};
+  DB.records.forEach(r=>{ bySeason[r.season]=bySeason[r.season]||{tounyu:0,marukago:0,chakusoSum:0,chakusoN:0,uriage:0};
+    const o=bySeason[r.season];
+    if(r.koutei==="tounyu") o.tounyu+=num(r.saibyoRen);
+    if(r.koutei==="mizuage"){ o.marukago+=num(r.marukago); if(num(r.chakusoPerBukuro)){o.chakusoSum+=num(r.chakusoPerBukuro);o.chakusoN++;} }
+    if(r.koutei==="tenkan") o.uriage+=num(r.uriage);
+  });
+  const years=Object.keys(bySeason).sort();
+  if(!years.length){ document.getElementById("yearCompare").innerHTML=`<div class="empty">2シーズン以上のデータが貯まると比較できます。</div>`; return; }
+  const rows=years.map(y=>{ const o=bySeason[y]; return `<tr>
+    <td><b>${y}年</b></td>
+    <td class="num">${fmt(o.tounyu)}</td>
+    <td class="num">${fmt(o.marukago)}</td>
+    <td class="num">${o.chakusoN?fmt(Math.round(o.chakusoSum/o.chakusoN)):"—"}</td>
+    <td class="num">¥${fmt(o.uriage)}</td></tr>`; }).join("");
+  document.getElementById("yearCompare").innerHTML=`<div class="table-wrap"><table><thead><tr><th>シーズン</th><th class="num">投入(連)</th><th class="num">丸籠(籠)</th><th class="num">平均付着(個/袋)</th><th class="num">売上</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ============ のしマスター ============ */
+function renderNoshiMaster(){
+  document.getElementById("noshiMaster").innerHTML = DB.noshi.map(n=>`<div class="noshi-item">${escapeHtml(n.name)}${(n.area||n.depth)?`<span class="muted">(${escapeHtml(n.area||"")}${n.depth?" "+n.depth+"m":""})</span>`:""}<button onclick="removeNoshi('${n.id}')" title="削除">✕</button></div>`).join("") || `<span class="muted">場所が未登録です</span>`;
+}
+function addNoshi(){
+  const name=document.getElementById("newNoshiName").value.trim();
+  if(!name){ toast("場所名を入れてください"); return; }
+  const depth=parseFloat(document.getElementById("newNoshiDepth").value);
+  DB.noshi.push({id:noshiUid(), name, area:document.getElementById("newNoshiArea").value.trim(), depth:isNaN(depth)?undefined:depth});
+  document.getElementById("newNoshiName").value=""; document.getElementById("newNoshiArea").value=""; document.getElementById("newNoshiDepth").value="";
+  save(); renderNoshiMaster(); refreshNoshiSelectors();
+  toast("のし場所を追加しました");
+}
+function removeNoshi(id){
+  const used=DB.records.some(r=>[r.noshi,r.noshiTo,r.noshiFrom].includes(id));
+  if(used && !confirm("この場所を使った記録があります。マスターから消しても記録は残ります。削除しますか？")) return;
+  if(!used && !confirm("削除しますか？")) return;
+  DB.noshi=DB.noshi.filter(n=>n.id!==id); save();
+  renderNoshiMaster(); refreshNoshiSelectors();
+}
+function refreshNoshiSelectors(){
+  document.getElementById("fltNoshi").innerHTML=`<option value="">すべて</option>`+DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join("");
+  const pn=document.getElementById("p_noshi"); if(pn){ const cur=pn.value; pn.innerHTML=DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join(""); if(cur) pn.value=cur; }
+  // 入力途中を消さないよう、フォーム内ののし選択だけ差し替える
+  const k=KMAP[document.getElementById("kouteiSel").value];
+  if(k) k.fields.filter(f=>f.type==="noshi").forEach(f=>{ const el=document.getElementById("f_"+f.k); if(el){ const cur=el.value; el.innerHTML=noshiOptions(cur); } });
+}
+
+/* ============ データ入出力 ============ */
+function exportJSON(){
+  download("hotate_saibou_backup_"+today()+".json", JSON.stringify(DB,null,2), "application/json");
+  DB.lastBackupAt = new Date().toISOString();
+  save(); renderBackupBar();
+  toast("JSONを書き出しました（大切に保管してください）");
+}
+function gotoTab(t){ const b=document.querySelector('#tabs button[data-tab="'+t+'"]'); if(b) b.click(); window.scrollTo(0,0); }
+function dismissWelcome(){ try{ localStorage.setItem(LS_KEY+"_wc","1"); }catch(e){} renderWelcome(); }
+function renderWelcome(){
+  const el=document.getElementById("welcomeBox"); if(!el) return;
+  let dismissed=false; try{ dismissed=localStorage.getItem(LS_KEY+"_wc")==="1"; }catch(e){}
+  if(DB.records.length>0 || dismissed){ el.style.display="none"; return; }
+  el.style.display="block";
+  el.innerHTML=`<div class="card" style="border:1px solid #b6cff5;background:#eef4fc">
+    <h2>👋 はじめての方へ（3ステップ）</h2>
+    <div style="font-size:13.5px;line-height:1.8">
+      <b>① のし場所を登録</b>：設定タブで自分ののしを追加します（自分ののしを追加してください）。<br>
+      <b>② 目標を設定</b>：育成計算タブで、放流・転換の目標や「のし1本の連数／放流ののし本数」を自分の家の数値に。<br>
+      <b>③ 記録スタート</b>：この画面で工程を選んで「💾 保存」。投入→移動→水揚げ…と進めるだけ。
+    </div>
+    <div class="row-actions">
+      <button class="btn" onclick="gotoTab('data')">⚙️ 設定でのしを登録</button>
+      <button class="btn ghost" onclick="gotoTab('calc')">🧮 目標を設定</button>
+      <button class="btn ghost" onclick="dismissWelcome()">閉じる</button>
+    </div>
+  </div>`;
+}
+function renderBackupBar(){
+  const bar=document.getElementById("backupBar"); if(!bar) return;
+  if(!DB.records.length){ bar.style.display="none"; return; }
+  let days=null;
+  if(DB.lastBackupAt){ days=Math.floor((Date.now()-new Date(DB.lastBackupAt).getTime())/86400000); }
+  bar.style.display="block";
+  if(days!==null && days<5){
+    bar.innerHTML=`<div style="background:#eaf6ee;border:1px solid #b9e4d0;border-radius:10px;padding:8px 12px;font-size:13px;color:#2e7d5b;display:flex;align-items:center;gap:8px;flex-wrap:wrap">🛟 前回バックアップ ${days}日前 ・データはこの端末内だけに保存されています<button class="btn sm" onclick="exportJSON()" style="margin-left:auto">⬇️ 今すぐ保存</button></div>`;
+  }else{
+    const msg = days===null? "まだ一度もバックアップしていません" : `${days}日間バックアップしていません`;
+    bar.innerHTML=`<div style="background:#fdeee0;border:1px solid #f0c7a0;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#b45309;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>⚠️ ${msg}</b>・機種変更やキャッシュ削除で消えます。<button class="btn sm warn" onclick="exportJSON()" style="margin-left:auto">⬇️ 今すぐバックアップ</button></div>`;
+  }
+}
+function restorePrev(){
+  const prev=localStorage.getItem(LS_KEY+"_prev");
+  if(!prev){ toast("自動控えがありません"); return; }
+  if(!confirm("直前の自動控え（1手前の状態）に戻します。今の変更は失われます。よろしいですか？")) return;
+  try{ DB=JSON.parse(prev); localStorage.setItem(LS_KEY, prev); refreshAll(); toast("直前の状態に戻しました"); }
+  catch(e){ toast("復元に失敗しました"); }
+}
+function renderUpdateNotice(){
+  const el=document.getElementById("updateBar"); if(!el) return;
+  el.style.display="block";
+  el.innerHTML=`<div style="background:#e7f0fb;border:1px solid #b6cff5;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#1c4587;display:flex;align-items:center;gap:8px;flex-wrap:wrap">🔄 アプリを更新しました（v${APP_VERSION}）。<b>過去のデータは引き継ぎ済み</b>・更新前の控えも自動保存しました。<button class="btn sm" onclick="exportJSON();document.getElementById('updateBar').style.display='none';">⬇️ 念のため保存</button><button class="btn sm ghost" onclick="document.getElementById('updateBar').style.display='none'">閉じる</button></div>`;
+}
+function restoreAutobak(){
+  const bak=localStorage.getItem(LS_KEY+"_autobak");
+  if(!bak){ toast("自動更新バックアップがありません"); return; }
+  const at=localStorage.getItem(LS_KEY+"_autobak_at")||"";
+  if(!confirm("直近のアップデート直前の状態"+(at?"（"+at.slice(0,16).replace("T"," ")+"）":"")+"に戻します。今の変更は失われます。よろしいですか？")) return;
+  try{ DB=JSON.parse(bak); localStorage.setItem(LS_KEY, bak); refreshAll(); toast("更新前の状態に戻しました"); }
+  catch(e){ toast("復元に失敗しました"); }
+}
+function fmtDT(iso){ try{ const d=new Date(iso); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }catch(e){ return (iso||"").slice(0,16).replace("T"," "); } }
+function getHistory(){ try{ return JSON.parse(localStorage.getItem(LS_KEY+"_hist")||"[]"); }catch(e){ return []; } }
+function renderHistory(){
+  const el=document.getElementById("histList"); if(!el) return;
+  const h=getHistory();
+  if(!h.length){ el.innerHTML=`<div class="muted" style="font-size:12px">まだ復元ポイントがありません。記録を追加すると自動でここに貯まります（最新15件）。</div>`; return; }
+  el.innerHTML=h.map((s,i)=>({s,i})).reverse().map(({s,i})=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px">
+    <span>🕘 ${fmtDT(s.at)} <span class="muted" style="font-size:11px">${escapeHtml(s.label||"")}</span></span>
+    <button class="btn sm ghost" onclick="restoreHistory(${i})">この時点に戻す</button></div>`).join("");
+}
+function restoreHistory(idx){
+  const h=getHistory(); const s=h[idx];
+  if(!s||!s.json){ toast("復元ポイントが見つかりません"); return; }
+  if(!confirm(fmtDT(s.at)+" の状態に戻します。今の状態は「1手前」に退避されます。よろしいですか？")) return;
+  try{ localStorage.setItem(LS_KEY+"_prev", localStorage.getItem(LS_KEY)); localStorage.setItem(LS_KEY, s.json); DB=load(); refreshAll(); renderHistory(); toast("その時点に戻しました"); }
+  catch(e){ toast("復元に失敗しました"); }
+}
+function importJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.records||!d.noshi) throw new Error("形式が違います");
+      if(confirm("現在のデータを、読み込むデータで置き換えます。よろしいですか？（先に現データのバックアップ推奨）")){
+        d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+        DB=d; save(); refreshAll(); toast("読み込みました");
+      }
+    }catch(err){ toast("読み込み失敗："+err.message); }
+    input.value="";
+  };
+  rd.readAsText(file);
+}
+function exportCSV(){
+  const rs=DB.records.slice().sort((a,b)=>(a.season-b.season)||(a.date||"").localeCompare(b.date||""));
+  const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo"];
+  const head=["シーズン","日付","工程","投入海区","区画番号","投入連数","投入段数","沈下方法","引上げ海区","移動 下げ先明細","移動後段数","採苗器のあるのし","引上げ連数","付着個/袋","イガイ個/袋","殻長mm","丸籠数","網目","のし","入替前籠","入替後籠","稚貝個/籠","作業","対象籠","水深m","水温","販売籠","販売個","単価","売上","販売先","放流場所","放流籠","放流個","天候","メモ"];
+  const rows=rs.map(r=>cols.map(c=>{
+    let v=r[c]!=null?r[c]:"";
+    if(c==="koutei") v=KMAP[r.koutei]?KMAP[r.koutei].name:r.koutei;
+    if(c==="ikoDests") v=r.koutei==="iko"?ikoDests(r).map(d=>noshiName(d.noshi)+":"+num(d.ren)+"連"+(d.gawa?"("+d.gawa+")":"")).join(" / "):"";
+    if((c==="noshi"||c==="noshiFrom")&&v) v=noshiName(v);
+    v=String(v).replace(/"/g,'""');
+    return /[",\n]/.test(v)?`"${v}"`:v;
+  }).join(","));
+  download("hotate_saibou_kiroku_"+today()+".csv", "﻿"+head.join(",")+"\n"+rows.join("\n"), "text/csv");
+  toast("CSVを書き出しました");
+}
+function ensureNoshi(name, area){
+  let n=DB.noshi.find(x=>x.name===name);
+  if(!n){ const seed=NOSHI_LIST.find(x=>x.name===name); n={id:noshiUid(), name, area:(seed&&seed.area)||area||"湖内", depth:seed?seed.depth:undefined}; DB.noshi.push(n); }
+  return n.id;
+}
+function loadNoshiList(){
+  let added=0;
+  NOSHI_LIST.forEach(n=>{ if(!DB.noshi.some(x=>x.name===n.name)){ DB.noshi.push({id:noshiUid(), name:n.name, area:n.area, depth:n.depth}); added++; } });
+  save(); renderNoshiMaster(); refreshNoshiSelectors();
+  toast(added?`のし ${added}本を追加しました`:"のしは既に全部登録済みです");
+}
+function loadPreset2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
+function wipeAll(){
+  if(!confirm("本当にすべてのデータを削除しますか？この操作は元に戻せません。")) return;
+  if(!confirm("最終確認：全記録・全のし設定を消去します。よろしいですか？")) return;
+  localStorage.removeItem(LS_KEY); DB=load(); save(); refreshAll(); toast("全データを削除しました");
+}
+
+/* ============ 育成計算 ============ */
+const CALC_KEYS=["houryuTarget","tenkanTarget","houryuRen","density","houryuLoss","tenkanLoss","cage1","cage2","earlyLoss","renPerNoshi","houryuNoshi"];
+function saveCalc(){
+  CALC_KEYS.forEach(k=>{ const el=document.getElementById("c_"+k); if(el) DB.calc[k]=num(el.value); });
+  _skipHist=true; save(); _skipHist=false; // 計算の入力中は復元ポイントを作らない
+  renderGyakusan(); renderPlace(); renderTrials(); renderTrials2(); renderDaily();
+}
+function fillCalcInputs(){
+  CALC_KEYS.forEach(k=>{ const el=document.getElementById("c_"+k); if(el && document.activeElement!==el) el.value=DB.calc[k]; });
+  const hn=document.getElementById("c_houseName"); if(hn && document.activeElement!==hn) hn.value=DB.houseName||"";
+  const ht=document.getElementById("houseTag"); if(ht) ht.textContent=DB.houseName?("（"+DB.houseName+"）"):"";
+}
+function saveHouseName(){ DB.houseName=(document.getElementById("c_houseName").value||"").trim(); _skipHist=true; save(); _skipHist=false; const ht=document.getElementById("houseTag"); if(ht) ht.textContent=DB.houseName?("（"+DB.houseName+"）"):""; }
+function calcResults(){
+  const c=DB.calc;
+  const houryuCap=c.houryuRen*c.density;
+  const houryuShip=houryuCap*(1-c.houryuLoss/100);
+  const houryuBuffer=houryuShip-c.houryuTarget;
+  const houryuTol=houryuCap>0?(1-c.houryuTarget/houryuCap)*100:0;
+  const tenkanNeed=c.tenkanLoss<100?c.tenkanTarget/(1-c.tenkanLoss/100):0;
+  const tenkanRen=c.density>0?Math.ceil(tenkanNeed/c.density):0;
+  const hondoriRen=c.houryuRen+tenkanRen;
+  const hondoriSpare=c.cage2-hondoriRen;
+  const hondoriCap=hondoriRen*c.density;
+  const earlyLoss=c.earlyLoss||0;
+  const earlyNeed=earlyLoss<100?hondoriCap/(1-earlyLoss/100):hondoriCap; // 早どり→本どり目減りを見込んだ、早どりで確保すべき数
+  const earlyCapMin=c.cage1*c.earlyMin;
+  const earlyCapMax=c.cage1*c.earlyMax;
+  return {houryuCap,houryuShip,houryuBuffer,houryuTol,tenkanNeed,tenkanRen,hondoriRen,hondoriSpare,hondoriCap,earlyLoss,earlyNeed,earlyCapMin,earlyCapMax};
+}
+function okC(b){ return b?"var(--ok)":"var(--danger)"; }
+function calcLine(label,val,hi){ return `<div style="padding:9px 12px;border-bottom:1px solid var(--line);${hi?'background:var(--ice);':''}"><div style="font-size:12px;color:var(--sub)">${label}</div><div style="font-size:14.5px;margin-top:2px;word-break:break-word">${val}</div></div>`; }
+function renderGyakusan(){
+  fillCalcInputs();
+  const c=DB.calc, r=calcResults();
+  document.getElementById("gyakusanOut").innerHTML=`
+  <div class="kpi-grid" style="margin-bottom:10px">
+    <div class="kpi"><div class="v">${fmt(Math.round(r.houryuShip))}</div><div class="l">放流 出荷見込（粒）</div></div>
+    <div class="kpi"><div class="v" style="color:${okC(r.houryuBuffer>=0)}">${r.houryuBuffer>=0?"+":""}${fmt(Math.round(r.houryuBuffer))}</div><div class="l">放流 目標比バッファ</div></div>
+    <div class="kpi"><div class="v">${r.houryuTol.toFixed(1)}<span style="font-size:13px">%</span></div><div class="l">これだけ目減りしても目標維持</div></div>
+  </div>
+  <div style="border:1px solid var(--line);border-radius:10px;overflow:hidden">
+    ${calcLine("放流 収容（本どり時）", `${fmt(c.houryuRen)}連 × ${fmt(c.density)} = <b>${fmt(r.houryuCap)}粒</b>`)}
+    ${calcLine("転換販売 必要連数", `${fmt(c.tenkanTarget)} ÷ ${(100-c.tenkanLoss)}% = ${fmt(Math.round(r.tenkanNeed))}粒 → <b>${fmt(r.tenkanRen)}連</b>`)}
+    ${calcLine("本どり 合計連数（②丸籠 3部5厘）", `<b>${fmt(r.hondoriRen)}連</b> ／ 在庫${fmt(c.cage2)}連 → <span style="color:${okC(r.hondoriSpare>=0)}">${r.hondoriSpare>=0?"余り "+fmt(r.hondoriSpare)+"連":"不足 "+fmt(-r.hondoriSpare)+"連"}</span>`, true)}
+    ${calcLine("本どり 収容合計", `<b>${fmt(r.hondoriCap)}粒</b> <span class="muted">（目減りゼロ前提）</span>`, true)}
+    ${calcLine("早どり 確保必要（本どりへの目減り込み）", `本どり収容 ${fmt(r.hondoriCap)} ÷ ${(100-r.earlyLoss)}% = <b>${fmt(Math.round(r.earlyNeed))}粒</b> <span class="muted">（目減り ${r.earlyLoss}%）</span>`, true)}
+    ${calcLine("①丸籠 容量（早どり）", `${fmt(c.cage1)}連 × ${fmt(c.earlyMin)}〜${fmt(c.earlyMax)} = ${fmt(r.earlyCapMin)}〜${fmt(r.earlyCapMax)}粒 <span style="color:${okC(r.earlyCapMin>=r.earlyNeed)}">${r.earlyCapMin>=r.earlyNeed?"（必要を満たす）":"（要確認）"}</span>`)}
+  </div>
+  <div class="hint" style="margin-top:8px">💡 稚貝が余る年（容量 ≫ 需要）は、本どりで通しを上げて大きい貝を詰めると出荷重量＝ボーナス(1kg≈3.6円)が増えます。</div>`;
+}
+function addTrial(){
+  const place=(document.getElementById("t_place").value||"").trim();
+  if(!place){ toast("場所を入れてください"); return; }
+  DB.trials.push({ id:uid(), season:DB.season, place,
+    kaiku:document.getElementById("t_kaiku").value,
+    mesh:(document.getElementById("t_mesh").value||"").trim(),
+    sampleRen:num(document.getElementById("t_sampleRen").value),
+    count:num(document.getElementById("t_count").value),
+    totalRen:num(document.getElementById("t_totalRen").value) });
+  ["t_place","t_kaiku","t_mesh","t_sampleRen","t_count","t_totalRen"].forEach(i=>document.getElementById(i).value="");
+  save(); renderTrials(); toast("試運転を追加しました");
+}
+function removeTrial(id){ if(!confirm("この試運転を削除しますか？")) return; DB.trials=DB.trials.filter(t=>t.id!==id); save(); renderTrials(); }
+function renderTrials(){
+  const el=document.getElementById("trialsOut"); if(!el) return;
+  const ts=DB.trials.filter(t=>t.season===DB.season);
+  if(!ts.length){ el.innerHTML=`<div class="empty">場所ごとの試運転を追加すると、早どり見込みが集計されます。</div>`; return; }
+  let total=0;
+  const rows=ts.map(t=>{
+    const perRen=t.sampleRen>0?t.count/t.sampleRen:0; const est=perRen*t.totalRen; total+=est;
+    return `<tr><td>${escapeHtml(t.place)}</td><td>${t.kaiku||"—"}</td><td>${escapeHtml(t.mesh||"—")}</td><td class="num">${fmt(t.sampleRen)}連</td><td class="num">${fmt(t.count)}</td><td class="num">${fmt(Math.round(perRen))}/連</td><td class="num">${fmt(t.totalRen)}連</td><td class="num"><b>${fmt(Math.round(est))}</b></td><td><button class="btn sm danger" onclick="removeTrial('${t.id}')">削除</button></td></tr>`;
+  }).join("");
+  const r=calcResults(), need=r.earlyNeed;
+  const rate=need>0?total/need*100:0;
+  const boxMin=DB.calc.earlyMax>0?Math.ceil(total/DB.calc.earlyMax):0;
+  const boxMax=DB.calc.earlyMin>0?Math.ceil(total/DB.calc.earlyMin):0;
+  const advice=total>=need
+    ? `✅ 早どり見込み ${fmt(Math.round(total))}粒 ≥ 早どり確保必要 ${fmt(Math.round(need))}粒（充足率 ${rate.toFixed(0)}%）。通しはこのまま〜上げ気味でも確保可能。`
+    : `⚠️ 早どり見込み ${fmt(Math.round(total))}粒 < 早どり確保必要 ${fmt(Math.round(need))}粒（充足率 ${rate.toFixed(0)}%）。<b>通しを一段下げる</b>か<b>時期を遅らせる</b>（FAXでイガイ多い年は早めが得）。`;
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>場所</th><th>海区</th><th>通し</th><th class="num">サンプル</th><th class="num">計数</th><th class="num">枚/連</th><th class="num">総連数</th><th class="num">漁場見込み</th><th></th></tr></thead><tbody>${rows}<tr style="background:var(--ice)"><td colspan="7"><b>早どり見込み 合計</b></td><td class="num"><b>${fmt(Math.round(total))}</b></td><td></td></tr></tbody></table></div>
+  <div class="hint" style="margin-top:8px">${advice}<br>この量を①丸籠に詰めるのに必要な箱 ≈ ${fmt(boxMin)}〜${fmt(boxMax)}連（在庫 ${fmt(DB.calc.cage1)}連）。</div>`;
+}
+function addDaily(){
+  const date=document.getElementById("d_date").value;
+  if(!date){ toast("日付を入れてください"); return; }
+  DB.dailyCalc.push({ id:uid(), season:DB.season, date, phase:document.getElementById("d_phase").value,
+    ren:num(document.getElementById("d_ren").value), mep:num(document.getElementById("d_mep").value) });
+  document.getElementById("d_ren").value=""; document.getElementById("d_mep").value="";
+  save(); renderDaily(); toast("日次を追加しました");
+}
+function removeDaily(id){ if(!confirm("この日次記録を削除しますか？")) return; DB.dailyCalc=DB.dailyCalc.filter(d=>d.id!==id); save(); renderDaily(); }
+function renderDaily(){
+  const el=document.getElementById("dailyOut"); if(!el) return;
+  const ds=DB.dailyCalc.filter(d=>d.season===DB.season).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  if(!ds.length){ el.innerHTML=`<div class="empty">日ごとの実績を追加すると累計と到達率が出ます。</div>`; return; }
+  const r=calcResults(), sum={};
+  const rows=ds.map(d=>{
+    const grain=d.ren*d.mep; sum[d.phase]=sum[d.phase]||{ren:0,grain:0}; sum[d.phase].ren+=d.ren; sum[d.phase].grain+=grain;
+    return `<tr><td>${d.date}</td><td>${d.phase}</td><td class="num">${fmt(d.ren)}連</td><td class="num">${fmt(d.mep)}/連</td><td class="num">${fmt(grain)}</td><td><button class="btn sm danger" onclick="removeDaily('${d.id}')">削除</button></td></tr>`;
+  }).join("");
+  const bar=(label,val,target,unit)=>{ const pct=target>0?Math.min(100,val/target*100):0;
+    return `<div class="bar-row"><div class="lbl">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,pct)}%">${fmt(Math.round(val))}${unit}</div></div><div style="flex:0 0 96px;font-size:11px;color:var(--sub)">/${fmt(Math.round(target))}${unit}（${pct.toFixed(0)}%）</div></div>`; };
+  const h=sum["早どり"]||{ren:0,grain:0}, b=sum["本どり"]||{ren:0,grain:0};
+  el.innerHTML=`${bar("早どり 連数",h.ren,DB.calc.cage1,"連")}${bar("早どり 粒数",h.grain,r.hondoriCap,"")}${bar("本どり 連数",b.ren,r.hondoriRen,"連")}${bar("本どり 粒数",b.grain,r.hondoriCap,"")}
+  <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>日付</th><th>工程</th><th class="num">連</th><th class="num">枚/連</th><th class="num">粒数</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+/* --- 配置予定（早どり/本どり どののしに何連） --- */
+function addPlace(){
+  const noshi=document.getElementById("p_noshi").value; const ren=num(document.getElementById("p_ren").value);
+  if(!noshi||!ren){ toast("のし場所と連数を入れてください"); return; }
+  DB.placePlan.push({ id:uid(), season:DB.season, phase:document.getElementById("p_phase").value, purpose:document.getElementById("p_purpose").value, noshi,
+    amime:document.getElementById("p_amime").value, ren, memo:(document.getElementById("p_memo").value||"").trim() });
+  document.getElementById("p_ren").value=""; document.getElementById("p_memo").value="";
+  save(); renderPlace(); toast("配置予定に追加しました");
+}
+function removePlace(id){ if(!confirm("この予定を削除しますか？")) return; DB.placePlan=DB.placePlan.filter(p=>p.id!==id); save(); renderPlace(); }
+function setPlacePurpose(id, val){ const p=DB.placePlan.find(x=>x.id===id); if(!p) return; p.purpose=val; save(); renderPlace(); }
+function genBasePlan(){
+  const per=num(DB.calc.renPerNoshi)||142;
+  const houryuNoshi=Math.max(0,Math.round(num(DB.calc.houryuNoshi)||19));
+  if(!confirm(`本どり ${fmt(per)}連/のし・放流${houryuNoshi}本（=${fmt(per)}×${houryuNoshi}）を基本に、AIが配置予定の叩き台を作成します。数値は「のし1本の連数／放流ののし本数」で変えられます。既存のAI作成分は置き換え、手入力分は残します。よろしいですか？`)) return;
+  const noshiIds=DB.noshi.map(n=>n.id); if(!noshiIds.length){ toast("先にのし場所を登録してください（設定タブ）"); return; }
+  DB.placePlan=DB.placePlan.filter(p=>!(p.season===DB.season && p.ai)); // 既存AI分を除去
+  let ni=0; const nextNoshi=()=>noshiIds[(ni++)%noshiIds.length];
+  const add=(phase,purpose,amime,ren)=>DB.placePlan.push({id:uid(),season:DB.season,phase,purpose,noshi:nextNoshi(),amime,ren,memo:"",ai:true});
+  const r=calcResults();
+  for(let i=0;i<houryuNoshi;i++) add("本どり","放流","3部5厘",per);          // 放流 houryuNoshi本×per
+  const tenkanNoshi=Math.max(0,Math.ceil((r.tenkanRen||0)/per));
+  for(let i=0;i<tenkanNoshi;i++) add("本どり","転換販売","3部5厘",per);      // 転換販売 必要連数÷per
+  ni=0; // 早どりは別フェーズなのでのし番号リセット
+  [["1部8厘",764],["1部5厘",451],["1部2厘",300]].forEach(pair=>{ let left=pair[1]; while(left>0){ const rr=Math.min(per,left); add("早どり","",pair[0],rr); left-=rr; } }); // 早どり：①丸籠在庫を網目別に142連ずつ
+  _skipHist=true; save(); _skipHist=false; pushHistory();
+  renderPlace();
+  toast(`AI基本計画: 本どり 放流${houryuNoshi}本＋転換${tenkanNoshi}本／早どり（①丸籠在庫）を作成`);
+}
+function clearBasePlan(){
+  const n=DB.placePlan.filter(p=>p.season===DB.season && p.ai).length;
+  if(!n){ toast("AI作成分はありません"); return; }
+  if(!confirm("AIが作成した配置予定を削除します（手入力分は残ります）。よろしいですか？")) return;
+  DB.placePlan=DB.placePlan.filter(p=>!(p.season===DB.season && p.ai)); save(); renderPlace(); toast("AI作成分を削除しました");
+}
+function renderPlace(){
+  const el=document.getElementById("placeOut"); if(!el) return;
+  const ps=DB.placePlan.filter(p=>p.season===DB.season);
+  if(!ps.length){ el.innerHTML=`<div class="empty">「🤖 AI基本計画を作成」か手入力で、工程ごとの配置と過不足が出ます。</div>`; return; }
+  const r=calcResults();
+  const targets={ "早どり":{label:"①在庫", val:DB.calc.cage1, strict:false}, "本どり":{label:"必要", val:r.hondoriRen, strict:true} };
+  el.innerHTML=["早どり","本どり"].map(ph=>{
+    const rows=ps.filter(p=>p.phase===ph);
+    if(!rows.length) return "";
+    const tot=rows.reduce((a,p)=>a+num(p.ren),0); const tgt=targets[ph]; const diff=tot-tgt.val;
+    const body=rows.map(p=>`<tr><td>${noshiName(p.noshi)}</td><td><select onchange="setPlacePurpose('${p.id}',this.value)" style="padding:4px 6px;font-size:12px;min-width:98px"><option value="" ${!p.purpose?"selected":""}>—</option><option ${p.purpose==="放流"?"selected":""}>放流</option><option ${p.purpose==="転換販売"?"selected":""}>転換販売</option></select></td><td>${p.amime||""}</td><td class="num">${fmt(num(p.ren))}連</td><td class="muted">${escapeHtml(p.memo||"")}${p.ai?' <span class="muted" style="font-size:10px">AI</span>':''}</td><td><button class="btn sm danger" onclick="removePlace('${p.id}')">✕</button></td></tr>`).join("");
+    let purposeLine="";
+    if(ph==="本どり"){ const byP={}; rows.forEach(p=>{ const k=p.purpose||"未設定"; byP[k]=byP[k]||{ren:0,n:0}; byP[k].ren+=num(p.ren); byP[k].n++; });
+      purposeLine=`<div class="hint" style="margin-top:4px">用途別：`+Object.entries(byP).map(([k,o])=>`${k} <b>${fmt(o.ren)}連</b>(${o.n}本)`).join(" ／ ")+`</div>`; }
+    return `<h3>${ph}（${tgt.label} ${fmt(tgt.val)}連・${rows.length}本）</h3><div class="table-wrap"><table><thead><tr><th>のし場所</th><th>用途</th><th>網目</th><th class="num">連数</th><th>メモ</th><th></th></tr></thead><tbody>${body}<tr style="background:var(--ice)"><td colspan="3"><b>予定合計</b></td><td class="num"><b>${fmt(tot)}連</b></td><td colspan="2"><span style="color:${okC(tgt.strict?diff>=0:true)}">${diff>=0?"＋"+fmt(diff):fmt(diff)}連（${tgt.label}比）</span></td></tr></tbody></table></div>${purposeLine}`;
+  }).join("") || `<div class="empty">予定を追加すると出ます。</div>`;
+}
+/* --- 早どり見込み（付着調査ベース：殻高mm・付着枚/袋） --- */
+function addTrial2(){
+  const place=(document.getElementById("t2_place").value||"").trim(); const perbag=num(document.getElementById("t2_perbag").value);
+  if(!place||!perbag){ toast("場所と付着(枚/袋)を入れてください"); return; }
+  DB.trials2.push({ id:uid(), season:DB.season, place, kaiku:document.getElementById("t2_kaiku").value, mm:num(document.getElementById("t2_mm").value),
+    perbag, ren:num(document.getElementById("t2_ren").value), bpr:num(document.getElementById("t2_bpr").value)||8 });
+  ["t2_place","t2_kaiku","t2_mm","t2_perbag","t2_ren","t2_bpr"].forEach(i=>document.getElementById(i).value="");
+  save(); renderTrials2(); toast("付着見込みを追加しました");
+}
+function removeTrial2(id){ if(!confirm("この見込みを削除しますか？")) return; DB.trials2=DB.trials2.filter(t=>t.id!==id); save(); renderTrials2(); }
+function renderTrials2(){
+  const el=document.getElementById("trials2Out"); if(!el) return;
+  const ts=DB.trials2.filter(t=>t.season===DB.season);
+  if(!ts.length){ el.innerHTML=`<div class="empty">1袋あたり殻高・付着枚数を入れると、合計見込みが出ます。</div>`; return; }
+  let total=0;
+  const rows=ts.map(t=>{ const bags=num(t.ren)*(num(t.bpr)||8); const sub=num(t.perbag)*bags; total+=sub;
+    return `<tr><td>${escapeHtml(t.place)}</td><td>${t.kaiku||"—"}</td><td class="num">${t.mm?fmt(t.mm)+"mm":"—"}</td><td class="num">${fmt(num(t.perbag))}</td><td class="num">${fmt(num(t.ren))}連×${fmt(num(t.bpr)||8)}=${fmt(bags)}袋</td><td class="num">${fmt(Math.round(sub))}</td><td><button class="btn sm danger" onclick="removeTrial2('${t.id}')">✕</button></td></tr>`; }).join("");
+  const need=calcResults().earlyNeed; const rate=need>0?total/need*100:0;
+  const advice = total>=need ? `✅ 付着見込み ${fmt(Math.round(total))}粒 ≥ 早どり確保必要 ${fmt(Math.round(need))}粒（${rate.toFixed(0)}%）` : `⚠️ 付着見込み ${fmt(Math.round(total))}粒 < 早どり確保必要 ${fmt(Math.round(need))}粒（${rate.toFixed(0)}%）。通しを下げる／時期を遅らせる検討を。`;
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>場所</th><th>海区</th><th class="num">殻高</th><th class="num">枚/袋</th><th class="num">袋数</th><th class="num">小計</th><th></th></tr></thead><tbody>${rows}<tr style="background:var(--ice)"><td colspan="5"><b>付着見込み 合計</b></td><td class="num"><b>${fmt(Math.round(total))}</b></td><td></td></tr></tbody></table></div><div class="hint" style="margin-top:8px">${advice}</div>`;
+}
+function renderCalc(){ renderGyakusan(); renderPlace(); renderTrials(); renderTrials2(); renderDaily(); }
+
+/* ============ ユーティリティ ============ */
+function today(){ return new Date().toISOString().slice(0,10); }
+function download(name,content,mime){
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+let toastT;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
+
+function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); }
+
+/* ============ 初期化 ============ */
+initKouteiSel();
+renderSeasonSel();
+renderForm();
+refreshNoshiSelectors();
+renderRecent();
+renderBackupBar();
+renderWelcome();
+if(VERSION_BUMPED){ save(); renderUpdateNotice(); }
+(function(){ const vl=document.getElementById("verLabel"); if(vl) vl.textContent="バージョン v"+APP_VERSION; })();
+document.querySelectorAll('input[type=number]').forEach(el=>{ if(!el.getAttribute('inputmode')) el.setAttribute('inputmode','decimal'); });
+/* PWA: オフライン対応のサービスワーカー登録（https/localhostのみ。file://では無効） */
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
