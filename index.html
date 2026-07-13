@@ -435,7 +435,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.13-1";
+const APP_VERSION = "2026.07.13-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1004,7 +1004,7 @@ function exportJSON(){
 }
 
 /* ============ ☁️ クラウド共有・バックアップ（Firebase Firestore / 匿名認証 / 合言葉コード） ============ */
-let _fbReady=false, _fbLoading=null, _shareUnsub=null, _shareSyncT=null, _lastRemoteJSON=null;
+let _fbReady=false, _fbLoading=null, _shareUnsub=null, _shareSyncT=null, _lastRemoteJSON=null, _pendingJoin=null;
 function shareMeta(){ try{ return JSON.parse(localStorage.getItem(SHARE_LS)||"{}"); }catch(e){ return {}; } }
 function setShareMeta(patch){ const m=Object.assign(shareMeta(), patch); try{ localStorage.setItem(SHARE_LS, JSON.stringify(m)); }catch(e){} return m; }
 function deviceId(){
@@ -1072,34 +1072,77 @@ function startShareListen(code){
     setShareMeta({lastAt:new Date().toISOString()}); renderShare();
   }, function(err){ /* 権限/ネットワークエラーは黙って無視（オフラインでも起動は妨げない） */ });
 }
+/* ダイアログ(prompt/confirm)はLINE内ブラウザ等で無反応になるため、共有系は画面内フォームで完結させる */
+function shareStatusMsg(html){ const st=document.getElementById("shareStatus"); if(st) st.innerHTML=html; }
 function shareStart(){
+  shareStatusMsg(`<div style="font-size:13px;color:#1c4587;padding:6px 2px">☁️ クラウドに接続中…（数秒かかることがあります）</div>`);
   const code=shareCodeGen();
   fbInit().then(()=> shareDocRef(code).set({ data:JSON.stringify(DB), updatedAt:Date.now(), updatedBy:deviceId() }))
     .then(()=>{ _lastRemoteJSON=JSON.stringify(DB); setShareMeta({code:code, auto:true, lastAt:new Date().toISOString()});
       startShareListen(code); renderShare(); toast("☁️ 共有を開始しました"); })
-    .catch(err=> toast("共有の開始に失敗："+err.message));
+    .catch(err=>{ shareStatusMsg(`<div style="font-size:13px;color:#b45309;padding:6px 2px">⚠️ 共有の開始に失敗：${escapeHtml(err.message)}（電波の良い場所でもう一度）</div>`); });
 }
-function shareJoin(){
-  const raw=prompt("家族から受け取った合言葉コードを入力してください（例 A3F9-K2MN-7PQR）");
-  if(!raw) return;
-  const code=raw.trim().toUpperCase().replace(/\s/g,"");
-  if(code.length<8){ toast("コードが短すぎます"); return; }
+function normShareCode(raw){
+  const s=String(raw||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(s.length!==12) return null;
+  return s.slice(0,4)+"-"+s.slice(4,8)+"-"+s.slice(8,12);
+}
+function shareJoinForm(){
+  shareStatusMsg(`<div style="background:#f6f9fc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px">
+    <div style="font-size:13.5px;margin-bottom:6px"><b>🔑 共有に参加</b>：家族の画面に出ている合言葉コードを入力してください</div>
+    <input id="joinCodeInput" type="text" placeholder="例 A3F9-K2MN-7PQR" autocapitalize="characters" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:8px;letter-spacing:1px">
+    <div class="row-actions" style="margin-top:8px">
+      <button class="btn" onclick="shareJoinGo()">参加する</button>
+      <button class="btn ghost" onclick="renderShare()">やめる</button>
+    </div>
+    <div id="joinMsg" style="font-size:12.5px;margin-top:6px;color:#b45309"></div>
+  </div>`);
+  const inp=document.getElementById("joinCodeInput"); if(inp) inp.focus();
+}
+function shareJoinGo(){
+  const inp=document.getElementById("joinCodeInput"); const msg=document.getElementById("joinMsg");
+  const setMsg=(t,ok)=>{ if(msg){ msg.style.color= ok?"#1c4587":"#b45309"; msg.textContent=t; } };
+  const code=normShareCode(inp?inp.value:"");
+  if(!code){ setMsg("コードは英数字12文字です（例 A3F9-K2MN-7PQR）。ハイフンや空白はあってもなくてもOK。もう一度確認してください。",false); return; }
+  setMsg("☁️ クラウドに接続中…（数秒かかることがあります）",true);
   fbInit().then(()=> shareDocRef(code).get())
     .then(doc=>{
-      if(!doc.exists){ toast("そのコードの共有が見つかりません"); return; }
+      if(!doc.exists){ setMsg("そのコードの共有が見つかりません。家族の画面のコードをもう一度確認してください。",false); return; }
       const v=doc.data();
-      if(!confirm("この端末のデータを、共有中のデータで置き換えて参加します。よろしいですか？（不安なら先に「⬇️ 全データ書き出し」で今のデータを保存）")) return;
-      let d; try{ d=JSON.parse(v.data); }catch(e){ toast("共有データの読み取りに失敗"); return; }
-      if(!d.records||!d.noshi){ toast("共有データの形式が不正です"); return; }
-      d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
-      _lastRemoteJSON=v.data; DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
-      setShareMeta({code:code, auto:true, lastAt:new Date().toISOString()});
-      startShareListen(code); refreshAll(); toast("☁️ 共有に参加しました");
+      let d; try{ d=JSON.parse(v.data); }catch(e){ setMsg("共有データの読み取りに失敗しました",false); return; }
+      if(!d.records||!d.noshi){ setMsg("共有データの形式が不正です",false); return; }
+      _pendingJoin={code:code, json:v.data, d:d};
+      const mine=(DB.records||[]).length;
+      shareStatusMsg(`<div style="background:#eef6ff;border:1px solid #b6cff5;border-radius:10px;padding:10px 12px;margin-top:8px">
+        <div style="font-size:13.5px">✅ 共有が見つかりました：<b>記録${(d.records||[]).length}件・のし${(d.noshi||[]).length}本</b>${d.houseName?("・"+escapeHtml(d.houseName)):""}</div>
+        <div style="font-size:12.5px;color:${mine>0?"#b45309":"#2e7d5b"};margin-top:4px">${mine>0?("⚠️ この端末の今のデータ（記録"+mine+"件）は、共有データで置き換わります。不安なら先に「⬇️ 全データ書き出し」を。"):"この端末にはまだ記録がないので、そのまま参加できます。"}</div>
+        <div class="row-actions" style="margin-top:8px">
+          <button class="btn" onclick="shareJoinConfirm()">この内容で参加する</button>
+          <button class="btn ghost" onclick="_pendingJoin=null;renderShare()">やめる</button>
+        </div>
+      </div>`);
     })
-    .catch(err=> toast("参加に失敗："+err.message));
+    .catch(err=> setMsg("参加に失敗："+err.message+"（電波の良い場所でもう一度）",false));
+}
+function shareJoinConfirm(){
+  const p=_pendingJoin; _pendingJoin=null;
+  if(!p){ renderShare(); return; }
+  const d=p.d;
+  d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+  _lastRemoteJSON=p.json; DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
+  setShareMeta({code:p.code, auto:true, lastAt:new Date().toISOString()});
+  startShareListen(p.code); refreshAll(); toast("☁️ 共有に参加しました");
 }
 function shareStop(){
-  if(!confirm("この端末の共有を停止します（クラウド上のデータは残ります）。よろしいですか？")) return;
+  shareStatusMsg(`<div style="background:#fdeee0;border:1px solid #f0c7a0;border-radius:10px;padding:10px 12px;margin-top:8px">
+    <div style="font-size:13.5px">この端末の共有を停止します。クラウド上のデータと家族の端末はそのまま残ります。</div>
+    <div class="row-actions" style="margin-top:8px">
+      <button class="btn danger" onclick="shareStopGo()">停止する</button>
+      <button class="btn ghost" onclick="renderShare()">やめる</button>
+    </div>
+  </div>`);
+}
+function shareStopGo(){
   if(_shareUnsub){ try{ _shareUnsub(); }catch(e){} _shareUnsub=null; }
   setShareMeta({code:"", auto:false}); renderShare(); toast("共有を停止しました");
 }
@@ -1124,8 +1167,9 @@ function renderShare(){
   if(!m.code){
     box.innerHTML=`<div class="row-actions">
         <button class="btn" onclick="shareStart()">🆕 新しく共有を始める</button>
-        <button class="btn ghost" onclick="shareJoin()">🔑 共有に参加（コード入力）</button>
+        <button class="btn ghost" onclick="shareJoinForm()">🔑 共有に参加（コード入力）</button>
       </div>
+      <div id="shareStatus"></div>
       <div class="muted" style="font-size:12px;margin-top:6px">「新しく共有を始める」と<b>合言葉コード</b>が表示されます。それを家族に伝え、相手の端末で「共有に参加」に入れると、同じデータをリアルタイムで見られます。</div>`;
   } else {
     box.innerHTML=`<div style="background:#eef6ff;border:1px solid #b6cff5;border-radius:10px;padding:10px 12px;margin-bottom:8px">
@@ -1138,6 +1182,7 @@ function renderShare(){
         <button class="btn ghost" onclick="pushShare(false)">☁️ 今すぐ同期</button>
         <button class="btn ghost" onclick="shareStop()">共有を停止</button>
       </div>
+      <div id="shareStatus"></div>
       <div class="muted" style="font-size:12px;margin-top:8px">記録を保存するたび自動でクラウドに同期され、家族の端末にも反映されます。</div>`;
   }
 }
@@ -1496,6 +1541,16 @@ renderBackupBar();
 renderWelcome();
 renderShare();
 (function(){ const m=shareMeta(); if(m && m.code && FIREBASE_CONFIG.apiKey){ fbInit().then(()=>startShareListen(m.code)).catch(()=>{}); } })();
+/* LINE・Instagram等のアプリ内ブラウザ検知：ダイアログ不動作・データ非永続の事故を防ぐ */
+(function(){
+  const ua=navigator.userAgent||"";
+  if(/Line\/|Instagram|FBAN|FBAV|FB_IAB|Messenger/i.test(ua)){
+    const d=document.createElement("div");
+    d.style.cssText="background:#fdeee0;border-bottom:2px solid #f0c7a0;padding:10px 14px;font-size:13.5px;line-height:1.6;color:#b45309";
+    d.innerHTML="⚠️ <b>LINEなどアプリの中のブラウザ</b>で開いています。ボタンが反応しない・データが消えることがあります。<b>画面右下（または右上）のメニュー →「他のアプリで開く」や「ブラウザで開く」→ Chrome/Safari</b> で開き直してから使ってください。";
+    document.body.insertBefore(d, document.body.firstChild);
+  }
+})();
 if(VERSION_BUMPED){ save(); renderUpdateNotice(); }
 (function(){ const vl=document.getElementById("verLabel"); if(vl) vl.textContent="バージョン v"+APP_VERSION; })();
 document.querySelectorAll('input[type=number]').forEach(el=>{ if(!el.getAttribute('inputmode')) el.setAttribute('inputmode','decimal'); });
