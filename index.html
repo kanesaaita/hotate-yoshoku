@@ -435,7 +435,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.13-2";
+const APP_VERSION = "2026.07.13-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -455,15 +455,12 @@ const CALC_DEFAULTS = {
 };
 // load() は CALC_DEFAULTS を参照するため、宣言後に呼ぶ（TDZ回避）
 let DB = load();
-function load(){
-  let d=null;
-  try{ const raw=localStorage.getItem(LS_KEY); if(raw) d=JSON.parse(raw); }catch(e){}
-  if(!d) d={
-    version:1,
-    season: new Date().getFullYear(),
-    noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
-    records: []
-  };
+function normalizeDB(d){
+  // クラウド共有・JSON読込・旧バージョン由来のデータは項目が欠けていることがある。
+  // 補完せずに使うと描画で落ちる（＝共有参加が途中で止まる）ため、DBに入れる前に必ずここを通す。
+  d.noshi = d.noshi||[];
+  d.records = d.records||[];
+  d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
   d.calc = Object.assign({}, CALC_DEFAULTS, d.calc||{});
   d.trials = d.trials||[];
   d.trials2 = d.trials2||[];
@@ -478,6 +475,18 @@ function load(){
     {id:"cp4", mesh:"3部5厘", targetRen:0, perDan:0, doneRen:0, memo:""}
   ];
   d.lastBackupAt = d.lastBackupAt||null;
+  return d;
+}
+function load(){
+  let d=null;
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw) d=JSON.parse(raw); }catch(e){}
+  if(!d) d={
+    version:1,
+    season: new Date().getFullYear(),
+    noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
+    records: []
+  };
+  normalizeDB(d);
   // --- アプリ更新（バージョン変化）検知：データは引き継ぎ、更新前を自動バックアップ ---
   if(d.appVersion !== APP_VERSION){
     if(d.records && d.records.length){
@@ -1057,7 +1066,7 @@ function applyRemote(json, fromWho){
   let d; try{ d=JSON.parse(json); }catch(e){ return; }
   if(!d || !d.records || !d.noshi) return;
   _lastRemoteJSON=json;
-  d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+  normalizeDB(d);
   DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
   refreshAll();
   toast("☁️ "+(fromWho||"共有相手")+"の変更を受信しました");
@@ -1127,8 +1136,7 @@ function shareJoinGo(){
 function shareJoinConfirm(){
   const p=_pendingJoin; _pendingJoin=null;
   if(!p){ renderShare(); return; }
-  const d=p.d;
-  d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+  const d=normalizeDB(p.d);
   _lastRemoteJSON=p.json; DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
   setShareMeta({code:p.code, auto:true, lastAt:new Date().toISOString()});
   startShareListen(p.code); refreshAll(); toast("☁️ 共有に参加しました");
@@ -1224,7 +1232,7 @@ function restorePrev(){
   const prev=localStorage.getItem(LS_KEY+"_prev");
   if(!prev){ toast("自動控えがありません"); return; }
   if(!confirm("直前の自動控え（1手前の状態）に戻します。今の変更は失われます。よろしいですか？")) return;
-  try{ DB=JSON.parse(prev); localStorage.setItem(LS_KEY, prev); refreshAll(); toast("直前の状態に戻しました"); }
+  try{ DB=normalizeDB(JSON.parse(prev)); localStorage.setItem(LS_KEY, prev); refreshAll(); toast("直前の状態に戻しました"); }
   catch(e){ toast("復元に失敗しました"); }
 }
 function renderUpdateNotice(){
@@ -1237,7 +1245,7 @@ function restoreAutobak(){
   if(!bak){ toast("自動更新バックアップがありません"); return; }
   const at=localStorage.getItem(LS_KEY+"_autobak_at")||"";
   if(!confirm("直近のアップデート直前の状態"+(at?"（"+at.slice(0,16).replace("T"," ")+"）":"")+"に戻します。今の変更は失われます。よろしいですか？")) return;
-  try{ DB=JSON.parse(bak); localStorage.setItem(LS_KEY, bak); refreshAll(); toast("更新前の状態に戻しました"); }
+  try{ DB=normalizeDB(JSON.parse(bak)); localStorage.setItem(LS_KEY, bak); refreshAll(); toast("更新前の状態に戻しました"); }
   catch(e){ toast("復元に失敗しました"); }
 }
 function fmtDT(iso){ try{ const d=new Date(iso); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }catch(e){ return (iso||"").slice(0,16).replace("T"," "); } }
@@ -1265,8 +1273,7 @@ function importJSON(input){
       const d=JSON.parse(e.target.result);
       if(!d.records||!d.noshi) throw new Error("形式が違います");
       if(confirm("現在のデータを、読み込むデータで置き換えます。よろしいですか？（先に現データのバックアップ推奨）")){
-        d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
-        DB=d; save(); refreshAll(); toast("読み込みました");
+        DB=normalizeDB(d); save(); refreshAll(); toast("読み込みました");
       }
     }catch(err){ toast("読み込み失敗："+err.message); }
     input.value="";
