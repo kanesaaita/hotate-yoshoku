@@ -192,8 +192,8 @@
   <section id="calc">
     <div class="card">
       <h2>🎯 ゴール逆算ダッシュボード<span id="houseTag"></span></h2>
-      <div class="hint">春のゴール（放流・転換販売）と目減り率から、本どり・早どりで確保すべき数を自動逆算します。数値は編集できます。<b>初期値は例</b>なので、自分の家の数値に書き換えてください。</div>
-      <div class="field" style="max-width:260px;margin-bottom:10px"><label>家名・屋号（表示用）</label><input id="c_houseName" oninput="saveHouseName()" placeholder="例：〇〇水産"></div>
+      <div class="hint">春のゴール（放流・転換販売）と目減り率から、本どり・早どりで確保すべき数を自動逆算します。数値は編集できます。<b>初期値は一例</b>なので、自分の家の数値に書き換えてください。</div>
+      <div class="field" style="max-width:260px;margin-bottom:10px"><label>家名・屋号（表示用）</label><input id="c_houseName" oninput="saveHouseName()" placeholder="例：〇〇家"></div>
       <div class="grid" style="margin-bottom:12px">
         <div class="field"><label>放流 目標（粒・翌5月）</label><input type="number" id="c_houryuTarget" oninput="saveCalc()"></div>
         <div class="field"><label>転換販売 目標（粒・4月）</label><input type="number" id="c_tenkanTarget" oninput="saveCalc()"></div>
@@ -267,13 +267,18 @@
       </div>
       <div id="dailyOut"></div>
     </div>
+    <div class="card">
+      <h2>🧺 丸籠 入れ替え計画（残り連数）</h2>
+      <div class="hint">入れ替え先の丸籠ごとに「目標連数・1段あたりの数（10段＝1連）・投入済み連数」を入れると、<b>1連あたり・残り連数・必要総粒数</b>が自動で出ます。</div>
+      <div id="cageOut"></div>
+    </div>
   </section>
 
   <!-- ===== 設定・データ ===== -->
   <section id="data">
     <div class="card">
       <h2>🎣 のし場所マスター</h2>
-      <div class="hint">実際ののし・場所を登録すると、各工程の入力で選べます。</div>
+      <div class="hint">実際ののし・場所を登録すると、各工程の入力で選べます。うちの28本はワンタップで読み込めます。</div>
       <div id="noshiMaster" class="noshi-manage"></div>
       <div class="filters" style="margin-top:8px">
         <div class="field" style="min-width:150px"><label>場所名</label><input id="newNoshiName" placeholder="例：長いのし"></div>
@@ -300,6 +305,11 @@
       </div>
     </div>
     <div class="card">
+      <h2>☁️ クラウド共有・バックアップ（家族と同期）</h2>
+      <div class="hint">合言葉コードを使うと、記録が<b>クラウドに保存</b>され、<b>別の端末（家族のスマホなど）とリアルタイムで共有</b>できます。片方で記録すると、もう片方にすぐ反映。機種変更・端末故障のバックアップにもなります。</div>
+      <div id="shareBox"></div>
+    </div>
+    <div class="card">
       <h2>🕘 復元ポイント（自動保存）</h2>
       <div class="hint">記録を追加・変更するたびに、その時点が自動で保存されます（最新15件）。いつでも好きな時点に戻せます。※更新（アプリの更新）でも消えません。</div>
       <div id="histList"></div>
@@ -323,7 +333,7 @@
 <script>
 /* ============ 定数：工程スキーマ ============ */
 const AREAS = ["A海区","B海区","トウフツ沖","その他"];
-/* のしマスターの初期リスト（公開版は空。各家で自分ののしを登録） */
+/* 公開版: NOSHI_LIST は空。各家で自分ののしを設定タブから登録する */
 const NOSHI_LIST = []; /* 公開版: 各家で自分ののしを登録 */
 const KOUTEI = [
   { key:"tounyu", name:"採苗器投入（海へ）", icon:"⚓", inv:()=>[], dateLabel:"海への投入日",
@@ -411,7 +421,21 @@ function ikoDests(r){ if(r&&r.dests&&r.dests.length) return r.dests; if(r&&r.nos
 // ⚠️ この保存キーは絶対に変更しないこと（変えると過去データが見えなくなる）。
 //   アプリを更新してもデータは同じキーから引き継がれる。スキーマ変更は下の migrate() で対応する。
 const LS_KEY = "hotate_saibou_v1";
-const APP_VERSION = "2026.07.07-8";
+/* ☁️ クラウド共有・バックアップ（Firebase Firestore・匿名認証・合言葉コード方式）
+   FIREBASE_CONFIG.apiKey が空の間はUIが「準備中」表示になる。値を入れるだけで有効化。
+   防御は Firestore ルール（認証必須）＋『推測困難な合言葉コード＝ドキュメントID』で担保する。 */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCEDrqVgPbe5EbfxfXt2lOuvzNyurCrNbE",
+  authDomain: "hotate-yoshoku-app.firebaseapp.com",
+  projectId: "hotate-yoshoku-app",
+  storageBucket: "hotate-yoshoku-app.firebasestorage.app",
+  messagingSenderId: "428936371836",
+  appId: "1:428936371836:web:d0d55a62d05ffb4b49f3f9"
+};
+const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
+const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
+const FB_SDK_VER = "10.12.5";
+const APP_VERSION = "2026.07.13-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -447,6 +471,12 @@ function load(){
   d.saibyoEst = d.saibyoEst||{};
   d.houseName = d.houseName!=null ? d.houseName : "";
   d.dailyCalc = d.dailyCalc||[];
+  d.cagePlan = d.cagePlan||[
+    {id:"cp1", mesh:"1部2厘", targetRen:0, perDan:0, doneRen:0, memo:""},
+    {id:"cp2", mesh:"1部5厘", targetRen:0, perDan:0, doneRen:0, memo:""},
+    {id:"cp3", mesh:"1部8厘", targetRen:0, perDan:0, doneRen:0, memo:""},
+    {id:"cp4", mesh:"3部5厘", targetRen:0, perDan:0, doneRen:0, memo:""}
+  ];
   d.lastBackupAt = d.lastBackupAt||null;
   // --- アプリ更新（バージョン変化）検知：データは引き継ぎ、更新前を自動バックアップ ---
   if(d.appVersion !== APP_VERSION){
@@ -464,6 +494,7 @@ function save(){
   try{ const cur=localStorage.getItem(LS_KEY); if(cur) localStorage.setItem(LS_KEY+"_prev", cur); }catch(e){}
   localStorage.setItem(LS_KEY, JSON.stringify(DB));
   if(!_skipHist) pushHistory(); // 追加・変更のたびに復元ポイントを自動保存（計算の入力中だけは除外）
+  scheduleShareSync(); // ☁️ 共有中なら自動でクラウド同期（2.5秒デバウンス）
 }
 function pushHistory(){
   try{
@@ -971,6 +1002,145 @@ function exportJSON(){
   save(); renderBackupBar();
   toast("JSONを書き出しました（大切に保管してください）");
 }
+
+/* ============ ☁️ クラウド共有・バックアップ（Firebase Firestore / 匿名認証 / 合言葉コード） ============ */
+let _fbReady=false, _fbLoading=null, _shareUnsub=null, _shareSyncT=null, _lastRemoteJSON=null;
+function shareMeta(){ try{ return JSON.parse(localStorage.getItem(SHARE_LS)||"{}"); }catch(e){ return {}; } }
+function setShareMeta(patch){ const m=Object.assign(shareMeta(), patch); try{ localStorage.setItem(SHARE_LS, JSON.stringify(m)); }catch(e){} return m; }
+function deviceId(){
+  let d=null; try{ d=localStorage.getItem(DEVID_LS); }catch(e){}
+  if(!d){ d="d"+Math.random().toString(36).slice(2,10)+Date.now().toString(36); try{ localStorage.setItem(DEVID_LS,d); }catch(e){} }
+  return d;
+}
+function loadScriptOnce(src){
+  return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.async=true;
+    s.onload=()=>res(); s.onerror=()=>rej(new Error("ネットワークに接続できません")); document.head.appendChild(s); });
+}
+function fbInit(){
+  if(_fbReady) return Promise.resolve();
+  if(_fbLoading) return _fbLoading;
+  if(!FIREBASE_CONFIG.apiKey){ return Promise.reject(new Error("クラウド共有が未設定です")); }
+  const base="https://www.gstatic.com/firebasejs/"+FB_SDK_VER+"/";
+  _fbLoading = loadScriptOnce(base+"firebase-app-compat.js")
+    .then(()=>loadScriptOnce(base+"firebase-auth-compat.js"))
+    .then(()=>loadScriptOnce(base+"firebase-firestore-compat.js"))
+    .then(()=>{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); return firebase.auth().signInAnonymously(); })
+    .then(()=>{ _fbReady=true; })
+    .catch(err=>{ _fbLoading=null; throw err; });
+  return _fbLoading;
+}
+function shareCodeGen(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 紛らわしい文字(0/O/1/I/L)除外
+  let out=""; const rnd=(window.crypto&&crypto.getRandomValues)?crypto.getRandomValues(new Uint32Array(12)):null;
+  for(let i=0;i<12;i++){ const v=rnd?rnd[i]:Math.floor(Math.random()*4294967296); out+=chars[v%chars.length]; if(i%4===3&&i<11) out+="-"; }
+  return out; // 例 A3F9-K2MN-7PQR
+}
+function shareDocRef(code){ return firebase.firestore().collection("shares").doc(code); }
+function pushShare(silent){
+  const m=shareMeta(); if(!m.code){ if(!silent) toast("先に共有を始めてください"); return Promise.resolve(false); }
+  return fbInit().then(()=>{
+    const json=JSON.stringify(DB);
+    _lastRemoteJSON=json; // 自分の書き込みの反射(echo)を無視するため控える
+    return shareDocRef(m.code).set({ data:json, updatedAt:Date.now(), updatedBy:deviceId() });
+  }).then(()=>{
+    const at=new Date().toISOString();
+    setShareMeta({lastAt:at});
+    DB.lastBackupAt=at; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} // 直書き(save()経由の再スケジュールを避ける)
+    renderShare(); renderBackupBar();
+    if(!silent) toast("☁️ クラウドに保存しました");
+    return true;
+  }).catch(err=>{ if(!silent) toast("クラウド保存に失敗："+err.message); return false; });
+}
+function applyRemote(json, fromWho){
+  if(json==null || json===_lastRemoteJSON) return;
+  if(json===JSON.stringify(DB)) return;
+  let d; try{ d=JSON.parse(json); }catch(e){ return; }
+  if(!d || !d.records || !d.noshi) return;
+  _lastRemoteJSON=json;
+  d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+  DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
+  refreshAll();
+  toast("☁️ "+(fromWho||"共有相手")+"の変更を受信しました");
+}
+function startShareListen(code){
+  if(_shareUnsub){ try{ _shareUnsub(); }catch(e){} _shareUnsub=null; }
+  _shareUnsub = shareDocRef(code).onSnapshot(function(doc){
+    if(!doc.exists) return;
+    const v=doc.data(); if(!v) return;
+    if(v.updatedBy===deviceId()){ _lastRemoteJSON=v.data; return; } // 自分の更新は無視
+    applyRemote(v.data, "家族");
+    setShareMeta({lastAt:new Date().toISOString()}); renderShare();
+  }, function(err){ /* 権限/ネットワークエラーは黙って無視（オフラインでも起動は妨げない） */ });
+}
+function shareStart(){
+  const code=shareCodeGen();
+  fbInit().then(()=> shareDocRef(code).set({ data:JSON.stringify(DB), updatedAt:Date.now(), updatedBy:deviceId() }))
+    .then(()=>{ _lastRemoteJSON=JSON.stringify(DB); setShareMeta({code:code, auto:true, lastAt:new Date().toISOString()});
+      startShareListen(code); renderShare(); toast("☁️ 共有を開始しました"); })
+    .catch(err=> toast("共有の開始に失敗："+err.message));
+}
+function shareJoin(){
+  const raw=prompt("家族から受け取った合言葉コードを入力してください（例 A3F9-K2MN-7PQR）");
+  if(!raw) return;
+  const code=raw.trim().toUpperCase().replace(/\s/g,"");
+  if(code.length<8){ toast("コードが短すぎます"); return; }
+  fbInit().then(()=> shareDocRef(code).get())
+    .then(doc=>{
+      if(!doc.exists){ toast("そのコードの共有が見つかりません"); return; }
+      const v=doc.data();
+      if(!confirm("この端末のデータを、共有中のデータで置き換えて参加します。よろしいですか？（不安なら先に「⬇️ 全データ書き出し」で今のデータを保存）")) return;
+      let d; try{ d=JSON.parse(v.data); }catch(e){ toast("共有データの読み取りに失敗"); return; }
+      if(!d.records||!d.noshi){ toast("共有データの形式が不正です"); return; }
+      d.records.forEach(r=>{ if(r.season!=null) r.season=parseInt(r.season); });
+      _lastRemoteJSON=v.data; DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
+      setShareMeta({code:code, auto:true, lastAt:new Date().toISOString()});
+      startShareListen(code); refreshAll(); toast("☁️ 共有に参加しました");
+    })
+    .catch(err=> toast("参加に失敗："+err.message));
+}
+function shareStop(){
+  if(!confirm("この端末の共有を停止します（クラウド上のデータは残ります）。よろしいですか？")) return;
+  if(_shareUnsub){ try{ _shareUnsub(); }catch(e){} _shareUnsub=null; }
+  setShareMeta({code:"", auto:false}); renderShare(); toast("共有を停止しました");
+}
+function scheduleShareSync(){
+  const m=shareMeta(); if(!m.code || !m.auto) return;
+  if(!FIREBASE_CONFIG.apiKey) return;
+  clearTimeout(_shareSyncT); _shareSyncT=setTimeout(()=>pushShare(true), 2500);
+}
+function copyShareCode(){
+  const m=shareMeta(); if(!m.code) return;
+  if(navigator.clipboard){ navigator.clipboard.writeText(m.code).then(()=>toast("コードをコピーしました")).catch(()=>toast(m.code)); }
+  else toast(m.code);
+}
+function renderShare(){
+  const box=document.getElementById("shareBox"); if(!box) return;
+  if(!FIREBASE_CONFIG.apiKey){
+    box.innerHTML=`<div class="muted" style="font-size:13px">🔧 準備中：クラウド共有はまだ設定されていません。それまでは「⬇️ 全データ書き出し（JSON）」でバックアップしてください。</div>`;
+    return;
+  }
+  const m=shareMeta();
+  const last = m.lastAt ? fmtDT(m.lastAt) : "—";
+  if(!m.code){
+    box.innerHTML=`<div class="row-actions">
+        <button class="btn" onclick="shareStart()">🆕 新しく共有を始める</button>
+        <button class="btn ghost" onclick="shareJoin()">🔑 共有に参加（コード入力）</button>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:6px">「新しく共有を始める」と<b>合言葉コード</b>が表示されます。それを家族に伝え、相手の端末で「共有に参加」に入れると、同じデータをリアルタイムで見られます。</div>`;
+  } else {
+    box.innerHTML=`<div style="background:#eef6ff;border:1px solid #b6cff5;border-radius:10px;padding:10px 12px;margin-bottom:8px">
+        <div style="font-size:12px;color:#5b7fa6">この端末の合言葉コード（家族に伝える）</div>
+        <div style="font-size:20px;font-weight:700;letter-spacing:1px;color:#123a5e;margin:4px 0">${escapeHtml(m.code)}</div>
+        <div style="font-size:12px;color:#2e7d5b">✅ 同期中 ・ 最終同期：${escapeHtml(last)}</div>
+      </div>
+      <div class="row-actions">
+        <button class="btn" onclick="copyShareCode()">📋 コードをコピー</button>
+        <button class="btn ghost" onclick="pushShare(false)">☁️ 今すぐ同期</button>
+        <button class="btn ghost" onclick="shareStop()">共有を停止</button>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:8px">記録を保存するたび自動でクラウドに同期され、家族の端末にも反映されます。</div>`;
+  }
+}
 function gotoTab(t){ const b=document.querySelector('#tabs button[data-tab="'+t+'"]'); if(b) b.click(); window.scrollTo(0,0); }
 function dismissWelcome(){ try{ localStorage.setItem(LS_KEY+"_wc","1"); }catch(e){} renderWelcome(); }
 function renderWelcome(){
@@ -981,7 +1151,7 @@ function renderWelcome(){
   el.innerHTML=`<div class="card" style="border:1px solid #b6cff5;background:#eef4fc">
     <h2>👋 はじめての方へ（3ステップ）</h2>
     <div style="font-size:13.5px;line-height:1.8">
-      <b>① のし場所を登録</b>：設定タブで自分ののしを追加します（自分ののしを追加してください）。<br>
+      <b>① のし場所を登録</b>：設定タブで自分ののしを追加します（自分ののし場所を追加してください）。<br>
       <b>② 目標を設定</b>：育成計算タブで、放流・転換の目標や「のし1本の連数／放流ののし本数」を自分の家の数値に。<br>
       <b>③ 記録スタート</b>：この画面で工程を選んで「💾 保存」。投入→移動→水揚げ…と進めるだけ。
     </div>
@@ -1271,7 +1441,37 @@ function renderTrials2(){
   const advice = total>=need ? `✅ 付着見込み ${fmt(Math.round(total))}粒 ≥ 早どり確保必要 ${fmt(Math.round(need))}粒（${rate.toFixed(0)}%）` : `⚠️ 付着見込み ${fmt(Math.round(total))}粒 < 早どり確保必要 ${fmt(Math.round(need))}粒（${rate.toFixed(0)}%）。通しを下げる／時期を遅らせる検討を。`;
   el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>場所</th><th>海区</th><th class="num">殻高</th><th class="num">枚/袋</th><th class="num">袋数</th><th class="num">小計</th><th></th></tr></thead><tbody>${rows}<tr style="background:var(--ice)"><td colspan="5"><b>付着見込み 合計</b></td><td class="num"><b>${fmt(Math.round(total))}</b></td><td></td></tr></tbody></table></div><div class="hint" style="margin-top:8px">${advice}</div>`;
 }
-function renderCalc(){ renderGyakusan(); renderPlace(); renderTrials(); renderTrials2(); renderDaily(); }
+function renderCalc(){ renderGyakusan(); renderPlace(); renderTrials(); renderTrials2(); renderDaily(); renderCagePlan(); }
+function updateCage(id, field, val){
+  const r=(DB.cagePlan||[]).find(c=>c.id===id); if(!r) return;
+  if(field==="memo") r.memo=val; else r[field]=num(val);
+  _skipHist=true; save(); _skipHist=false;
+  renderCagePlan();
+}
+function renderCagePlan(){
+  const el=document.getElementById("cageOut"); if(!el) return;
+  const rows=DB.cagePlan||[];
+  let tT=0,tD=0,tNeed=0,tDG=0;
+  const trs=rows.map(c=>{
+    const perRen=num(c.perDan)*10;
+    const rest=num(c.targetRen)-num(c.doneRen);
+    const need=num(c.targetRen)*perRen;
+    const dg=num(c.doneRen)*perRen;
+    tT+=num(c.targetRen); tD+=num(c.doneRen); tNeed+=need; tDG+=dg;
+    return `<tr>
+      <td><b>${escapeHtml(c.mesh)}</b></td>
+      <td><input type="number" inputmode="decimal" value="${c.targetRen||""}" onchange="updateCage('${c.id}','targetRen',this.value)" style="width:64px"></td>
+      <td><input type="number" inputmode="decimal" value="${c.perDan||""}" onchange="updateCage('${c.id}','perDan',this.value)" style="width:64px"></td>
+      <td class="num">${perRen?fmt(perRen):"—"}</td>
+      <td><input type="number" inputmode="decimal" value="${c.doneRen||""}" onchange="updateCage('${c.id}','doneRen',this.value)" style="width:64px"></td>
+      <td class="num" style="color:${rest<0?"#c0392b":"inherit"}">${fmt(rest)}</td>
+      <td class="num">${need?fmt(need):"—"}</td>
+      <td class="num">${dg?fmt(dg):"—"}</td>
+      <td><input value="${escapeHtml(c.memo||"")}" onchange="updateCage('${c.id}','memo',this.value)" placeholder="幅など" style="width:110px"></td>
+    </tr>`;
+  }).join("");
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>丸籠(網目)</th><th>目標連数</th><th>1段あたり</th><th class="num">1連あたり</th><th>投入済み連数</th><th class="num">残連数</th><th class="num">必要総粒数</th><th class="num">投入済み粒数</th><th>メモ</th></tr></thead><tbody>${trs}<tr style="background:var(--ice)"><td><b>合計</b></td><td class="num"><b>${fmt(tT)}</b></td><td></td><td></td><td class="num"><b>${fmt(tD)}</b></td><td class="num"><b>${fmt(tT-tD)}</b></td><td class="num"><b>${fmt(tNeed)}</b></td><td class="num"><b>${fmt(tDG)}</b></td><td></td></tr></tbody></table></div>`;
+}
 
 /* ============ ユーティリティ ============ */
 function today(){ return new Date().toISOString().slice(0,10); }
@@ -1284,7 +1484,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
-function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); }
+function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();
@@ -1294,6 +1494,8 @@ refreshNoshiSelectors();
 renderRecent();
 renderBackupBar();
 renderWelcome();
+renderShare();
+(function(){ const m=shareMeta(); if(m && m.code && FIREBASE_CONFIG.apiKey){ fbInit().then(()=>startShareListen(m.code)).catch(()=>{}); } })();
 if(VERSION_BUMPED){ save(); renderUpdateNotice(); }
 (function(){ const vl=document.getElementById("verLabel"); if(vl) vl.textContent="バージョン v"+APP_VERSION; })();
 document.querySelectorAll('input[type=number]').forEach(el=>{ if(!el.getAttribute('inputmode')) el.setAttribute('inputmode','decimal'); });

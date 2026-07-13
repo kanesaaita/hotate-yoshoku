@@ -1,5 +1,5 @@
 /* ホタテ養殖ツール Service Worker：オフライン対応（HTMLはネット優先→更新、無ければキャッシュ） */
-const CACHE = 'hotate-v8';
+const CACHE = 'hotate-v10';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -12,6 +12,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // 外部API（Google Drive等）はSWを通さずネット直通
   const isDoc = req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
   if (isDoc) {
     // ネット優先：最新のindex.htmlを取得しつつキャッシュ更新。オフライン時はキャッシュ。
