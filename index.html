@@ -111,6 +111,17 @@
   <section id="entry" class="active">
     <div id="welcomeBox" style="display:none"></div>
     <div class="card">
+      <h2>📅 今日のタスク <span id="todayDate" class="muted" style="font-size:12px;font-weight:400"></span></h2>
+      <div class="hint">記録・計画から「今日やること・確認すること」を自動で洗い出します。自分のタスクも追加できます（クラウド共有中は家族にも表示）。</div>
+      <div id="todayAuto" style="margin-top:8px"></div>
+      <h3>✏️ 自分のタスク・メモ</h3>
+      <div id="todoList"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="todoInput" placeholder="例：燃料を入れる／浮き玉を2個追加" onkeydown="if(event.key==='Enter')addTodo()">
+        <button class="btn sm" onclick="addTodo()" style="white-space:nowrap;height:auto">＋追加</button>
+      </div>
+    </div>
+    <div class="card">
       <h2>📥 工程を選んで記録</h2>
       <div class="field" style="max-width:320px;margin-bottom:14px">
         <label>工程</label>
@@ -435,7 +446,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.13-3";
+const APP_VERSION = "2026.07.18-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -468,6 +479,7 @@ function normalizeDB(d){
   d.saibyoEst = d.saibyoEst||{};
   d.houseName = d.houseName!=null ? d.houseName : "";
   d.dailyCalc = d.dailyCalc||[];
+  d.todos = d.todos||[];
   d.cagePlan = d.cagePlan||[
     {id:"cp1", mesh:"1部2厘", targetRen:0, perDan:0, doneRen:0, memo:""},
     {id:"cp2", mesh:"1部5厘", targetRen:0, perDan:0, doneRen:0, memo:""},
@@ -531,6 +543,7 @@ document.querySelectorAll("#tabs button").forEach(b=>{
     document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
     document.getElementById(b.dataset.tab).classList.add("active");
+    if(b.dataset.tab==="entry") renderToday();
     if(b.dataset.tab==="list") renderList();
     if(b.dataset.tab==="noshi") renderNoshiInv();
     if(b.dataset.tab==="buoy") renderBuoy();
@@ -622,7 +635,7 @@ function saveRecord(){
     DB.records.push(rec);
   }
   save(); editingId=null;
-  renderForm(); renderRecent(); renderSeasonSel();
+  renderForm(); renderRecent(); renderSeasonSel(); renderToday();
   flashSaved(k, wasEditing);
 }
 function flashSaved(k, wasEditing){
@@ -676,6 +689,77 @@ function renderRecent(){
   document.getElementById("recentList").innerHTML = rs.length? recordTable(rs) : `<div class="empty">まだ記録がありません。上のフォームから最初の記録を入れてみてください。</div>`;
 }
 function byDateDesc(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.id).localeCompare(a.id); }
+
+/* ============ 📅 今日のタスク ============ */
+/* 記録・計画から「今日やること・確認すること」を自動抽出する。level: "warn"=要注意 / "do"=作業 */
+function computeTodayTasks(){
+  const tasks=[]; const td=today();
+  const rs=DB.records.filter(r=>r.season===DB.season);
+  // 海に投入中の採苗器（その海区の移動記録がまだ無い）→ 経過日数と移動判断
+  const byArea={};
+  rs.filter(r=>r.koutei==="tounyu").forEach(r=>{ const a=r.kaiku||"不明"; byArea[a]=byArea[a]||{ren:0,first:null,moved:false}; byArea[a].ren+=num(r.saibyoRen); if(!byArea[a].first||(r.date&&r.date<byArea[a].first)) byArea[a].first=r.date; });
+  rs.filter(r=>r.koutei==="iko").forEach(r=>{ const a=r.kaikuFrom||"不明"; if(byArea[a]) byArea[a].moved=true; });
+  Object.entries(byArea).forEach(([a,o])=>{
+    if(o.moved) return;
+    const d=o.first?daysBetween(o.first,td):null;
+    tasks.push({icon:"⚓", level:"do", tab:"analysis", text:`<b>${escapeHtml(a)}</b>：採苗器 ${fmt(o.ren)}連が海に投入中${d!=null?`（投入から<b>${d}日</b>経過）`:""}。様子見・移動時期の判断を`});
+  });
+  // 沈下中ののし → 浮上の記録忘れ防止
+  const st=noshiState();
+  Object.entries(st).forEach(([id,s])=>{
+    if(s.state!=="沈下中") return;
+    const d=daysBetween(s.date,td);
+    tasks.push({icon:"⬇️", level:"do", tab:"noshi", text:`<b>${escapeHtml(noshiName(id))}</b>：沈下中（${s.date}から<b>${d}日</b>）。浮上させたら「⬆️ 浮上」を記録`});
+  });
+  // 丸籠 入れ替え計画の残り連数
+  (DB.cagePlan||[]).forEach(c=>{
+    const rest=num(c.targetRen)-num(c.doneRen);
+    if(num(c.targetRen)>0 && rest>0) tasks.push({icon:"🧺", level:"do", tab:"calc", text:`丸籠<b>${escapeHtml(c.mesh)}</b>：入れ替え 残り <b>${fmt(rest)}連</b>（${fmt(num(c.doneRen))}／${fmt(num(c.targetRen))}連 済み）`});
+  });
+  // 本どり配置予定の不足
+  const ps=DB.placePlan.filter(p=>p.season===DB.season && p.phase==="本どり");
+  if(ps.length){
+    const tot=ps.reduce((a,p)=>a+num(p.ren),0); const need=calcResults().hondoriRen;
+    if(tot<need) tasks.push({icon:"🗺️", level:"warn", tab:"calc", text:`本どりの配置予定が必要数より <b>${fmt(need-tot)}連 不足</b>（予定${fmt(tot)}連／必要${fmt(need)}連）`});
+  }
+  // 在庫マイナス（記録の入れ忘れ・順序ミスの検知）
+  const inv=computeInventory();
+  if(Object.values(inv.ren).some(v=>v<0)||Object.values(inv.kago).some(v=>v<0))
+    tasks.push({icon:"⚠️", level:"warn", tab:"noshi", text:"在庫の差し引きがマイナスの場所があります。記録の順序・数量を確認"});
+  return tasks;
+}
+function renderToday(){
+  const el=document.getElementById("todayAuto"); if(!el) return;
+  const dEl=document.getElementById("todayDate"); if(dEl) dEl.textContent=today();
+  const tasks=computeTodayTasks();
+  const doneToday=DB.records.filter(r=>r.season===DB.season && r.date===today()).length;
+  const rows=tasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13.5px;${t.level==="warn"?"color:#b45309;":""}">
+    <span style="flex:0 0 auto">${t.icon}</span><span style="flex:1">${t.text}</span>
+    <button class="btn sm ghost" onclick="gotoTab('${t.tab}')" style="flex:0 0 auto">開く</button></div>`).join("");
+  const doneLine=doneToday?`<div class="hint" style="margin-top:6px">✅ 今日の記録 ${fmt(doneToday)}件（お疲れさまです）</div>`:"";
+  el.innerHTML=(rows||`<div class="muted" style="font-size:13px;padding:4px 2px">今のところ、記録から自動で出るタスクはありません。</div>`)+doneLine;
+  renderTodoList();
+}
+function renderTodoList(){
+  const el=document.getElementById("todoList"); if(!el) return;
+  const ts=DB.todos||[];
+  if(!ts.length){ el.innerHTML=`<div class="muted" style="font-size:12.5px">「＋追加」で自分のタスクを入れられます。チェックで完了。</div>`; return; }
+  el.innerHTML=ts.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:13.5px">
+    <input type="checkbox" ${t.done?"checked":""} onchange="toggleTodo('${t.id}')" style="width:20px;height:20px;flex:0 0 auto;padding:0">
+    <span style="flex:1;${t.done?"text-decoration:line-through;color:var(--sub)":""}">${escapeHtml(t.text)}<span class="muted" style="font-size:11px"> ${t.at||""}</span></span>
+    <button class="btn sm danger" onclick="removeTodo('${t.id}')" style="flex:0 0 auto">✕</button></div>`).join("")
+    +(ts.some(t=>t.done)?`<div style="margin-top:6px"><button class="btn sm ghost" onclick="clearDoneTodos()">✔ 完了したタスクを片づける</button></div>`:"");
+}
+function addTodo(){
+  const inp=document.getElementById("todoInput"); const text=(inp.value||"").trim();
+  if(!text){ toast("タスク内容を入れてください"); return; }
+  DB.todos.push({id:uid(), text, done:false, at:today()});
+  inp.value="";
+  save(); renderTodoList(); toast("タスクを追加しました");
+}
+function toggleTodo(id){ const t=(DB.todos||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; _skipHist=true; save(); _skipHist=false; renderTodoList(); }
+function removeTodo(id){ DB.todos=(DB.todos||[]).filter(t=>t.id!==id); save(); renderTodoList(); }
+function clearDoneTodos(){ DB.todos=(DB.todos||[]).filter(t=>!t.done); save(); renderTodoList(); toast("完了タスクを片づけました"); }
 
 /* ============ 記録一覧 ============ */
 function renderList(){
@@ -1536,7 +1620,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
-function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
+function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderToday(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();
@@ -1544,6 +1628,7 @@ renderSeasonSel();
 renderForm();
 refreshNoshiSelectors();
 renderRecent();
+renderToday();
 renderBackupBar();
 renderWelcome();
 renderShare();
