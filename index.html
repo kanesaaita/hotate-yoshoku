@@ -96,6 +96,7 @@
 
 <nav id="tabs">
   <button data-tab="entry" class="active">📥 記録入力</button>
+  <button data-tab="funekami">🛥️ 船上下げ</button>
   <button data-tab="list">📋 記録一覧</button>
   <button data-tab="noshi">🎣 のし在庫</button>
   <button data-tab="buoy">🎈 浮力管理</button>
@@ -138,6 +139,61 @@
     <div class="card">
       <h2>🕒 直近の記録（このシーズン）</h2>
       <div id="recentList"></div>
+    </div>
+  </section>
+
+  <!-- ===== 船上下げ（丸籠を下げる） ===== -->
+  <section id="funekami">
+    <div class="card">
+      <h2>🛥️ 丸籠を下げる（クイック記録）</h2>
+      <div class="hint">船の上で、どののしに何を何連下げたか・浮き玉／ふらし玉をどの間隔で付けたかを素早く記録します（<b>日付は自動</b>）。下に「何連目に何を付けるか」が自動で出ます。</div>
+      <div class="grid" style="margin-top:10px">
+        <div class="field"><label>のし場所</label><select id="fk_noshi"></select></div>
+        <div class="field"><label>工程</label><select id="fk_phase"><option value="早どり">早どり（①丸籠）</option><option value="本どり">本どり（②丸籠）</option></select></div>
+        <div class="field"><label>網目</label><select id="fk_amime"><option>1部2厘</option><option>1部5厘</option><option>1部8厘</option><option>3部5厘</option></select></div>
+        <div class="field"><label>下げた連数</label><input type="number" step="any" inputmode="decimal" id="fk_ren" placeholder="連" oninput="renderFkPreview()"></div>
+        <div class="field"><label>日付（自動・変更可）</label><input type="date" id="fk_date"></div>
+      </div>
+      <h3>🎈 浮き玉（浮力用：尺玉／尺2玉／尺3玉）</h3>
+      <div class="grid">
+        <div class="field"><label>種類</label><select id="fk_ukiType" onchange="renderFkPreview()"><option>尺玉</option><option>尺2玉</option><option>尺3玉</option></select></div>
+        <div class="field"><label>何連おきに付けた</label><input type="number" step="any" inputmode="decimal" id="fk_ukiInt" placeholder="例 9" oninput="renderFkPreview()"></div>
+      </div>
+      <h3>🟠 ふらし玉（位置・浮力確認用／紐が長い）</h3>
+      <div class="grid">
+        <div class="field"><label>何連おきに付けた</label><input type="number" step="any" inputmode="decimal" id="fk_furashiInt" placeholder="例 30" oninput="renderFkPreview()"></div>
+      </div>
+      <div class="field" style="margin-top:10px"><label>メモ</label><input id="fk_memo" placeholder="任意（上側／分岐など）"></div>
+      <div id="fkPreview" style="margin-top:12px"></div>
+      <div class="row-actions">
+        <button class="btn" onclick="saveLowering()">💾 この下げを記録</button>
+        <button class="btn ghost" onclick="resetFk()">クリア</button>
+        <span id="fkEditBadge" class="muted" style="align-self:center"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🧮 配置アシスト（何連おきが良いか）</h2>
+      <div class="hint">総連数から「端数が出ない等間隔」の候補と、浮き玉の浮力と丸籠の沈降力が<b>釣り合う間隔</b>を計算します。等間隔にすると一部だけ浮く／沈むを防げます。</div>
+      <div class="grid" style="margin-top:8px">
+        <div class="field"><label>総連数</label><input type="number" step="any" inputmode="decimal" id="as_ren" placeholder="例 142" oninput="renderAssist()"></div>
+        <div class="field"><label>浮き玉の希望間隔（目安・任意）</label><input type="number" step="any" inputmode="decimal" id="as_desire" placeholder="例 9" oninput="renderAssist()"></div>
+        <div class="field"><label>ふらし玉の希望間隔（目安・任意）</label><input type="number" step="any" inputmode="decimal" id="as_desireF" placeholder="例 30" oninput="renderAssist()"></div>
+      </div>
+      <h3>⚖️ 浮力バランス（釣り合う間隔を逆算）</h3>
+      <div class="hint">自分の玉・籠の値を入れてください（下は<b>一例</b>）。<b>浮き玉1個の浮力 ÷ 丸籠1連の沈む力 ＝ 釣り合う「何連に1個」</b>。</div>
+      <div class="grid">
+        <div class="field"><label>浮き玉1個の浮力(kgf)</label><input type="number" step="any" inputmode="decimal" id="as_lift" placeholder="例 8" oninput="saveBuoyCfg();renderAssist()"></div>
+        <div class="field"><label>丸籠1連の沈む力(kgf・水中重量)</label><input type="number" step="any" inputmode="decimal" id="as_sink" placeholder="例 1.0" oninput="saveBuoyCfg();renderAssist()"></div>
+      </div>
+      <div id="assistOut" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2>📚 なぜ浮力・深さ管理が成長を左右するか（根拠）</h2>
+      <div id="buoyEvidence"></div>
+    </div>
+    <div class="card">
+      <h2>🗒️ 最近の下げ記録（このシーズン）</h2>
+      <div id="loweringList"></div>
     </div>
   </section>
 
@@ -446,7 +502,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.18-1";
+const APP_VERSION = "2026.07.18-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -480,6 +536,9 @@ function normalizeDB(d){
   d.houseName = d.houseName!=null ? d.houseName : "";
   d.dailyCalc = d.dailyCalc||[];
   d.todos = d.todos||[];
+  d.lowerings = d.lowerings||[];
+  d.lowerings.forEach(l=>{ if(l.season!=null) l.season=parseInt(l.season); });
+  d.buoyConfig = Object.assign({lift:null, sink:null}, d.buoyConfig||{});
   d.cagePlan = d.cagePlan||[
     {id:"cp1", mesh:"1部2厘", targetRen:0, perDan:0, doneRen:0, memo:""},
     {id:"cp2", mesh:"1部5厘", targetRen:0, perDan:0, doneRen:0, memo:""},
@@ -544,6 +603,7 @@ document.querySelectorAll("#tabs button").forEach(b=>{
     b.classList.add("active");
     document.getElementById(b.dataset.tab).classList.add("active");
     if(b.dataset.tab==="entry") renderToday();
+    if(b.dataset.tab==="funekami") renderFunekami();
     if(b.dataset.tab==="list") renderList();
     if(b.dataset.tab==="noshi") renderNoshiInv();
     if(b.dataset.tab==="buoy") renderBuoy();
@@ -760,6 +820,172 @@ function addTodo(){
 function toggleTodo(id){ const t=(DB.todos||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; _skipHist=true; save(); _skipHist=false; renderTodoList(); }
 function removeTodo(id){ DB.todos=(DB.todos||[]).filter(t=>t.id!==id); save(); renderTodoList(); }
 function clearDoneTodos(){ DB.todos=(DB.todos||[]).filter(t=>!t.done); save(); renderTodoList(); toast("完了タスクを片づけました"); }
+
+/* ============ 🛥️ 船上下げ（丸籠を下げる＋浮き玉・ふらし玉 配置） ============ */
+let fkEditId=null;
+/* 何連目に浮き玉/ふらし玉が来るかを計算。位置は間隔の倍数（例 9連おき→9,18,27）。連は離散なので間隔は整数に丸める。 */
+function computePlacement(ren, ukiInt, furashiInt){
+  ren=Math.floor(num(ren)); ukiInt=Math.floor(num(ukiInt)); furashiInt=Math.floor(num(furashiInt));
+  const map={}; // pos -> {uki,furashi}
+  const put=(step,key)=>{ if(step>=1 && ren>=step){ for(let p=step;p<=ren && Object.keys(map).length<4000;p+=step){ map[p]=map[p]||{uki:false,furashi:false}; map[p][key]=true; } } };
+  put(ukiInt,"uki"); put(furashiInt,"furashi");
+  const positions=Object.keys(map).map(Number).sort((a,b)=>a-b);
+  const ukiCount=positions.filter(p=>map[p].uki).length;
+  const furashiCount=positions.filter(p=>map[p].furashi).length;
+  return {positions, map, ukiCount, furashiCount, ren};
+}
+function placementStrip(pl, ukiType){
+  if(!pl.positions.length) return "";
+  const chips=pl.positions.map(p=>{
+    const m=pl.map[p]; const both=m.uki&&m.furashi;
+    const bg = both?"#f3e2c9" : (m.uki?"#e5ddf2":"#ffe1c2");
+    const lbl = both?`${ukiType||"浮き玉"}＋ふらし` : (m.uki?(ukiType||"浮き玉"):"ふらし玉");
+    return `<span class="chip" style="background:${bg}">${p}連目 ${lbl}</span>`;
+  }).join(" ");
+  return `<div style="margin-top:6px;line-height:2">${chips}</div>`;
+}
+function renderFkPreview(){
+  const el=document.getElementById("fkPreview"); if(!el) return;
+  const ren=num(document.getElementById("fk_ren").value);
+  const ukiInt=num(document.getElementById("fk_ukiInt").value);
+  const furashiInt=num(document.getElementById("fk_furashiInt").value);
+  const ukiType=document.getElementById("fk_ukiType").value;
+  if(!ren){ el.innerHTML=`<div class="muted" style="font-size:12.5px">連数を入れると、何連目に浮き玉／ふらし玉を付けるかが出ます。</div>`; return; }
+  if(!ukiInt && !furashiInt){ el.innerHTML=`<div class="muted" style="font-size:12.5px">浮き玉・ふらし玉の「何連おき」を入れると配置が出ます。</div>`; return; }
+  const pl=computePlacement(ren, ukiInt, furashiInt);
+  const line=`<div style="font-size:13.5px"><b>${escapeHtml(ukiType)} ×${fmt(pl.ukiCount)}</b>${ukiInt?`（${ukiInt}連おき）`:""} ／ <b>ふらし玉 ×${fmt(pl.furashiCount)}</b>${furashiInt?`（${furashiInt}連おき）`:""}</div>`;
+  el.innerHTML=`<div style="background:var(--ice);border-radius:10px;padding:10px 12px">${line}${placementStrip(pl, ukiType)}</div>`;
+}
+function resetFk(){ fkEditId=null;
+  ["fk_ren","fk_ukiInt","fk_furashiInt","fk_memo"].forEach(i=>{ const e=document.getElementById(i); if(e) e.value=""; });
+  const d=document.getElementById("fk_date"); if(d) d.value=today();
+  document.getElementById("fkEditBadge").textContent="";
+  renderFkPreview();
+}
+function saveLowering(){
+  const noshi=document.getElementById("fk_noshi").value;
+  const ren=num(document.getElementById("fk_ren").value);
+  if(!noshi){ toast("のし場所を選んでください（未登録なら設定タブで追加）"); return; }
+  if(!ren){ toast("下げた連数を入れてください"); return; }
+  const rec={ id: fkEditId||uid(), season:DB.season,
+    date: document.getElementById("fk_date").value || today(),
+    noshi, phase:document.getElementById("fk_phase").value, amime:document.getElementById("fk_amime").value,
+    ren, ukiType:document.getElementById("fk_ukiType").value,
+    ukiInt:num(document.getElementById("fk_ukiInt").value),
+    furashiInt:num(document.getElementById("fk_furashiInt").value),
+    memo:(document.getElementById("fk_memo").value||"").trim() };
+  const wasEditing=!!fkEditId;
+  if(fkEditId){ const i=DB.lowerings.findIndex(l=>l.id===fkEditId); if(i>=0) DB.lowerings[i]=rec; }
+  else DB.lowerings.push(rec);
+  fkEditId=null; save(); resetFk(); renderLowerings();
+  toast("🛥️ "+(wasEditing?"更新":"記録")+"しました（"+noshiName(noshi)+" "+fmt(ren)+"連）");
+}
+function editLowering(id){
+  const l=DB.lowerings.find(x=>x.id===id); if(!l) return;
+  fkEditId=id;
+  const set=(i,v)=>{ const e=document.getElementById(i); if(e) e.value=(v!=null?v:""); };
+  set("fk_noshi",l.noshi); set("fk_phase",l.phase); set("fk_amime",l.amime); set("fk_ren",l.ren);
+  set("fk_date",l.date); set("fk_ukiType",l.ukiType||"尺玉"); set("fk_ukiInt",l.ukiInt||""); set("fk_furashiInt",l.furashiInt||""); set("fk_memo",l.memo||"");
+  document.getElementById("fkEditBadge").textContent="✏️ この下げを編集中";
+  renderFkPreview(); window.scrollTo({top:0,behavior:"smooth"});
+}
+function deleteLowering(id){ if(!confirm("この下げ記録を削除しますか？")) return; DB.lowerings=DB.lowerings.filter(l=>l.id!==id); save(); renderLowerings(); toast("削除しました"); }
+function renderLowerings(){
+  const el=document.getElementById("loweringList"); if(!el) return;
+  const ls=DB.lowerings.filter(l=>l.season===DB.season).sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.id).localeCompare(a.id));
+  if(!ls.length){ el.innerHTML=`<div class="empty">「💾 この下げを記録」で、下げた丸籠と浮き玉配置がここに貯まります。</div>`; return; }
+  const rows=ls.map(l=>{
+    const pl=computePlacement(l.ren, l.ukiInt, l.furashiInt);
+    const buoy=[]; if(l.ukiInt) buoy.push(`${escapeHtml(l.ukiType||"浮き玉")}${pl.ukiCount}個(${l.ukiInt}連おき)`); if(l.furashiInt) buoy.push(`ふらし玉${pl.furashiCount}個(${l.furashiInt}連おき)`);
+    return `<tr><td>${l.date||"—"}</td><td>${escapeHtml(noshiName(l.noshi))}</td><td>${escapeHtml(l.phase||"")}</td><td>${escapeHtml(l.amime||"")}</td><td class="num">${fmt(num(l.ren))}連</td><td>${buoy.join(" ／ ")||'<span class="muted">—</span>'}</td><td class="muted">${escapeHtml(l.memo||"")}</td><td><button class="btn sm ghost" onclick="editLowering('${l.id}')">編集</button> <button class="btn sm danger" onclick="deleteLowering('${l.id}')">削除</button></td></tr>`;
+  }).join("");
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>日付</th><th>のし</th><th>工程</th><th>網目</th><th class="num">連数</th><th>浮き玉／ふらし玉</th><th>メモ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+/* --- 配置アシスト --- */
+function divisors(n){ n=Math.floor(n); const out=[]; if(n<1) return out; for(let k=1;k<=n;k++){ if(n%k===0) out.push(k); } return out; }
+function nearestDivisor(n, target){ const ds=divisors(n).filter(k=>k>=1); if(!ds.length) return null; return ds.reduce((best,k)=>Math.abs(k-target)<Math.abs(best-target)?k:best, ds[0]); }
+function saveBuoyCfg(){ DB.buoyConfig={ lift:numOrNull(document.getElementById("as_lift").value), sink:numOrNull(document.getElementById("as_sink").value) }; _skipHist=true; save(); _skipHist=false; }
+function evenCandidates(total, desire){
+  const ds=divisors(total).filter(k=>k>=2 && k<total);
+  if(!ds.length) return [];
+  const target=desire>0?desire:Math.max(2,Math.round(total/12));
+  return ds.slice().sort((a,b)=>Math.abs(a-target)-Math.abs(b-target)).slice(0,5).sort((a,b)=>a-b);
+}
+function renderAssist(){
+  const el=document.getElementById("assistOut"); if(!el) return;
+  // 保存値を入力へ反映（フォーカス中は上書きしない）
+  const cfg=DB.buoyConfig||{};
+  const lf=document.getElementById("as_lift"), sk=document.getElementById("as_sink");
+  if(lf && document.activeElement!==lf && cfg.lift!=null && lf.value==="") lf.value=cfg.lift;
+  if(sk && document.activeElement!==sk && cfg.sink!=null && sk.value==="") sk.value=cfg.sink;
+  const total=Math.floor(num(document.getElementById("as_ren").value));
+  const desire=num(document.getElementById("as_desire").value);
+  const desireF=num(document.getElementById("as_desireF").value);
+  const lift=num(lf.value), sink=num(sk.value);
+  if(total<2){ el.innerHTML=`<div class="muted" style="font-size:12.5px">総連数を入れると、等間隔の候補と釣り合う間隔を計算します。</div>`; return; }
+  let html="";
+  // 等間隔（端数なし）候補
+  const cand=evenCandidates(total, desire);
+  if(cand.length){
+    html+=`<h3 style="margin-top:0">🎈 浮き玉：端数が出ない等間隔の候補</h3><div class="hint">${fmt(total)}連を割り切れる間隔＝端が余らず、全体が等間隔になります。</div>`;
+    html+=`<div class="table-wrap" style="margin-top:6px"><table><thead><tr><th>間隔</th><th class="num">個数</th><th>配置（先頭）</th></tr></thead><tbody>`+
+      cand.map(k=>{ const cnt=total/k; const head=[]; for(let p=k;p<=total&&head.length<4;p+=k) head.push(p+"連目"); const near=(desire>0&&k===nearestDivisor(total,desire))?' <span class="tag" style="background:#dcecd6">希望に最も近い</span>':"";
+        return `<tr><td><b>${k}連おき</b>${near}</td><td class="num">${fmt(cnt)}個</td><td class="muted">${head.join("・")}…</td></tr>`; }).join("")+
+      `</tbody></table></div>`;
+  } else {
+    html+=`<div class="muted" style="font-size:12.5px">${fmt(total)}連は割り切れる間隔が少ないです（素数など）。総連数を少し丸めると等間隔にしやすくなります。</div>`;
+  }
+  // ふらし玉 候補
+  if(desireF>0){
+    const near=nearestDivisor(total, desireF);
+    html+=`<h3>🟠 ふらし玉：希望 ${desireF}連おきに近い等間隔</h3><div class="hint">最も近い割り切れる間隔は <b>${near}連おき（${fmt(total/near)}個）</b>。端が余りません。</div>`;
+  }
+  // 浮力バランス
+  html+=`<h3>⚖️ 浮力バランス（釣り合う間隔）</h3>`;
+  if(lift>0 && sink>0){
+    const kb=lift/sink; const kbDiv=nearestDivisor(total, Math.max(1,Math.round(kb)));
+    const netFor=k=>(Math.floor(total/k))*lift - total*sink; // 選んだ間隔での正味浮力(＋=浮く/−=沈む)
+    const netBal=netFor(kbDiv);
+    const per = k=>`${k}連に1個`;
+    let verdict, vcolor;
+    if(Math.abs(netBal) < 0.15*total*sink){ verdict="ほぼ釣り合い（目標）"; vcolor="var(--ok)"; }
+    else if(netBal>0){ verdict="やや浮き気味"; vcolor="var(--warn)"; }
+    else { verdict="やや沈み気味"; vcolor="var(--warn)"; }
+    html+=`<div style="border:1px solid var(--line);border-radius:10px;overflow:hidden">
+      ${calcLine("釣り合う間隔（計算値）", `浮力 ${fmt(lift)} ÷ 沈む力 ${fmt(sink)} = <b>${kb.toFixed(1)}連に1個</b>`)}
+      ${calcLine("端数なしに丸めたおすすめ", `<b>${kbDiv}連おき</b>（${per(kbDiv)}・${fmt(total/kbDiv)}個）`, true)}
+      ${calcLine("この間隔での正味の浮き沈み", `<span style="color:${vcolor}"><b>${netBal>=0?"＋":""}${netBal.toFixed(1)} kgf ・ ${verdict}</b></span>`, true)}
+    </div>
+    <div class="hint" style="margin-top:8px">⚠️ <b>浮かせすぎ</b>（浮き玉が水面に出る）と丸籠が波・風で揺すられ、稚貝のストレスで成長が落ちます。逆に<b>沈めすぎ</b>ると低水温・餌の少ない層に入ります。真夏の高水温期だけは、あえてやや深めにして高水温を避けるのが安全です（下の根拠参照）。</div>`;
+  } else {
+    html+=`<div class="muted" style="font-size:12.5px">「浮き玉1個の浮力」と「丸籠1連の沈む力」を入れると、釣り合う間隔（何連に1個）と、選んだ間隔での正味の浮き沈みを計算します。数値は自分の玉・籠に合わせて上書きしてください。</div>`;
+  }
+  el.innerHTML=html;
+}
+function renderBuoyEvidence(){
+  const el=document.getElementById("buoyEvidence"); if(!el) return;
+  el.innerHTML=`<div class="muted" style="font-size:13px;line-height:1.85">
+    <b>① 成長に良い水温はおおむね5〜15℃、真夏は16〜18℃を超えない層が望ましい</b>。適水温を保てる深さに置くのが成長の鍵です（FAO：好適生育水温4〜8℃、夏季16〜18℃以下の海域が最適）。<br>
+    <b>② 稚貝は高水温に弱い</b>。25℃で成長が止まり、26℃でへい死の危険が高まり、27℃では急死すると推定。だから<b>高水温期は籠を低水温の下層へ沈める</b>のが定石です（岩手県水産技術センター／気候変動適応情報プラットフォーム）。<br>
+    <b>③ 動揺・餌不足はストレス要因</b>。北海道の大量へい死ではストレスと餌不足が要因と報じられ、近年は水温だけでなく波浪・流速まで含めた環境把握が重要とされています。浮かせすぎて水面で揺すられる状態は避け、餌のある層に安定させたいところです。<br>
+    <b>④ 浮力は「足しながら」管理</b>。貝の成長や付着生物で施設が沈むため浮きを足し、月2回程度の点検が推奨されています（隆勝丸）。<br>
+    <span style="font-size:11.5px;color:#8a99a8">※「浮かせすぎ＝揺れでストレス→成長低下」「浮き玉を等間隔に→一部だけ浮く/沈むを防ぐ」は、上記の水温・深さ・動揺の知見と整合する<b>現場の経験則</b>で、この配置そのものを定量化した論文は確認できていません。数値（浮力・沈降力・間隔）はご自身の実測で調整してください。</span>
+    <div style="margin-top:8px;font-size:11.5px">
+      出典：
+      <a href="https://www.fao.org/fishery/docs/CDrom/aquaculture/I1129m/file/en/en_yessoscallop.htm" target="_blank" rel="noopener">FAO（Yesso scallop 養殖）</a>／
+      <a href="https://www2.suigi.pref.iwate.jp/research/20210727scallopseed" target="_blank" rel="noopener">岩手県水産技術センター（高水温情報）</a>／
+      <a href="https://adaptation-platform.nies.go.jp/local/infographic/1_commonScallop.html" target="_blank" rel="noopener">A-PLAT 気候変動適応（ホタテ）</a>／
+      <a href="https://www.ryushomaru.co.jp/flow.html" target="_blank" rel="noopener">隆勝丸（養殖の流れ）</a>
+    </div>
+  </div>`;
+}
+function renderFunekami(){
+  const d=document.getElementById("fk_date"); if(d && !d.value) d.value=today();
+  refreshNoshiSelectors();
+  const as=document.getElementById("as_ren");
+  if(as && !as.value){ const r=num(document.getElementById("fk_ren").value); if(r) as.value=r; }
+  renderFkPreview(); renderAssist(); renderBuoyEvidence(); renderLowerings();
+}
 
 /* ============ 記録一覧 ============ */
 function renderList(){
@@ -1083,6 +1309,7 @@ function removeNoshi(id){
 function refreshNoshiSelectors(){
   document.getElementById("fltNoshi").innerHTML=`<option value="">すべて</option>`+DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join("");
   const pn=document.getElementById("p_noshi"); if(pn){ const cur=pn.value; pn.innerHTML=DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join(""); if(cur) pn.value=cur; }
+  const fkn=document.getElementById("fk_noshi"); if(fkn){ const cur=fkn.value; fkn.innerHTML=`<option value="">— 選択 —</option>`+DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join(""); if(cur) fkn.value=cur; }
   // 入力途中を消さないよう、フォーム内ののし選択だけ差し替える
   const k=KMAP[document.getElementById("kouteiSel").value];
   if(k) k.fields.filter(f=>f.type==="noshi").forEach(f=>{ const el=document.getElementById("f_"+f.k); if(el){ const cur=el.value; el.innerHTML=noshiOptions(cur); } });
@@ -1620,7 +1847,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
-function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderToday(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
+function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderToday(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderLowerings(); renderBackupBar(); renderWelcome(); renderShare(); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();

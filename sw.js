@@ -1,5 +1,5 @@
 /* ホタテ養殖ツール Service Worker：オフライン対応（HTMLはネット優先→更新、無ければキャッシュ） */
-const CACHE = 'hotate-v13';
+const CACHE = 'hotate-v14';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
