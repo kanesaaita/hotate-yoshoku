@@ -28,9 +28,9 @@
   header .sub{font-size:12px;opacity:.85;margin-top:2px}
   .season-pick{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px}
   .season-pick select{padding:4px 8px;border-radius:6px;border:none;font-size:13px}
-  nav{display:flex;gap:2px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:19;-webkit-overflow-scrolling:touch}
-  nav button{flex:0 0 auto;border:none;background:none;padding:12px 14px;font-size:14px;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;font-weight:600}
-  nav button.active{color:var(--navy);border-bottom-color:var(--navy2)}
+  nav#tabs{display:flex;gap:2px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:19;-webkit-overflow-scrolling:touch}
+  nav#tabs button{flex:0 0 auto;border:none;background:none;padding:12px 14px;font-size:14px;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;font-weight:600}
+  nav#tabs button.active{color:var(--navy);border-bottom-color:var(--navy2)}
   main{max-width:1000px;margin:0 auto;padding:16px}
   section{display:none}
   section.active{display:block}
@@ -80,11 +80,57 @@
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:6px 0}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .guide-sec{border:1px solid var(--line);border-radius:10px;margin-top:8px;background:#fbfdff}
+  .guide-sec summary{cursor:pointer;font-weight:700;font-size:14px;padding:10px 12px;list-style-position:inside}
+  .guide-sec[open] summary{border-bottom:1px solid var(--line)}
+  .guide-body{font-size:13.5px;line-height:1.75;color:var(--sub);padding:10px 12px}
   @media(max-width:640px){ .bar-row .lbl{flex-basis:70px} main{padding:12px} }
+  /* ===== UI v2（2026-07-20 スマホアプリ型再構成） ===== */
+  nav#tabs{display:none}
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  header{padding:10px 14px 12px}
+  header h1{font-size:16px}
+  @media(max-width:640px){ header .sub{display:none} }
+  .season-pick{margin-top:6px}
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;border-bottom:none;overflow:visible;z-index:50;display:flex;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(18,58,94,.10)}
+  .bottom-nav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0 3px;color:var(--sub);cursor:pointer;border-radius:10px}
+  .bottom-nav button .bn-ic{font-size:21px;line-height:1}
+  .bottom-nav button .bn-lb{font-size:10.5px;font-weight:700;letter-spacing:.02em}
+  .bottom-nav button.active{color:var(--navy);background:var(--ice)}
+  @media(min-width:900px){ .bottom-nav{max-width:540px;left:50%;right:auto;transform:translateX(-50%);border-radius:16px 16px 0 0;border:1px solid var(--line);border-bottom:none} }
+  .seg-bar{display:flex;gap:6px;background:var(--ice2);padding:4px;border-radius:12px;margin-bottom:14px}
+  .seg-btn{flex:1;border:none;border-radius:9px;padding:9px 4px;font-size:13.5px;font-weight:700;background:transparent;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .seg-btn.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(18,58,94,.15)}
+  .home-hero{background:linear-gradient(135deg,#0d2e4d,#1d5b8f 70%,#2b74ad);border-radius:18px;padding:18px 16px 14px;color:#fff;box-shadow:0 6px 24px rgba(13,46,77,.25);margin-bottom:14px}
+  .hh-season{font-size:13px;opacity:.9;font-weight:700}
+  .hh-house{opacity:.75;font-weight:600;margin-left:4px}
+  .hh-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .hk{background:rgba(255,255,255,.10);border-radius:12px;padding:10px 4px;text-align:center}
+  .hk .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+  .hk .l{font-size:10.5px;opacity:.8;margin-top:1px}
+  .hh-status{font-size:11.5px;opacity:.85;margin-top:10px}
+  .hh-sep{opacity:.5;margin:0 2px}
+  .cta-big{width:100%;border:none;border-radius:16px;background:linear-gradient(120deg,var(--navy2),#2b74ad);color:#fff;font-size:18px;font-weight:800;padding:16px;cursor:pointer;box-shadow:0 4px 14px rgba(29,91,143,.35);margin-bottom:12px}
+  .cta-big:active{transform:scale(.98)}
+  .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .quick-grid button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:20px;color:var(--navy);cursor:pointer;box-shadow:var(--shadow)}
+  .quick-grid button span{font-size:11px;font-weight:700}
+  .quick-grid button:active{background:var(--ice)}
+  .recent-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--ice2)}
+  .recent-row:last-child{border-bottom:none}
+  .rr-date{font-size:11.5px;color:var(--sub)}
+  .rr-sum{font-size:13px;margin-top:1px}
+  .chips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .kchip{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
+  .kchip .kc-ic{font-size:18px}
+  .kchip.active{border-color:var(--navy2);background:var(--ice);color:var(--navy);box-shadow:0 0 0 2px rgba(29,91,143,.15)}
+  .card{border-radius:14px}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
 <header>
+  <div id="syncBadge" style="display:none;position:absolute;top:10px;right:14px;font-size:11px;line-height:1.4;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;max-width:58%;text-align:right"></div>
   <h1>🐚 ホタテ稚貝養殖 記録・分析ツール</h1>
   <div class="sub">採苗器投入 → 早撮り → 丸籠育成 → のし管理 → 販売・放流 まで一気通貫</div>
   <div class="season-pick">
@@ -95,7 +141,8 @@
 </header>
 
 <nav id="tabs">
-  <button data-tab="entry" class="active">📥 記録入力</button>
+  <button data-tab="home" class="active">🏠 ホーム</button>
+  <button data-tab="entry">📥 記録入力</button>
   <button data-tab="list">📋 記録一覧</button>
   <button data-tab="noshi">🎣 のし在庫</button>
   <button data-tab="buoy">🎈 浮力管理</button>
@@ -107,14 +154,20 @@
 <main>
   <div id="updateBar" style="display:none;margin-bottom:12px"></div>
   <div id="backupBar" style="display:none;margin-bottom:14px"></div>
+  <div id="segBar" class="seg-bar" style="display:none"></div>
+  <!-- ===== ホーム（UI v2） ===== -->
+  <section id="home" class="active">
+    <div id="homeArea"></div>
+  </section>
   <!-- ===== 記録入力 ===== -->
-  <section id="entry" class="active">
+  <section id="entry">
     <div id="welcomeBox" style="display:none"></div>
     <div class="card">
       <h2>📥 工程を選んで記録</h2>
-      <div class="field" style="max-width:320px;margin-bottom:14px">
-        <label>工程</label>
-        <select id="kouteiSel" onchange="renderForm()"></select>
+      <div class="field" style="margin-bottom:14px">
+        <label>工程を選ぶ</label>
+        <div id="kouteiChips" class="chips-grid"></div>
+        <select id="kouteiSel" onchange="renderForm()" style="display:none"></select>
       </div>
       <div id="formArea"></div>
       <div class="row-actions">
@@ -231,7 +284,7 @@
       <h2>🧪 試運転（通しベース・早どり見込み）</h2>
       <div class="hint">場所（外海投入地×サロマ湖漁場）ごとにサンプルを通しにかけ、残った稚貝を計数 → 1連あたり・漁場総数・全体見込みを自動計算します。</div>
       <div class="filters" style="margin-bottom:6px">
-        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t_place" placeholder="例：ちやA"></div>
+        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t_place" placeholder="例：漁場A"></div>
         <div class="field" style="min-width:100px"><label>投入海区</label><select id="t_kaiku"><option value="">—</option><option>A海区</option><option>B海区</option><option>トウフツ沖</option></select></div>
         <div class="field" style="min-width:90px"><label>通し目</label><input id="t_mesh" placeholder="6mm"></div>
         <div class="field" style="min-width:90px"><label>サンプル連数</label><input type="number" id="t_sampleRen" placeholder="5"></div>
@@ -245,7 +298,7 @@
       <h2>🔬 早どり見込み（付着調査ベース）</h2>
       <div class="hint">1袋あたり「殻高(mm)」と「付着枚数」を入れると、連数×袋/連 から合計見込みを計算します（通し試運転とは別軸）。ゴール逆算の「早どり確保必要」と自動で比較。</div>
       <div class="filters" style="margin-bottom:6px">
-        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t2_place" placeholder="例：ちやA"></div>
+        <div class="field" style="min-width:120px"><label>場所・漁場</label><input id="t2_place" placeholder="例：漁場A"></div>
         <div class="field" style="min-width:100px"><label>投入海区</label><select id="t2_kaiku"><option value="">—</option><option>A海区</option><option>B海区</option><option>トウフツ沖</option></select></div>
         <div class="field" style="min-width:80px"><label>殻高(mm)</label><input type="number" step="any" inputmode="decimal" id="t2_mm" placeholder="1.7"></div>
         <div class="field" style="min-width:100px"><label>付着(枚/袋)</label><input type="number" step="any" inputmode="decimal" id="t2_perbag" placeholder="6000"></div>
@@ -278,7 +331,7 @@
   <section id="data">
     <div class="card">
       <h2>🎣 のし場所マスター</h2>
-      <div class="hint">実際ののし・場所を登録すると、各工程の入力で選べます。うちの28本はワンタップで読み込めます。</div>
+      <div class="hint">実際ののし・場所を登録すると、各工程の入力で選べます。</div>
       <div id="noshiMaster" class="noshi-manage"></div>
       <div class="filters" style="margin-top:8px">
         <div class="field" style="min-width:150px"><label>場所名</label><input id="newNoshiName" placeholder="例：長いのし"></div>
@@ -315,18 +368,164 @@
       <div id="histList"></div>
     </div>
     <div class="card">
-      <h2>ℹ️ 使い方メモ</h2>
-      <div class="muted" style="font-size:13.5px;line-height:1.7">
-        ・工程は<b>投入→移動→水揚げ（早撮り）→丸籠1→丸籠2入替→生育管理→沈下/浮上→転換販売→放流</b>の順で進みます。<br>
-        ・「のし在庫」タブで、場所ごとに今何が下がっているか（ちょうちん／丸籠）が一目で分かります。<br>
-        ・移動（引き上げ）は<b>1回の記録で複数の下げ先</b>を入れられます。<br>
-        ・<b>アプリを更新しても過去データは引き継がれます</b>（更新前の控えも自動保存）。機種変更・共有はJSON書き出しで。<br>
-        ・データはブラウザ内（この端末）だけに保存。
+      <h2>💳 ご利用料金・お問い合わせ</h2>
+      <div class="muted" style="font-size:13.5px;line-height:1.8">
+        ・利用料金: <b>月2,000円相当（年払い 24,000円・税込）</b><br>
+        ・お支払い: <b>銀行振込（請求書払い）</b><br>
+        ・<b>初回1シーズンは無料</b>でお試しいただけます<br>
+        ・解約時: クラウド同期は停止しますが、<b>端末内のデータはそのまま残ります</b><br>
+        ・お問い合わせ: <a href="mailto:kanesa.aita@gmail.com">kanesa.aita@gmail.com</a>（運営: 株式会社カネサ相田（あいた水産））
       </div>
+    </div>
+    <div class="card">
+      <h2>📜 利用規約</h2>
+      <div class="hint">本アプリの利用条件です。ご利用の前にご確認ください。</div>
+      <details id="termsBox">
+        <summary style="cursor:pointer;font-weight:700;font-size:14px;padding:6px 0">📖 利用規約の全文を読む（タップで開閉）</summary>
+        <div class="muted" style="font-size:13px;line-height:1.75;margin-top:8px">
+          <b>ホタテ稚貝養殖 記録・分析ツール 利用規約（簡易版）</b><br>
+          制定日: 2026年7月19日／運営者: 株式会社カネサ相田（あいた水産）<br><br>
+          本規約は、株式会社カネサ相田（あいた水産）（以下「運営者」）が提供する「ホタテ稚貝養殖 記録・分析ツール」（以下「本アプリ」）の利用条件を定めるものです。本アプリを利用された時点で、本規約に同意いただいたものとみなします。<br><br>
+          <b>第1条（サービス内容）</b><br>
+          1. 本アプリは、ホタテ稚貝養殖の作業記録（投入・移動・水揚げ等）、のし在庫・浮力の管理、記録の分析、育成計算を行うためのツールです。<br>
+          2. 合言葉コードによるクラウド共有機能を使うと、記録をクラウドに保存し、家族など複数の端末とリアルタイムで共有できます。<br>
+          3. 運営者は、本アプリの機能を予告なく追加・変更することがあります。<br><br>
+          <b>第2条（料金・支払い）</b><br>
+          1. 利用料金は年払い24,000円（税込）です。<br>
+          2. 支払い方法は銀行振込です。運営者が発行する請求書に基づきお支払いください。<br>
+          3. 初回の1シーズン（採苗からのし移動までの1シーズン）は無料でお試しいただけます。無料期間中に解約された場合、料金は発生しません。<br><br>
+          <b>第3条（データの取扱い）</b><br>
+          1. 本アプリに入力された記録データは、原則としてお使いの端末（ブラウザ）内に保存されます。<br>
+          2. クラウド共有機能をONにした場合に限り、記録データはクラウド（Google Firebase / Cloud Firestore）にも保存され、同じ合言葉コードを知る端末と共有されます。<br>
+          3. 合言葉コードを知っている人は誰でも同じデータを閲覧・編集できます。コードの管理はご自身の責任でお願いします。<br>
+          4. 運営者は、サービスの提供・保守・利用状況の確認に必要な範囲でのみ、クラウド上のデータを取り扱います。法令に基づく場合を除き、第三者に提供しません。<br>
+          5. 端末の変更・故障に備え、アプリ内の「全データ書き出し（JSON）」による定期的なバックアップを推奨します。<br><br>
+          <b>第4条（解約）</b><br>
+          1. 解約を希望される場合は、第7条の連絡先までご連絡ください。<br>
+          2. 解約すると、クラウド共有（同期）は停止します。お使いの端末内に保存されたデータはそのまま残り、引き続き閲覧やJSON書き出しができます。<br>
+          3. 期間の途中で解約された場合でも、お支払い済みの利用料金の日割り返金は行いません。<br><br>
+          <b>第5条（免責）</b><br>
+          1. 本アプリの記録・集計・分析・計算の結果は、あくまで参考情報です。放流・転換・販売その他の漁業上の判断はご自身の責任で行ってください。運営者は、これらの判断およびその結果について、一切の責任を負いません。<br>
+          2. 運営者は、本アプリの動作、データの保存・同期について、完全性・正確性を保証するものではありません。通信環境や外部サービス（Firebase等）の障害、端末の故障等によりデータが失われた場合でも、運営者は責任を負いません。<br>
+          3. 運営者は、保守・障害・外部サービスの仕様変更等により、本アプリの提供を一時停止または終了することがあります。提供終了の場合は、可能な限り事前にお知らせします。<br><br>
+          <b>第6条（規約の変更）</b><br>
+          運営者は、必要に応じて本規約を変更することがあります。変更後の規約は、本アプリ内に掲載した時点で効力を生じます。重要な変更の場合は、アプリ内表示等でお知らせします。<br><br>
+          <b>第7条（連絡先）</b><br>
+          本アプリ・本規約に関するお問い合わせは、下記までお願いします。<br>
+          ・運営者: 株式会社カネサ相田（あいた水産）<br>
+          ・メール: <a href="mailto:kanesa.aita@gmail.com">kanesa.aita@gmail.com</a><br><br>
+          以上
+        </div>
+      </details>
+    </div>
+    <div class="card">
+      <h2>ℹ️ 使い方ガイド</h2>
+      <div class="hint">知りたいところをタップすると開きます。まずは「📥 記録入力」から。</div>
+
+      <details class="guide-sec">
+        <summary>📥 記録入力タブ — 作業したらここに入れる</summary>
+        <div class="guide-body">
+          ・海での作業が終わったら、その日のうちに記録を入れるのが基本です。<br>
+          ・工程は<b>投入 → 移動 → 水揚げ（早どり）→ 丸籠1 → 丸籠2入替 → 生育管理 → 沈下/浮上 → 転換販売 → 放流</b>の順で進みます。作業に合った工程を選んで、日付と数を入れて「追加」を押すだけです。<br>
+          ・移動（引き上げ）は<b>1回の記録で複数の下げ先</b>を入れられます。「Aのしに200連、Bのしに100連」のような日もそのまま1件で記録できます。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>📋 記録一覧タブ — 見返す・直す・消す</summary>
+        <div class="guide-body">
+          ・今まで入れた記録が日付順に並びます。<br>
+          ・工程やのし場所で絞り込み、文字でも検索できます。<br>
+          ・間違えて入れた記録は、この一覧から削除できます。消しても「復元ポイント」（この設定タブの下の方）から戻せるので、恐れず直してください。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>🎣 のし在庫タブ — 今どこに何が下がってるか</summary>
+        <div class="guide-body">
+          ・のし場所ごとに「今そこに下がっている数」を、<b>採苗器（連）と丸籠（籠）の2本立て</b>で表示します。<br>
+          ・数は記録から自動で計算されます（移動で採苗器＋、水揚げで採苗器−・丸籠＋、販売・放流で丸籠−）。自分で数える必要はありません。<br>
+          ・沈下/浮上の記録を入れると、そののしの状態（沈めてある・浮かせてある）も表示されます。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>🎈 浮力管理タブ — 浮き玉と深さ</summary>
+        <div class="guide-body">
+          ・のしごとに「何が下がっているか（記録から自動）」と「浮き玉がいくつ・海面から何mの深さか」を管理します。<br>
+          ・浮き玉の数と深さは、各のしの欄に入れて保存してください。図で見て分かるようになっています。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>📊 分析タブ — 経過日数と年ごとの比較</summary>
+        <div class="guide-body">
+          ・採苗器の台帳（海への投入日→サロマ湖への移動日と経過日数）が自動で一覧になります。<br>
+          ・付着の見込みや、シーズンごとの実績比較もここで見られます。記録を入れるほど賢くなります。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>🧮 育成計算タブ — 春のゴールから逆算</summary>
+        <div class="guide-body">
+          ・春のゴール（放流・転換販売の目標数）と目減り率を入れると、<b>本どり・早どりで確保すべき数</b>を自動で逆算します。<br>
+          ・初期値は例なので、<b>自分の家の数値に書き換えて</b>使ってください。<br>
+          ・付着調査からの見込み計算、早どり・本どりの日次集計、丸籠の入れ替え計画（残り連数）もこのタブです。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>⚙️ 設定・データタブ — のし登録とバックアップ</summary>
+        <div class="guide-body">
+          ・最初に<b>のし場所マスター</b>に自分ののし・場所を登録すると、記録入力で選べるようになります。<br>
+          ・バックアップ（JSON書き出し）、クラウド共有、復元ポイントもこのタブにまとまっています。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>☁️ 家族と共有するには（合言葉コード）</summary>
+        <div class="guide-body">
+          ・このタブの「☁️ クラウド共有・バックアップ」で<b>「🆕 新しく共有を始める」</b>を押すと、<b>合言葉コード</b>が表示されます。<br>
+          ・そのコードを家族に伝え、家族の端末で<b>「🔑 共有に参加（コード入力）」</b>にコードを入れると、同じデータをリアルタイムで見られます。片方で記録すると、もう片方にすぐ反映されます。<br>
+          ・機種変更・端末故障のときのバックアップにもなります。<br>
+          ・注意: 合言葉コードを知っている人は誰でも同じデータを見たり書き換えたりできます。<b>コードは家族以外に教えない</b>でください。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>📴 圏外・電波が悪いときは？</summary>
+        <div class="guide-body">
+          ・<b>圏外でもそのまま記録できます。</b>データはまず端末の中に保存されるので、海の上で電波がなくても普段どおり入力してください。<br>
+          ・共有をONにしている場合、圏外の間は「⚠️ 未同期の変更あり」と表示されますが、<b>電波が戻れば自動で送信</b>されます。何もしなくて大丈夫です。<br>
+          ・同期できているかは、共有カードの「✅ 同期中・最終同期」の表示で確認できます。
+        </div>
+      </details>
+
+      <details class="guide-sec">
+        <summary>💾 バックアップのすすめ</summary>
+        <div class="guide-body">
+          ・データは基本この端末（ブラウザ）の中に保存されます。端末の故障・紛失に備えて、<b>月に1回くらい「⬇️ 全データ書き出し（JSON）」</b>でファイルを保存しておくのがおすすめです。<br>
+          ・書き出したJSONは「⬆️ JSON読み込み」でいつでも戻せます。機種変更のときもこの方法でデータを引っ越せます。<br>
+          ・クラウド共有をONにしておくと、クラウドにも常に控えが残るのでさらに安心です。<br>
+          ・<b>アプリを更新しても過去データは引き継がれます</b>（更新前の控えも自動保存されます）。
+        </div>
+      </details>
+
       <div class="muted" style="font-size:12px;margin-top:10px" id="verLabel"></div>
     </div>
   </section>
 </main>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button id="nav-home" class="active" onclick="gotoTab('home')"><span class="bn-ic">🏠</span><span class="bn-lb">ホーム</span></button>
+  <button id="nav-entry" onclick="gotoTab('entry')"><span class="bn-ic">✍️</span><span class="bn-lb">記録</span></button>
+  <button id="nav-stock" onclick="gotoTab('noshi')"><span class="bn-ic">🎣</span><span class="bn-lb">在庫</span></button>
+  <button id="nav-insight" onclick="gotoTab('analysis')"><span class="bn-ic">📊</span><span class="bn-lb">分析</span></button>
+  <button id="nav-data" onclick="gotoTab('data')"><span class="bn-ic">⚙️</span><span class="bn-lb">設定</span></button>
+</nav>
+
+<!-- T04 初回起動オンボーディングウィザード（中身はJSのobRender()が描画） -->
+<div id="obWizard" style="display:none"></div>
 
 <div id="toast" class="toast"></div>
 
@@ -435,7 +634,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.13-3";
+const APP_VERSION = "2026.07.20-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -525,20 +724,34 @@ let _idc=0;
 function noshiUid(){ return "n"+Date.now().toString(36)+(_idc++).toString(36)+Math.floor(Math.random()*1e6).toString(36); }
 
 /* ============ タブ ============ */
-document.querySelectorAll("#tabs button").forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    document.getElementById(b.dataset.tab).classList.add("active");
-    if(b.dataset.tab==="list") renderList();
-    if(b.dataset.tab==="noshi") renderNoshiInv();
-    if(b.dataset.tab==="buoy") renderBuoy();
-    if(b.dataset.tab==="analysis") renderAnalysis();
-    if(b.dataset.tab==="calc") renderCalc();
-    if(b.dataset.tab==="data"){ renderNoshiMaster(); renderHistory(); }
-  };
-});
+/* UI v2: 画面切替は showView() に一本化。旧 #tabs は非表示のまま残し、gotoTab()/既存の .click() 呼び出しはそのまま動く */
+const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",analysis:"nav-insight",calc:"nav-insight",data:"nav-data"};
+const SEGMENTS={
+  "nav-entry":[["entry","✍️ 入力"],["list","📋 一覧"]],
+  "nav-stock":[["noshi","🎣 のし在庫"],["buoy","🎈 浮力調整"]],
+  "nav-insight":[["analysis","📊 分析"],["calc","🧮 育成計算"]]
+};
+function showView(key){
+  const sec=document.getElementById(key); if(!sec){ try{ console.warn("unknown view:", key); }catch(e){} return; }
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("active", x.dataset.tab===key));
+  document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
+  sec.classList.add("active");
+  const navId=NAV_OF_SECTION[key]||"nav-home";
+  document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.toggle("active", b.id===navId));
+  const segDef=SEGMENTS[navId], segBar=document.getElementById("segBar");
+  if(segBar){
+    if(segDef){ segBar.style.display="flex"; segBar.innerHTML=segDef.map(s=>`<button class="seg-btn ${s[0]===key?"active":""}" onclick="gotoTab('${s[0]}')">${s[1]}</button>`).join(""); }
+    else { segBar.style.display="none"; segBar.innerHTML=""; }
+  }
+  if(key==="home") renderHome();
+  if(key==="list") renderList();
+  if(key==="noshi") renderNoshiInv();
+  if(key==="buoy") renderBuoy();
+  if(key==="analysis") renderAnalysis();
+  if(key==="calc") renderCalc();
+  if(key==="data"){ renderNoshiMaster(); renderHistory(); }
+}
+document.querySelectorAll("#tabs button").forEach(b=>{ b.onclick=()=>showView(b.dataset.tab); });
 
 /* ============ シーズン ============ */
 function seasons(){
@@ -567,6 +780,7 @@ function areaOptions(v){ return AREAS.map(a=>`<option ${a===v?"selected":""}>${a
 function noshiOptions(v){ return `<option value="">— 選択 —</option>`+DB.noshi.map(n=>`<option value="${n.id}" ${n.id===v?"selected":""}>${escapeHtml(n.name)}</option>`).join(""); }
 
 function renderForm(data){
+  renderKouteiChips(); // UI v2: 工程チップの選択状態を同期
   const k=KMAP[document.getElementById("kouteiSel").value];
   data=data||{};
   const today=new Date().toISOString().slice(0,10);
@@ -671,6 +885,53 @@ function deleteRecord(id){
 }
 
 /* ============ 直近リスト ============ */
+/* ===== UI v2: ホーム画面・工程チップ ===== */
+function renderHome(){
+  const el=document.getElementById("homeArea"); if(!el) return;
+  const rs=DB.records.filter(r=>r.season===DB.season);
+  const inv=computeInventory();
+  const renTotal=Object.values(inv.ren).reduce((a,v)=>a+v,0);
+  const kagoTotal=Object.values(inv.kago).reduce((a,v)=>a+v,0);
+  const activeSpots=DB.noshi.filter(n=>(inv.ren[n.id]||0)>0||(inv.kago[n.id]||0)>0).length;
+  const recent=[...rs].sort(byDateDesc).slice(0,3);
+  const m=shareMeta();
+  const lastT=m.lastAt?new Date(m.lastAt):null;
+  const lastHM=(lastT && !isNaN(lastT))?"・"+lastT.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})+" 同期":""; // localStorage由来の不正値ではInvalid Dateを出さない
+  const sync = m.code
+    ? (m.pending ? `<span style="color:#ffdca8">⚠️ 未同期の変更あり（電波復帰で自動送信）</span>`
+                 : `☁️ 家族と同期中${lastHM}`)
+    : "📱 この端末のみ（設定で家族共有できます）";
+  const bak=DB.lastBackupAt? "⬇️ 最終バックアップ "+escapeHtml(String(DB.lastBackupAt).slice(0,10)) : "⬇️ バックアップ未実施";
+  el.innerHTML=`
+  <div class="home-hero">
+    <div class="hh-season">🐚 ${DB.season}年シーズン${DB.houseName?`<span class="hh-house">（${escapeHtml(DB.houseName)}）</span>`:""}</div>
+    <div class="hh-kpis">
+      <div class="hk"><div class="v">${fmt(rs.length)}</div><div class="l">記録</div></div>
+      <div class="hk"><div class="v">${fmt(renTotal)}</div><div class="l">採苗器（連）</div></div>
+      <div class="hk"><div class="v">${fmt(kagoTotal)}</div><div class="l">丸籠（籠）</div></div>
+      <div class="hk"><div class="v">${fmt(activeSpots)}</div><div class="l">稼働のし</div></div>
+    </div>
+    <div class="hh-status">${sync}<span class="hh-sep">・</span>${bak}</div>
+  </div>
+  <button class="cta-big" onclick="gotoTab('entry')">✍️ 記録する</button>
+  <div class="quick-grid">
+    <button onclick="gotoTab('list')">📋<span>記録一覧</span></button>
+    <button onclick="gotoTab('noshi')">🎣<span>のし在庫</span></button>
+    <button onclick="gotoTab('buoy')">🎈<span>浮力調整</span></button>
+    <button onclick="gotoTab('calc')">🧮<span>育成計算</span></button>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>🕐 直近の記録 <button class="btn sm ghost" style="margin-left:auto" onclick="gotoTab('list')">すべて見る</button></h2>
+    ${recent.length? recent.map(r=>{ const k=KMAP[r.koutei]; return `<div class="recent-row"><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:escapeHtml(r.koutei||"")}</span><div class="rr-body"><div class="rr-date">${escapeHtml(r.date||"—")}</div><div class="rr-sum">${summary(r)}</div></div></div>`; }).join("") : `<div class="empty">まだ記録がありません。「✍️ 記録する」から始めましょう。</div>`}
+  </div>`;
+}
+function renderKouteiChips(){
+  const box=document.getElementById("kouteiChips"); if(!box) return;
+  const cur=document.getElementById("kouteiSel").value;
+  box.innerHTML=KOUTEI.map(k=>`<button type="button" class="kchip ${k.key===cur?"active":""}" onclick="pickKoutei('${k.key}')"><span class="kc-ic">${k.icon}</span><span>${k.name}</span></button>`).join("");
+}
+function pickKoutei(k){ document.getElementById("kouteiSel").value=k; renderForm(); }
+
 function renderRecent(){
   const rs=DB.records.filter(r=>r.season===DB.season).sort(byDateDesc).slice(0,8);
   document.getElementById("recentList").innerHTML = rs.length? recordTable(rs) : `<div class="empty">まだ記録がありません。上のフォームから最初の記録を入れてみてください。</div>`;
@@ -692,27 +953,29 @@ function renderList(){
 function recordTable(rs, full){
   const rows=rs.map(r=>{
     const k=KMAP[r.koutei];
+    const rid=safeId(r.id);
     return `<tr>
-      <td>${r.date||"—"}</td>
-      <td><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:r.koutei}</span></td>
+      <td>${escapeHtml(r.date||"—")}</td>
+      <td><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:escapeHtml(r.koutei||"")}</span></td>
       <td>${summary(r)}</td>
       <td class="muted">${escapeHtml(r.memo||"")}</td>
-      <td><button class="btn sm ghost" onclick="editRecord('${r.id}')">編集</button> <button class="btn sm danger" onclick="deleteRecord('${r.id}')">削除</button></td>
+      <td><button class="btn sm ghost" onclick="editRecord('${rid}')">編集</button> <button class="btn sm danger" onclick="deleteRecord('${rid}')">削除</button></td>
     </tr>`;
   }).join("");
   return `<div class="table-wrap"><table><thead><tr><th>日付</th><th>工程</th><th>内容</th><th>メモ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function summary(r){
+  const e=escapeHtml; // 共有(クラウド)やJSON読込経由のデータも表示するため、文字列項目は必ずエスケープする
   switch(r.koutei){
-    case "tounyu": return `<b>${r.kaiku||"?"}</b>${r.kukaku?" "+r.kukaku:""}／${fmt(num(r.saibyoRen))}連・${r.danInput||16}段・水深${r.suishin||"?"}m`;
-    case "iko": { const ds=ikoDests(r); return `<b>${r.kaikuFrom||"?"}</b> 引き上げ → ${ds.map(d=>noshiName(d.noshi)+" "+fmt(num(d.ren))+"連"+(d.gawa?"("+escapeHtml(d.gawa)+")":"")).join("・")||"—"}（${r.danMove||8}段）`; }
-    case "mizuage": return `${noshiName(r.noshiFrom)} → ${noshiName(r.noshiTo)}／採苗器${fmt(num(r.renUp))}連・付着${fmt(num(r.chakusoPerBukuro))}個/袋・丸籠${r.amime||""} ${fmt(num(r.marukago))}籠`;
-    case "irekae": return `${noshiName(r.noshiFrom)}(${fmt(num(r.kagoBefore))}籠) → ${noshiName(r.noshiTo)} 丸籠${r.amime||"3部5厘"}(${fmt(num(r.kagoAfter))}籠)`;
-    case "seiiku": return `${noshiName(r.noshi)}／${r.sagyo||""}・${fmt(num(r.taishoKago))}籠`;
-    case "chinka": return `${noshiName(r.noshi)}／沈下 ${fmt(num(r.taishoKago))}籠・水深${r.suishin||"?"}m`;
-    case "fujo": return `${noshiName(r.noshi)}／浮上 ${fmt(num(r.taishoKago))}籠`;
-    case "tenkan": return `${noshiName(r.noshi)}／${fmt(num(r.hanbaiKago))}籠・${fmt(num(r.suryo))}個・売上¥${fmt(num(r.uriage))}${r.hanbaisaki?"・"+r.hanbaisaki:""}`;
-    case "houryu": return `${r.basho||noshiName(r.noshi)}／放流 ${fmt(num(r.houryuKago))}籠・${fmt(num(r.houryuSuryo))}個`;
+    case "tounyu": return `<b>${e(r.kaiku||"?")}</b>${r.kukaku?" "+e(r.kukaku):""}／${fmt(num(r.saibyoRen))}連・${e(r.danInput||16)}段・水深${e(r.suishin||"?")}m`;
+    case "iko": { const ds=ikoDests(r); return `<b>${e(r.kaikuFrom||"?")}</b> 引き上げ → ${ds.map(d=>e(noshiName(d.noshi))+" "+fmt(num(d.ren))+"連"+(d.gawa?"("+e(d.gawa)+")":"")).join("・")||"—"}（${e(r.danMove||8)}段）`; }
+    case "mizuage": return `${e(noshiName(r.noshiFrom))} → ${e(noshiName(r.noshiTo))}／採苗器${fmt(num(r.renUp))}連・付着${fmt(num(r.chakusoPerBukuro))}個/袋・丸籠${e(r.amime||"")} ${fmt(num(r.marukago))}籠`;
+    case "irekae": return `${e(noshiName(r.noshiFrom))}(${fmt(num(r.kagoBefore))}籠) → ${e(noshiName(r.noshiTo))} 丸籠${e(r.amime||"3部5厘")}(${fmt(num(r.kagoAfter))}籠)`;
+    case "seiiku": return `${e(noshiName(r.noshi))}／${e(r.sagyo||"")}・${fmt(num(r.taishoKago))}籠`;
+    case "chinka": return `${e(noshiName(r.noshi))}／沈下 ${fmt(num(r.taishoKago))}籠・水深${e(r.suishin||"?")}m`;
+    case "fujo": return `${e(noshiName(r.noshi))}／浮上 ${fmt(num(r.taishoKago))}籠`;
+    case "tenkan": return `${e(noshiName(r.noshi))}／${fmt(num(r.hanbaiKago))}籠・${fmt(num(r.suryo))}個・売上¥${fmt(num(r.uriage))}${r.hanbaisaki?"・"+e(r.hanbaisaki):""}`;
+    case "houryu": return `${e(r.basho||noshiName(r.noshi))}／放流 ${fmt(num(r.houryuKago))}籠・${fmt(num(r.houryuSuryo))}個`;
     default: return "";
   }
 }
@@ -740,7 +1003,7 @@ function noshiState(){
 function bars(rows, unit){
   if(!rows.length) return `<div class="empty">記録が入ると集計されます。</div>`;
   const max=Math.max(...rows.map(r=>r.v),1);
-  return rows.map(r=>`<div class="bar-row"><div class="lbl">${r.name}</div>
+  return rows.map(r=>`<div class="bar-row"><div class="lbl">${escapeHtml(r.name)}</div>
     <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,r.v/max*100)}%">${fmt(r.v)}${unit}</div></div></div>`).join("");
 }
 /* のしごとに「何が下がっているか」（ちょうちん＝元海区別／丸籠＝網目別）を集計 */
@@ -792,8 +1055,8 @@ function renderNoshiInv(){
   const stRows=DB.noshi.map(n=>{
     const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
     if(!s && rv===0 && kv===0) return "";
-    const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${s.date}）</span>`:`<span class="muted">—</span>`;
-    return `<tr><td>${n.name}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td></tr>`;
+    const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
+    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td></tr>`;
   }).filter(Boolean).join("");
   document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
 }
@@ -897,10 +1160,10 @@ function renderSaibyoDaicho(){
     const est=estForKaiku(a), auto=autoEstForKaiku(a);
     const overridden=DB.saibyoEst && DB.saibyoEst[a]!=null && DB.saibyoEst[a]!=="";
     const areaGrain=mvRen*est; grandGrain+=areaGrain;
-    const inLine=ins.length?ins.map(r=>`${r.date}：<b>${fmt(num(r.saibyoRen))}連</b>${r.kukaku?"（"+r.kukaku+"）":""}`).join(" ／ "):'<span class="muted">投入記録なし</span>';
+    const inLine=ins.length?ins.map(r=>`${escapeHtml(r.date||"")}：<b>${fmt(num(r.saibyoRen))}連</b>${r.kukaku?"（"+escapeHtml(r.kukaku)+"）":""}`).join(" ／ "):'<span class="muted">投入記録なし</span>';
     const estBox=`<div style="font-size:12px;margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="muted">付着見込み（枚/連）</span><input type="number" step="any" inputmode="decimal" value="${overridden?DB.saibyoEst[a]:(auto>0?Math.round(auto):"")}" onchange="saveSaibyoEst('${a}',this.value)" style="width:120px;padding:6px 8px">${auto>0?`<span class="muted" style="font-size:11px">自動参照 ${fmt(Math.round(auto))}${overridden?"（手入力優先中）":""}</span>`:`<span class="muted" style="font-size:11px">試運転/付着見込みを入れると自動参照</span>`}</div>`;
     const mvTable=mvs.length?`<div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>引き上げ日</th><th class="num">経過</th><th>下げた のし</th><th class="num">連数</th><th class="num">見込み粒</th><th>メモ</th><th></th></tr></thead><tbody>`+
-      mvs.map(r=>{ const ds=ikoDests(r); return (ds.length?ds:[{}]).map((d,i)=>`<tr><td>${i===0?r.date:""}</td><td class="num">${(i===0&&baseDate)?daysBetween(baseDate,r.date)+"日":""}</td><td>${noshiName(d.noshi)}</td><td class="num">${fmt(num(d.ren))}連</td><td class="num">${est>0?"<b>"+fmt(Math.round(num(d.ren)*est))+"</b>":"—"}</td><td class="muted">${escapeHtml(d.gawa||"")}</td><td>${i===0?`<button class="btn sm ghost" onclick="editRecord('${r.id}')">編集</button>`:""}</td></tr>`).join(""); }).join("")+
+      mvs.map(r=>{ const ds=ikoDests(r); return (ds.length?ds:[{}]).map((d,i)=>`<tr><td>${i===0?escapeHtml(r.date||""):""}</td><td class="num">${(i===0&&baseDate)?daysBetween(baseDate,r.date)+"日":""}</td><td>${escapeHtml(noshiName(d.noshi))}</td><td class="num">${fmt(num(d.ren))}連</td><td class="num">${est>0?"<b>"+fmt(Math.round(num(d.ren)*est))+"</b>":"—"}</td><td class="muted">${escapeHtml(d.gawa||"")}</td><td>${i===0?`<button class="btn sm ghost" onclick="editRecord('${safeId(r.id)}')">編集</button>`:""}</td></tr>`).join(""); }).join("")+
       `<tr style="background:#dfeaf4"><td colspan="4"><b>${a} 見込み合計</b></td><td class="num"><b>${est>0?fmt(Math.round(areaGrain))+"粒":"—"}</b></td><td colspan="2"></td></tr></tbody></table></div>`:'<div class="muted" style="margin-top:6px">まだ引き上げ（移動）記録なし＝海に投入中</div>';
     const moved=mvs.length>0;
     return `<div class="card" style="box-shadow:none;background:var(--ice);margin-bottom:12px">
@@ -954,7 +1217,7 @@ function renderChakuso(){
   const rows=Object.entries(byNoshi).map(([a,o])=>({a,avg:o.n?o.sum/o.n:0})).sort((x,y)=>y.avg-x.avg);
   if(!rows.length){ document.getElementById("chakusoByKaiku").innerHTML=`<div class="empty">水揚げ記録が入ると、のし場所別の付着数が出ます。</div>`; return; }
   const max=Math.max(...rows.map(r=>r.avg),1);
-  document.getElementById("chakusoByKaiku").innerHTML = rows.map(r=>`<div class="bar-row"><div class="lbl">${r.a}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,r.avg/max*100)}%">${fmt(Math.round(r.avg))}個/袋</div></div></div>`).join("");
+  document.getElementById("chakusoByKaiku").innerHTML = rows.map(r=>`<div class="bar-row"><div class="lbl">${escapeHtml(r.a)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,r.avg/max*100)}%">${fmt(Math.round(r.avg))}個/袋</div></div></div>`).join("");
 }
 
 function renderYearCompare(){
@@ -998,7 +1261,7 @@ function removeNoshi(id){
 }
 function refreshNoshiSelectors(){
   document.getElementById("fltNoshi").innerHTML=`<option value="">すべて</option>`+DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join("");
-  const pn=document.getElementById("p_noshi"); if(pn){ const cur=pn.value; pn.innerHTML=DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join(""); if(cur) pn.value=cur; }
+  const pn=document.getElementById("p_noshi"); if(pn){ const cur=pn.value; pn.innerHTML=DB.noshi.length? DB.noshi.map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join("") : `<option value="">（設定タブでのし場所を登録）</option>`; if(cur) pn.value=cur; }
   // 入力途中を消さないよう、フォーム内ののし選択だけ差し替える
   const k=KMAP[document.getElementById("kouteiSel").value];
   if(k) k.fields.filter(f=>f.type==="noshi").forEach(f=>{ const el=document.getElementById("f_"+f.k); if(el){ const cur=el.value; el.innerHTML=noshiOptions(cur); } });
@@ -1053,20 +1316,28 @@ function pushShare(silent){
     return shareDocRef(m.code).set({ data:json, updatedAt:Date.now(), updatedBy:deviceId() });
   }).then(()=>{
     const at=new Date().toISOString();
-    setShareMeta({lastAt:at});
+    setShareMeta({lastAt:at, pending:false}); // 送信成功＝未送信フラグ解除
     DB.lastBackupAt=at; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} // 直書き(save()経由の再スケジュールを避ける)
     renderShare(); renderBackupBar();
     if(!silent) toast("☁️ クラウドに保存しました");
     return true;
-  }).catch(err=>{ if(!silent) toast("クラウド保存に失敗："+err.message); return false; });
+  }).catch(err=>{
+    // オフライン/SDK読込失敗でも起動・記録は妨げない。未送信フラグだけ立てて次の契機(online復帰/画面復帰/次回保存)で自動再送
+    setShareMeta({pending:true}); renderShare();
+    if(!silent) toast("☁️ 同期は電波が戻り次第自動で再送されます");
+    return false;
+  });
 }
 function applyRemote(json, fromWho){
   if(json==null || json===_lastRemoteJSON) return;
   if(json===JSON.stringify(DB)) return;
+  // この端末に未送信の変更がある間はリモートで上書きしない（先に自分の変更を再送して消失を防ぐ）
+  if(shareMeta().pending){ retryPendingShare(); return; }
   let d; try{ d=JSON.parse(json); }catch(e){ return; }
   if(!d || !d.records || !d.noshi) return;
   _lastRemoteJSON=json;
   normalizeDB(d);
+  try{ const cur=localStorage.getItem(LS_KEY); if(cur) localStorage.setItem(LS_KEY+"_prev", cur); }catch(e){} // 受信で置き換える前に1手前控え
   DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
   refreshAll();
   toast("☁️ "+(fromWho||"共有相手")+"の変更を受信しました");
@@ -1136,9 +1407,10 @@ function shareJoinGo(){
 function shareJoinConfirm(){
   const p=_pendingJoin; _pendingJoin=null;
   if(!p){ renderShare(); return; }
+  try{ const cur=localStorage.getItem(LS_KEY); if(cur){ localStorage.setItem(LS_KEY+"_prev", cur); pushHistory(); } }catch(e){} // 参加で置き換える前に自動退避（1手前控え+復元ポイント）
   const d=normalizeDB(p.d);
   _lastRemoteJSON=p.json; DB=d; try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){}
-  setShareMeta({code:p.code, auto:true, lastAt:new Date().toISOString()});
+  setShareMeta({code:p.code, auto:true, lastAt:new Date().toISOString(), pending:false});
   startShareListen(p.code); refreshAll(); toast("☁️ 共有に参加しました");
 }
 function shareStop(){
@@ -1152,19 +1424,53 @@ function shareStop(){
 }
 function shareStopGo(){
   if(_shareUnsub){ try{ _shareUnsub(); }catch(e){} _shareUnsub=null; }
-  setShareMeta({code:"", auto:false}); renderShare(); toast("共有を停止しました");
+  setShareMeta({code:"", auto:false, pending:false}); renderShare(); toast("共有を停止しました");
 }
 function scheduleShareSync(){
   const m=shareMeta(); if(!m.code || !m.auto) return;
   if(!FIREBASE_CONFIG.apiKey) return;
-  clearTimeout(_shareSyncT); _shareSyncT=setTimeout(()=>pushShare(true), 2500);
+  // 保存した瞬間に「未送信」を立てる（push成功時のみ解除）。送信前2.5秒以内にアプリを閉じても次回起動の再送で拾われる
+  if(!m.pending){ setShareMeta({pending:true}); renderShare(); }
+  clearTimeout(_shareSyncT); _shareSyncT=setTimeout(()=>pushShare(true), 2500); // 未送信(pending)があってもこのpush成功で一緒に解消される
 }
+/* 未送信(pending)の自動再送：online復帰・画面復帰・起動時に静かに再試行。失敗しても黙ってフラグ維持 */
+let _shareRetrying=false;
+function retryPendingShare(){
+  const m=shareMeta(); if(!m.code || !m.pending) return;
+  if(!FIREBASE_CONFIG.apiKey) return;
+  if(navigator.onLine===false) return; // 明確にオフラインなら次の契機を待つ
+  if(_shareRetrying) return;
+  _shareRetrying=true;
+  pushShare(true).then(ok=>{ _shareRetrying=false; if(ok) toast("☁️ 未送信だった変更をクラウドに再送しました"); },
+    ()=>{ _shareRetrying=false; });
+}
+window.addEventListener("online", retryPendingShare);
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible") retryPendingShare(); });
 function copyShareCode(){
   const m=shareMeta(); if(!m.code) return;
   if(navigator.clipboard){ navigator.clipboard.writeText(m.code).then(()=>toast("コードをコピーしました")).catch(()=>toast(m.code)); }
   else toast(m.code);
 }
+/* ===== 同期状態インジケータ（T03）=====
+   共有ON時のみ表示。SHARE_LSのlastAt/pendingを見て、header常設バッジと設定タブ共有カード内に状態を出す。
+   更新契機はrenderShare()経由（push成功・push失敗(pending化)・onSnapshot受信・共有開始/停止・refreshAllすべてがrenderShareを呼ぶ） */
+function fmtHM(iso){ try{ const d=new Date(iso); const p=n=>String(n).padStart(2,"0"); return p(d.getHours())+":"+p(d.getMinutes()); }catch(e){ return ""; } }
+function syncBadgeState(){
+  if(!FIREBASE_CONFIG.apiKey) return null;
+  const m=shareMeta(); if(!m.code) return null; // 共有OFF時は非表示
+  if(m.pending) return {warn:true, text:"⚠️ 未同期の変更あり（電波復帰時に自動送信）"};
+  return {warn:false, text:"☁️ "+(m.lastAt?fmtHM(m.lastAt)+" ":"")+"同期済み"};
+}
+function renderSyncBadge(){
+  const el=document.getElementById("syncBadge"); if(!el) return;
+  const s=syncBadgeState();
+  if(!s){ el.style.display="none"; el.textContent=""; return; }
+  el.textContent=s.text;
+  el.style.background=s.warn?"#b45309":"rgba(255,255,255,.18)";
+  el.style.display="block";
+}
 function renderShare(){
+  renderSyncBadge();
   const box=document.getElementById("shareBox"); if(!box) return;
   if(!FIREBASE_CONFIG.apiKey){
     box.innerHTML=`<div class="muted" style="font-size:13px">🔧 準備中：クラウド共有はまだ設定されていません。それまでは「⬇️ 全データ書き出し（JSON）」でバックアップしてください。</div>`;
@@ -1184,6 +1490,7 @@ function renderShare(){
         <div style="font-size:12px;color:#5b7fa6">この端末の合言葉コード（家族に伝える）</div>
         <div style="font-size:20px;font-weight:700;letter-spacing:1px;color:#123a5e;margin:4px 0">${escapeHtml(m.code)}</div>
         <div style="font-size:12px;color:#2e7d5b">✅ 同期中 ・ 最終同期：${escapeHtml(last)}</div>
+        ${(()=>{ const s=syncBadgeState(); return s?`<div id="shareSyncStat" style="font-size:12px;margin-top:2px;color:${s.warn?"#b45309":"#1c4587"}">${escapeHtml(s.text)}</div>`:""; })()}
       </div>
       <div class="row-actions">
         <button class="btn" onclick="copyShareCode()">📋 コードをコピー</button>
@@ -1200,6 +1507,7 @@ function renderWelcome(){
   const el=document.getElementById("welcomeBox"); if(!el) return;
   let dismissed=false; try{ dismissed=localStorage.getItem(LS_KEY+"_wc")==="1"; }catch(e){}
   if(DB.records.length>0 || dismissed){ el.style.display="none"; return; }
+  if(obShouldShow()){ el.style.display="none"; return; } // オンボーディングウィザード表示中は二重に出さない（完了後に表示）
   el.style.display="block";
   el.innerHTML=`<div class="card" style="border:1px solid #b6cff5;background:#eef4fc">
     <h2>👋 はじめての方へ（3ステップ）</h2>
@@ -1307,6 +1615,8 @@ function loadNoshiList(){
   toast(added?`のし ${added}本を追加しました`:"のしは既に全部登録済みです");
 }
 function loadPreset2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
+function loadHayadori2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
+function loadHayadori0716(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
 function wipeAll(){
   if(!confirm("本当にすべてのデータを削除しますか？この操作は元に戻せません。")) return;
   if(!confirm("最終確認：全記録・全のし設定を消去します。よろしいですか？")) return;
@@ -1533,21 +1843,136 @@ function download(name,content,mime){
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function safeId(s){ return String(s||"").replace(/[^A-Za-z0-9_-]/g,""); } // onclick属性に埋め込むid用（クラウド/JSON由来の不正idを無害化）
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
-function refreshAll(){ renderSeasonSel(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
+function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
+
+/* ============ T04 初回起動オンボーディングウィザード ============
+   規約同意フラグ(hotate_saibou_v1_tos)が無く、既存データも無い時だけ表示する3ステップの案内。
+   Step1 概要+規約同意 → Step2 家名 → Step3 新しく始める / 家族の共有に参加。
+   prompt/confirmは使わない（LINE内ブラウザ対策・画面内UIのみ）。共有参加は既存のshareJoinForm/Go/Confirmを再利用。 */
+const TOS_LS = LS_KEY + "_tos"; // 規約同意フラグ（"1"で同意済み）
+function tosAgreed(){ try{ return localStorage.getItem(TOS_LS)==="1"; }catch(e){ return false; } }
+function obIsFreshDB(){
+  if((DB.records||[]).length>0) return false;
+  // 記録ゼロでも計算系（試運転・付着見込み・配置予定・日次集計）を使っていた既存ユーザーには出さない
+  if((DB.trials||[]).length || (DB.trials2||[]).length || (DB.placePlan||[]).length || (DB.dailyCalc||[]).length) return false;
+  const n=DB.noshi||[];
+  if(n.length===0) return true;
+  // 初期プリセット（NOSHI_LISTそのまま・未編集）は「既存データなし」とみなす
+  if(n.length!==NOSHI_LIST.length) return false;
+  return n.every((x,i)=> x && NOSHI_LIST[i] && x.name===NOSHI_LIST[i].name);
+}
+function obShouldShow(){ return !tosAgreed() && obIsFreshDB(); }
+let _obStep=1, _obName="";
+function tosBodyHtml(){
+  // 正本は設定タブの利用規約カード（#termsBox）。ウィザードでは同じ全文をそのまま表示する（二重管理しない）
+  const t=document.querySelector("#termsBox > div");
+  if(t) return `<div style="font-size:12.5px;line-height:1.8;color:#444">${t.innerHTML}</div>`;
+  return `<div style="font-size:12.5px;line-height:1.8;color:#444">
+    <b>利用規約（要点）</b><br>
+    ・本アプリは 株式会社カネサ相田（あいた水産）が運営します。<br>
+    ・記録データはお使いの端末内に保存され、共有機能を使うとクラウド（Google Firebase）にも保存されます。<br>
+    ・合言葉コードを知っている人は共有データを閲覧・編集できます。コードはご自身で大切に管理してください。<br>
+    ・本アプリの利用により生じた損害について、運営者は責任を負いかねます。「⬇️ 全データ書き出し（JSON）」で定期的にバックアップしてください。<br>
+    ・お問い合わせ：kanesa.aita@gmail.com
+  </div>`;
+}
+function obToggleTos(){
+  const b=document.getElementById("obTosBody"); if(!b) return;
+  b.style.display = b.style.display==="none" ? "block" : "none";
+}
+function obRender(step){
+  _obStep=step;
+  const el=document.getElementById("obWizard"); if(!el) return;
+  el.style.cssText="display:flex;position:fixed;inset:0;background:rgba(18,42,66,.55);z-index:1000;align-items:center;justify-content:center;padding:16px;overflow:auto";
+  const dot=i=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;background:${i===step?"var(--navy2, #1c4587)":"#c9d6e4"}"></span>`;
+  const dots=`<div style="text-align:center;margin-bottom:10px">${dot(1)}${dot(2)}${dot(3)}<span style="font-size:11.5px;color:#8aa0b5;margin-left:8px">${step} / 3</span></div>`;
+  let body="";
+  if(step===1){
+    body=`<h2 style="margin:0 0 8px;font-size:18px">🐚 ようこそ！</h2>
+      <div style="font-size:13.5px;line-height:1.8;margin-bottom:10px">
+        ホタテ稚貝養殖の<b>記録・分析アプリ</b>です。採苗器投入からのし移動までの工程をその場で記録でき、
+        家族の端末とも<b>合言葉コード</b>でリアルタイム共有できます。データはこの端末内（共有時はクラウドにも）保存されます。
+      </div>
+      <div style="background:#f6f9fc;border:1px solid var(--line, #d7e1ec);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+        <a href="javascript:void(0)" onclick="obToggleTos()" style="font-size:13px;color:#1c4587;font-weight:700;text-decoration:underline">📄 利用規約を読む</a>
+        <div id="obTosBody" style="display:none;max-height:180px;overflow:auto;margin-top:8px;padding:8px;background:#fff;border:1px solid var(--line, #d7e1ec);border-radius:8px">${tosBodyHtml()}</div>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:14px;cursor:pointer">
+          <input type="checkbox" id="obTosChk" style="width:18px;height:18px;margin-top:1px;flex:none">
+          <span><b>利用規約に同意します</b></span>
+        </label>
+        <div id="obMsg1" style="font-size:12.5px;color:#b45309;margin-top:6px"></div>
+      </div>
+      <div class="row-actions" style="justify-content:flex-end"><button class="btn" onclick="obNext1()">次へ →</button></div>`;
+  } else if(step===2){
+    body=`<h2 style="margin:0 0 8px;font-size:18px">🏠 家の名前（屋号）</h2>
+      <div style="font-size:13.5px;line-height:1.8;margin-bottom:10px">画面の見出しなどに表示する名前です。あとから「🧮 育成計算」タブで変更できます。</div>
+      <div class="field" style="margin-bottom:12px">
+        <label>家名・屋号</label>
+        <input id="obHouseName" type="text" value="${escapeHtml(_obName)}" placeholder="例：山田家・〇〇水産" autocomplete="off" style="font-size:16px">
+      </div>
+      <div class="row-actions" style="justify-content:space-between">
+        <button class="btn ghost" onclick="obRender(1)">← 戻る</button>
+        <button class="btn" onclick="obNext2()">次へ →</button>
+      </div>`;
+  } else {
+    const joinBtn = FIREBASE_CONFIG.apiKey
+      ? `<button class="btn ghost" onclick="obFinishJoin()" style="width:100%;padding:14px;font-size:15px;margin-top:8px">👪 家族の共有に参加する<span style="display:block;font-size:11.5px;font-weight:400;margin-top:2px">家族の画面の合言葉コードを入力して同じデータを見る</span></button>`
+      : "";
+    body=`<h2 style="margin:0 0 8px;font-size:18px">はじめ方を選んでください</h2>
+      <button class="btn" onclick="obFinishNew()" style="width:100%;padding:14px;font-size:15px">🆕 新しく始める<span style="display:block;font-size:11.5px;font-weight:400;margin-top:2px">この端末でゼロから記録を始める</span></button>
+      ${joinBtn}
+      <div class="row-actions" style="margin-top:12px"><button class="btn ghost" onclick="obRender(2)">← 戻る</button></div>`;
+  }
+  el.innerHTML=`<div style="background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px 18px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3)">${dots}${body}</div>`;
+}
+function obNext1(){
+  const chk=document.getElementById("obTosChk");
+  if(!chk || !chk.checked){
+    const m=document.getElementById("obMsg1"); if(m) m.textContent="⚠️ 利用規約に同意のうえ、チェックを入れてください。";
+    return;
+  }
+  obRender(2);
+}
+function obNext2(){
+  const inp=document.getElementById("obHouseName");
+  _obName=(inp?inp.value:"").trim();
+  obRender(3);
+}
+function obComplete(){
+  try{ localStorage.setItem(TOS_LS,"1"); }catch(e){}
+  if(_obName) DB.houseName=_obName;
+  _skipHist=true; save(); _skipHist=false;
+  const el=document.getElementById("obWizard"); if(el){ el.style.display="none"; el.innerHTML=""; }
+  refreshAll();
+}
+function obFinishNew(){
+  obComplete();
+  toast("設定を保存しました。記録を始めましょう！");
+}
+function obFinishJoin(){
+  obComplete();
+  gotoTab("data");
+  shareJoinForm(); // 既存の共有参加フロー（画面内フォーム→shareJoinGo→shareJoinConfirm）を再利用
+  const sb=document.getElementById("shareBox"); if(sb){ try{ sb.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){} }
+}
+function maybeShowOnboarding(){ if(obShouldShow()) obRender(1); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();
 renderSeasonSel();
+renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
 refreshNoshiSelectors();
 renderRecent();
 renderBackupBar();
 renderWelcome();
 renderShare();
-(function(){ const m=shareMeta(); if(m && m.code && FIREBASE_CONFIG.apiKey){ fbInit().then(()=>startShareListen(m.code)).catch(()=>{}); } })();
+maybeShowOnboarding(); // T04: 初回起動（規約未同意＋既存データなし）ならウィザードを表示
+(function(){ const m=shareMeta(); if(m && m.code && FIREBASE_CONFIG.apiKey){ fbInit().then(()=>{ startShareListen(m.code); retryPendingShare(); }).catch(()=>{}); } })();
 /* LINE・Instagram等のアプリ内ブラウザ検知：ダイアログ不動作・データ非永続の事故を防ぐ */
 (function(){
   const ua=navigator.userAgent||"";
