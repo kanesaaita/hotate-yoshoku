@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123a5e">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="icon-192.png">
+<title>タコ漁獲ダッシュボード</title>
+<style>
+  :root{
+    --navy:#123a5e; --navy2:#1d5b8f; --ice:#eaf3fa; --ice2:#d6e8f4;
+    --line:#c9dcea; --ink:#1c2a36; --sub:#5a7186; --bg:#f4f8fb; --card:#ffffff;
+    --shadow:0 1px 3px rgba(18,58,94,.08),0 4px 16px rgba(18,58,94,.06);
+    /* サイズ区分（小→特大）の順序ランプ：青1色相・明→暗（検証済み） */
+    --sz-1:#86b6ef; --sz-2:#3987e5; --sz-3:#1c5cab; --sz-4:#0d366b;
+    --grid:#e6eef5; --axis:#c9dcea; --muted:#7d92a5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;-webkit-text-size-adjust:100%}
+  header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.02em}
+  header .sub{font-size:12px;opacity:.85;margin-top:2px}
+  main{max-width:860px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 12px;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px}
+  .hero{background:linear-gradient(135deg,#0d2e4d,#1d5b8f 70%,#2b74ad);border-radius:18px;padding:18px 16px 14px;color:#fff;box-shadow:0 6px 24px rgba(13,46,77,.25);margin-bottom:16px}
+  .hero .hd{font-size:13px;opacity:.9;font-weight:700}
+  .hero .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .hk{background:rgba(255,255,255,.10);border-radius:12px;padding:10px 4px;text-align:center}
+  .hk .v{font-size:21px;font-weight:800}
+  .hk .v small{font-size:12px;font-weight:700;opacity:.85}
+  .hk .l{font-size:10.5px;opacity:.8;margin-top:1px}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+  .bar-row .lbl{flex:0 0 72px;text-align:right;color:var(--sub);font-size:12px;font-weight:600}
+  .bar-track{flex:1;background:var(--ice);border-radius:0 6px 6px 0;height:22px;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:0 4px 4px 0;min-width:2px}
+  .bar-row .val{flex:0 0 58px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:2px 0 10px;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--ice);color:var(--navy);font-weight:700}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--ice);color:var(--navy)}
+  .sum-row td{background:#fbfdff;font-weight:700;color:var(--navy)}
+  .map-wrap{position:relative}
+  .map-wrap svg{width:100%;height:auto;display:block}
+  .tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;box-shadow:var(--shadow);opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5}
+  .empty{text-align:center;color:var(--sub);padding:20px;font-size:13px}
+  footer{max-width:860px;margin:0 auto;padding:0 16px 28px;font-size:12px;color:var(--sub)}
+  footer a{color:var(--navy2)}
+  @media(max-width:480px){ .hero .kpis{grid-template-columns:repeat(2,1fr)} .bar-row .lbl{flex-basis:58px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐙 タコ漁獲ダッシュボード</h1>
+  <div class="sub">漁獲メモから自動集計（ポイント別・サイズ別・漁場マップ）</div>
+</header>
+
+<main>
+  <div class="hero" id="hero"></div>
+
+  <div class="card">
+    <h2>📏 サイズ別匹数 <span id="szDate" style="font-size:12px;color:#fff;background:var(--navy2);padding:1px 8px;border-radius:999px"></span></h2>
+    <div id="sizeBars"></div>
+  </div>
+
+  <div class="card">
+    <h2>📍 ポイント別匹数</h2>
+    <div class="legend" id="legend1"></div>
+    <div id="pointBars"></div>
+    <div class="hint">色はサイズ区分（薄い＝小 → 濃い＝特大）。メモの記載順に表示。</div>
+  </div>
+
+  <div class="card">
+    <h2>🗺️ 漁場マップ</h2>
+    <div class="legend" id="legend2"></div>
+    <div class="map-wrap" id="mapWrap"></div>
+    <div class="hint">ポイント番号「A-B」を A（横軸）× B（縦軸）に配置。丸の大きさ＝匹数。</div>
+  </div>
+
+  <div class="card">
+    <h2>📈 日別推移</h2>
+    <div id="trend"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 漁獲記録</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>日付</th><th>ポイント</th><th class="num">匹数</th><th>サイズ</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer>
+  データはこのページ内に記録されています（端末保存・外部送信なし）。<a href="index.html">ホタテ養殖ツールへ</a>
+</footer>
+
+<script>
+/* =====================================================================
+   漁獲データ（更新はここに1日分ずつ追記するだけ）
+   entries: point「番号」/ count「匹数」/ size「小・中・大・特大」
+   totalKg: その日の合計重量(kg)
+===================================================================== */
+const CATCH_LOG = [
+  { date: '2026-07-22', totalKg: 415, entries: [
+    { point: '15-9',  count: 9,  size: '小' },
+    { point: '16-26', count: 7,  size: '中' },
+    { point: '15-26', count: 7,  size: '中' },
+    { point: '15-34', count: 9,  size: '大' },
+    { point: '14-37', count: 4,  size: '特大' },
+    { point: '11-40', count: 7,  size: '特大' },
+    { point: '10-41', count: 12, size: '特大' },
+  ]},
+];
+
+const SIZES = ['小','中','大','特大'];
+const SIZE_COLOR = { '小':'var(--sz-1)', '中':'var(--sz-2)', '大':'var(--sz-3)', '特大':'var(--sz-4)' };
+const SIZE_HEX   = { '小':'#86b6ef', '中':'#3987e5', '大':'#1c5cab', '特大':'#0d366b' };
+
+const latest = CATCH_LOG[CATCH_LOG.length - 1];
+const fmtDate = d => { const [y,m,dd] = d.split('-'); return `${m.replace(/^0/,'')}/${dd.replace(/^0/,'')}`; };
+const sum = a => a.reduce((s,x)=>s+x,0);
+const dayCount = day => sum(day.entries.map(e=>e.count));
+
+/* ---- ヒーロー（最新日のKPI＋累計） ---- */
+(function(){
+  const n = dayCount(latest);
+  const avg = latest.totalKg ? (latest.totalKg/n) : null;
+  const cumN = sum(CATCH_LOG.map(dayCount));
+  const cumKg = sum(CATCH_LOG.map(d=>d.totalKg||0));
+  const el = document.getElementById('hero');
+  el.innerHTML = `
+    <div class="hd">${fmtDate(latest.date)} の漁獲　<span style="opacity:.75">｜ 出漁 ${CATCH_LOG.length}日目・累計 ${cumN}匹 / ${cumKg}kg</span></div>
+    <div class="kpis">
+      <div class="hk"><div class="v">${n}<small>匹</small></div><div class="l">総匹数</div></div>
+      <div class="hk"><div class="v">${latest.totalKg??'—'}<small>kg</small></div><div class="l">総重量</div></div>
+      <div class="hk"><div class="v">${avg?avg.toFixed(1):'—'}<small>kg</small></div><div class="l">平均/匹</div></div>
+      <div class="hk"><div class="v">${latest.entries.length}<small>ヶ所</small></div><div class="l">ポイント数</div></div>
+    </div>`;
+  document.getElementById('szDate').textContent = fmtDate(latest.date);
+})();
+
+/* ---- サイズ別匹数（最新日・横バー） ---- */
+(function(){
+  const byS = {}; SIZES.forEach(s=>byS[s]=0);
+  latest.entries.forEach(e=>byS[e.size]=(byS[e.size]||0)+e.count);
+  const max = Math.max(...SIZES.map(s=>byS[s]), 1);
+  const total = dayCount(latest);
+  document.getElementById('sizeBars').innerHTML = SIZES.map(s=>`
+    <div class="bar-row">
+      <div class="lbl">${s}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${byS[s]/max*100}%;background:${SIZE_COLOR[s]}"></div></div>
+      <div class="val">${byS[s]}匹 <span style="color:var(--sub);font-weight:600">(${Math.round(byS[s]/total*100)}%)</span></div>
+    </div>`).join('');
+})();
+
+/* ---- 凡例（サイズ区分） ---- */
+(function(){
+  const html = SIZES.map(s=>`<span><i class="dot" style="background:${SIZE_COLOR[s]}"></i>${s}</span>`).join('');
+  document.getElementById('legend1').innerHTML = html;
+  document.getElementById('legend2').innerHTML = html;
+})();
+
+/* ---- ポイント別匹数（最新日・横バー、色＝サイズ） ---- */
+(function(){
+  const max = Math.max(...latest.entries.map(e=>e.count), 1);
+  document.getElementById('pointBars').innerHTML = latest.entries.map(e=>`
+    <div class="bar-row">
+      <div class="lbl">${e.point}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${e.count/max*100}%;background:${SIZE_COLOR[e.size]}"></div></div>
+      <div class="val">${e.count}匹 <span style="color:var(--sub);font-weight:600">${e.size}</span></div>
+    </div>`).join('');
+})();
+
+/* ---- 漁場マップ（散布図：A×B、丸の面積＝匹数） ---- */
+(function(){
+  const pts = latest.entries.map(e=>{
+    const m = e.point.split('-').map(Number);
+    return { ...e, x:m[0], y:m[1] };
+  }).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
+  const wrap = document.getElementById('mapWrap');
+  if(!pts.length){ wrap.innerHTML = '<div class="empty">座標形式のポイントがありません</div>'; return; }
+
+  const W=760, H=430, pad={t:24,r:20,b:40,l:44};
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const x0=Math.min(...xs)-1, x1=Math.max(...xs)+1;
+  const y0=Math.min(...ys)-3, y1=Math.max(...ys)+3;
+  const X=v=>pad.l+(v-x0)/(x1-x0)*(W-pad.l-pad.r);
+  const Y=v=>H-pad.b-(v-y0)/(y1-y0)*(H-pad.t-pad.b);
+  const R=c=>5.5*Math.sqrt(c);
+
+  let g='';
+  for(let v=Math.ceil(x0);v<=Math.floor(x1);v++)
+    g+=`<line x1="${X(v)}" y1="${pad.t}" x2="${X(v)}" y2="${H-pad.b}" stroke="var(--grid)"/><text x="${X(v)}" y="${H-pad.b+18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v}</text>`;
+  for(let v=Math.ceil(y0/5)*5;v<=y1;v+=5)
+    g+=`<line x1="${pad.l}" y1="${Y(v)}" x2="${W-pad.r}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pad.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+
+  const marks = pts.map((p,i)=>`
+    <g class="pt" data-i="${i}" style="cursor:pointer">
+      <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${Math.max(R(p.count),8)}" fill="${SIZE_HEX[p.size]}" stroke="#fff" stroke-width="2"/>
+      <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${Math.max(R(p.count)+8,16)}" fill="transparent"/>
+      <text x="${X(p.x)}" y="${Y(p.y)-Math.max(R(p.count),8)-6}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">${p.point}・${p.count}匹</text>
+    </g>`).join('');
+
+  wrap.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ポイント別漁獲マップ">
+      <line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="var(--axis)"/>
+      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="var(--axis)"/>
+      ${g}${marks}
+      <text x="${(pad.l+W-pad.r)/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)">ポイント番号（前）</text>
+      <text x="14" y="${(pad.t+H-pad.b)/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 14 ${(pad.t+H-pad.b)/2})">ポイント番号（後）</text>
+    </svg>
+    <div class="tip" id="mapTip"></div>`;
+
+  const tip = document.getElementById('mapTip');
+  wrap.querySelectorAll('.pt').forEach(el=>{
+    const p = pts[+el.dataset.i];
+    const show = ev=>{
+      tip.textContent = `${p.point}：${p.count}匹（${p.size}）`;
+      const r = wrap.getBoundingClientRect();
+      const cx = (ev.touches?ev.touches[0]:ev).clientX - r.left;
+      const cy = (ev.touches?ev.touches[0]:ev).clientY - r.top;
+      tip.style.left = Math.min(cx+12, r.width-140)+'px';
+      tip.style.top = (cy-34)+'px';
+      tip.style.opacity = 1;
+    };
+    el.addEventListener('mousemove', show);
+    el.addEventListener('touchstart', show, {passive:true});
+    el.addEventListener('mouseleave', ()=>tip.style.opacity=0);
+    el.addEventListener('touchend', ()=>setTimeout(()=>tip.style.opacity=0, 1200), {passive:true});
+  });
+})();
+
+/* ---- 日別推移（2日分以上で表示） ---- */
+(function(){
+  const el = document.getElementById('trend');
+  if(CATCH_LOG.length < 2){
+    el.innerHTML = '<div class="empty">記録が2日分以上たまると、匹数・重量の推移がここに表示されます。</div>';
+    return;
+  }
+  const maxN = Math.max(...CATCH_LOG.map(dayCount),1);
+  const maxK = Math.max(...CATCH_LOG.map(d=>d.totalKg||0),1);
+  el.innerHTML = '<h3 style="margin:0 0 6px;font-size:13px;color:var(--navy2)">匹数</h3>'
+    + CATCH_LOG.map(d=>`
+      <div class="bar-row"><div class="lbl">${fmtDate(d.date)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${dayCount(d)/maxN*100}%;background:var(--sz-2)"></div></div>
+        <div class="val">${dayCount(d)}匹</div></div>`).join('')
+    + '<h3 style="margin:14px 0 6px;font-size:13px;color:var(--navy2)">重量 (kg)</h3>'
+    + CATCH_LOG.map(d=>`
+      <div class="bar-row"><div class="lbl">${fmtDate(d.date)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(d.totalKg||0)/maxK*100}%;background:var(--sz-3)"></div></div>
+        <div class="val">${d.totalKg??'—'}kg</div></div>`).join('');
+})();
+
+/* ---- 漁獲記録テーブル（新しい日が上） ---- */
+(function(){
+  const rows = [];
+  [...CATCH_LOG].reverse().forEach(d=>{
+    d.entries.forEach((e,i)=>{
+      rows.push(`<tr>
+        <td>${i===0?fmtDate(d.date):''}</td>
+        <td>${e.point}</td>
+        <td class="num">${e.count}</td>
+        <td><span class="tag"><i class="dot" style="background:${SIZE_COLOR[e.size]}"></i>${e.size}</span></td>
+      </tr>`);
+    });
+    rows.push(`<tr class="sum-row"><td></td><td>合計</td><td class="num">${dayCount(d)}</td><td>${d.totalKg??'—'} kg</td></tr>`);
+  });
+  document.getElementById('logBody').innerHTML = rows.join('');
+})();
+</script>
+</body>
+</html>
