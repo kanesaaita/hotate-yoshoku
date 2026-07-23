@@ -69,6 +69,7 @@
   <div class="card">
     <h2>🎯 次回の狙い目（ポイント期待値）</h2>
     <div id="expectBars"></div>
+    <div id="course"></div>
     <div class="hint" id="expectNote"></div>
   </div>
 
@@ -203,7 +204,7 @@ const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today
 /* ---- 次回の狙い目：直近重み付きのポイント期待値 ----
    期待匹数 = Σ(重み×匹数) / Σ重み、重み = 0.5^(経過日数/半減期)
    基準日は次回出漁予定日（なければ今日）。古い好実績ほど自動で割引かれる。 */
-(function(){
+const EXPECT_ROWS = (function(){
   const ref = nextTrip ? nextTrip.d : today;
   const stat = {};
   CATCH_LOG.forEach(day=>{
@@ -215,10 +216,35 @@ const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today
       if(!s.last || day.date>s.last){ s.last=day.date; s.lastSize=e.size; }
     });
   });
-  const rows = Object.entries(stat).map(([point,s])=>({
+  return Object.entries(stat).map(([point,s])=>({
     point, exp: s.wCount/s.wSum, last: s.last, lastSize: s.lastSize,
     fresh: Math.min(s.wSum,1)  // データの新しさ×量（1に近いほど直近の実績）
   })).sort((a,b)=>b.exp-a.exp);
+})();
+
+/* おすすめコース：期待値×サイズ格（重量の代役）が最大の点から入り、
+   残りは近い順（同距離なら高スコア優先）でつなぐ */
+const COURSE = (function(){
+  const VAL = {'小':1,'中':2,'大':3,'特大':4};
+  const pts = EXPECT_ROWS.map(r=>{
+    const m = r.point.split('-').map(Number);
+    return {...r, x:m[0], y:m[1], score:r.exp*(VAL[r.lastSize]||2)};
+  }).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
+  if(!pts.length) return [];
+  let cur = pts.reduce((a,b)=>b.score>a.score?b:a);
+  const route=[cur], rest=pts.filter(p=>p!==cur);
+  while(rest.length){
+    rest.sort((a,b)=>{
+      const da=Math.hypot(a.x-cur.x,a.y-cur.y), db=Math.hypot(b.x-cur.x,b.y-cur.y);
+      return da-db || b.score-a.score;
+    });
+    cur = rest.shift(); route.push(cur);
+  }
+  return route;
+})();
+
+(function(){
+  const rows = EXPECT_ROWS;
   const max = Math.max(...rows.map(r=>r.exp),1);
   document.getElementById('expectBars').innerHTML = rows.map(r=>`
     <div class="bar-row">
@@ -226,6 +252,20 @@ const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today
       <div class="bar-track"><div class="bar-fill" style="width:${r.exp/max*100}%;background:${SIZE_COLOR[r.lastSize]||'var(--sz-2)'};opacity:${0.45+0.55*r.fresh}"></div></div>
       <div class="val">${r.exp.toFixed(1)}匹 <span style="color:var(--sub);font-weight:600">${fmtDate(r.last)}${r.lastSize}</span></div>
     </div>`).join('');
+  // おすすめコース（回り順）
+  if(COURSE.length){
+    const title = nextTrip ? `${fmtDate(nextTrip.date)} のおすすめコース` : 'おすすめコース';
+    const steps = COURSE.map((p,i)=>`
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--ice);border-radius:999px;padding:5px 12px 5px 6px;margin:3px 2px;font-size:13px;font-weight:700">
+        <span style="background:var(--navy2);color:#fff;border-radius:999px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px">${i+1}</span>
+        ${p.point}<span style="color:var(--sub);font-weight:600;font-size:11.5px">${p.exp.toFixed(0)}匹・${p.lastSize}</span>
+      </span>`).join('<span style="color:var(--sub)">→</span>');
+    const expTotal = sum(COURSE.map(p=>p.exp));
+    document.getElementById('course').innerHTML = `
+      <h3 style="margin:14px 0 6px;font-size:13.5px;color:var(--navy2)">🧭 ${title}</h3>
+      <div style="line-height:2.1">${steps}</div>
+      <div class="hint">見込み合計 約${Math.round(expTotal)}匹。特大ゾーン（後ろ番号37〜41）から入って重量を確保 → 大・中と回り、小中心の ${COURSE[COURSE.length-1].point} は最後（相場と時間次第で温存もあり）。回り順は期待匹数×サイズ格の高い点を起点に、近い順でつないでいます。マップの点線が回り順です。</div>`;
+  }
   const nDays = CATCH_LOG.length;
   document.getElementById('expectNote').innerHTML =
     `基準日：${fmtDate((nextTrip?nextTrip.date:latest.date))}。直近の実績ほど重視（半減期${HALF_LIFE_DAYS}日）するため、`+
@@ -289,6 +329,12 @@ const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today
   for(let v=Math.ceil(y0/5)*5;v<=y1;v+=5)
     g+=`<line x1="${pad.l}" y1="${Y(v)}" x2="${W-pad.r}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pad.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
 
+  // おすすめコースの点線（マークの下に敷く）
+  const onCourse = COURSE.filter(c=>pts.some(p=>p.point===c.point));
+  const courseLine = onCourse.length>1
+    ? `<polyline points="${onCourse.map(c=>`${X(c.x)},${Y(c.y)}`).join(' ')}" fill="none" stroke="var(--navy2)" stroke-width="2" stroke-dasharray="6 6" opacity=".45"/>`
+      + onCourse.map((c,i)=>`<g><circle cx="${X(c.x)+14}" cy="${Y(c.y)+14}" r="9" fill="#fff" stroke="var(--navy2)" stroke-width="1.5"/><text x="${X(c.x)+14}" y="${Y(c.y)+17.5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--navy)">${i+1}</text></g>`).join('')
+    : '';
   const marks = pts.map((p,i)=>`
     <g class="pt" data-i="${i}" style="cursor:pointer">
       <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${Math.max(R(p.count),8)}" fill="${SIZE_HEX[p.size]}" stroke="#fff" stroke-width="2"/>
@@ -300,7 +346,7 @@ const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ポイント別漁獲マップ">
       <line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="var(--axis)"/>
       <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="var(--axis)"/>
-      ${g}${marks}
+      ${g}${courseLine}${marks}
       <text x="${(pad.l+W-pad.r)/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)">ポイント番号（前）</text>
       <text x="14" y="${(pad.t+H-pad.b)/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 14 ${(pad.t+H-pad.b)/2})">ポイント番号（後）</text>
     </svg>
