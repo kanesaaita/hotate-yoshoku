@@ -67,6 +67,12 @@
   <div class="hero" id="hero"></div>
 
   <div class="card">
+    <h2>🎯 次回の狙い目（ポイント期待値）</h2>
+    <div id="expectBars"></div>
+    <div class="hint" id="expectNote"></div>
+  </div>
+
+  <div class="card">
     <h2>📏 サイズ別匹数 <span id="szDate" style="font-size:12px;color:#fff;background:var(--navy2);padding:1px 8px;border-radius:999px"></span></h2>
     <div id="sizeBars"></div>
   </div>
@@ -83,6 +89,11 @@
     <div class="legend" id="legend2"></div>
     <div class="map-wrap" id="mapWrap"></div>
     <div class="hint">ポイント番号「A-B」を A（横軸）× B（縦軸）に配置。丸の大きさ＝匹数。</div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 部会 水揚げ</h2>
+    <div id="bukai"></div>
   </div>
 
   <div class="card">
@@ -109,7 +120,9 @@
 /* =====================================================================
    漁獲データ（更新はここに1日分ずつ追記するだけ）
    entries: point「番号」/ count「匹数」/ size「小・中・大・特大」
+           boxes「その筋の箱数」を書くと入箱率（匹/箱）も表示される（省略可）
    totalKg: その日の合計重量(kg)
+   ※ 0匹だった場所も count:0 で書いておくと「狙い目」の精度が上がる
 ===================================================================== */
 const CATCH_LOG = [
   { date: '2026-07-22', totalKg: 415, entries: [
@@ -123,6 +136,26 @@ const CATCH_LOG = [
   ]},
 ];
 
+/* 出漁予定（過ぎた日はグレー表示になるだけなので消さなくてOK） */
+const SCHEDULE = [
+  { date: '2026-07-24', note: 'タコ漁' },
+];
+
+/* 部会の水揚げ（日ごとに追記。price不明なら省略） */
+const BUKAI_LOG = [
+  { date: '2026-07-23', category: '活たこ(中)', note: '生たこは水揚げなし・値段は未確定',
+    rows: [
+      { name: '古館 剛',   count: 89, kg: 454.0, avg: 5.1 },
+      { name: '松下 祐士', count: 29, kg: 161.0, avg: 5.6 },
+    ],
+    total: { count: 118, kg: 615.0, avg: 5.2 } },
+];
+
+/* 「狙い目」期待値：直近の実績ほど重視する半減期（日）。
+   タコは水温で場所が移るため、古い実績（例：6月の丘側の好漁）ほど
+   評価を自動で下げる。移りが速い年は小さく、遅い年は大きくする。 */
+const HALF_LIFE_DAYS = 14;
+
 const SIZES = ['小','中','大','特大'];
 const SIZE_COLOR = { '小':'var(--sz-1)', '中':'var(--sz-2)', '大':'var(--sz-3)', '特大':'var(--sz-4)' };
 const SIZE_HEX   = { '小':'#86b6ef', '中':'#3987e5', '大':'#1c5cab', '特大':'#0d366b' };
@@ -131,6 +164,10 @@ const latest = CATCH_LOG[CATCH_LOG.length - 1];
 const fmtDate = d => { const [y,m,dd] = d.split('-'); return `${m.replace(/^0/,'')}/${dd.replace(/^0/,'')}`; };
 const sum = a => a.reduce((s,x)=>s+x,0);
 const dayCount = day => sum(day.entries.map(e=>e.count));
+const DAY = 86400000;
+const toDate = s => new Date(s + 'T00:00:00');
+const today = new Date(); today.setHours(0,0,0,0);
+const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today).sort((a,b)=>a.d-b.d)[0] || null;
 
 /* ---- ヒーロー（最新日のKPI＋累計） ---- */
 (function(){
@@ -139,6 +176,12 @@ const dayCount = day => sum(day.entries.map(e=>e.count));
   const cumN = sum(CATCH_LOG.map(dayCount));
   const cumKg = sum(CATCH_LOG.map(d=>d.totalKg||0));
   const el = document.getElementById('hero');
+  let sched = '';
+  if(nextTrip){
+    const diff = Math.round((nextTrip.d - today)/DAY);
+    const when = diff===0?'今日':diff===1?'明日':`${diff}日後`;
+    sched = `<div style="margin-top:10px;font-size:12.5px;background:rgba(255,255,255,.14);border-radius:10px;padding:7px 10px;font-weight:700">⛵ 次回出漁：${fmtDate(nextTrip.date)}（${when}）${nextTrip.note?'・'+nextTrip.note:''}</div>`;
+  }
   el.innerHTML = `
     <div class="hd">${fmtDate(latest.date)} の漁獲　<span style="opacity:.75">｜ 出漁 ${CATCH_LOG.length}日目・累計 ${cumN}匹 / ${cumKg}kg</span></div>
     <div class="kpis">
@@ -146,8 +189,42 @@ const dayCount = day => sum(day.entries.map(e=>e.count));
       <div class="hk"><div class="v">${latest.totalKg??'—'}<small>kg</small></div><div class="l">総重量</div></div>
       <div class="hk"><div class="v">${avg?avg.toFixed(1):'—'}<small>kg</small></div><div class="l">平均/匹</div></div>
       <div class="hk"><div class="v">${latest.entries.length}<small>ヶ所</small></div><div class="l">ポイント数</div></div>
-    </div>`;
+    </div>${sched}`;
   document.getElementById('szDate').textContent = fmtDate(latest.date);
+})();
+
+/* ---- 次回の狙い目：直近重み付きのポイント期待値 ----
+   期待匹数 = Σ(重み×匹数) / Σ重み、重み = 0.5^(経過日数/半減期)
+   基準日は次回出漁予定日（なければ今日）。古い好実績ほど自動で割引かれる。 */
+(function(){
+  const ref = nextTrip ? nextTrip.d : today;
+  const stat = {};
+  CATCH_LOG.forEach(day=>{
+    const ageDays = Math.max(0,(ref - toDate(day.date))/DAY);
+    const w = Math.pow(0.5, ageDays/HALF_LIFE_DAYS);
+    day.entries.forEach(e=>{
+      const s = stat[e.point] || (stat[e.point]={wSum:0,wCount:0,last:null,lastSize:null});
+      s.wSum += w; s.wCount += w*e.count;
+      if(!s.last || day.date>s.last){ s.last=day.date; s.lastSize=e.size; }
+    });
+  });
+  const rows = Object.entries(stat).map(([point,s])=>({
+    point, exp: s.wCount/s.wSum, last: s.last, lastSize: s.lastSize,
+    fresh: Math.min(s.wSum,1)  // データの新しさ×量（1に近いほど直近の実績）
+  })).sort((a,b)=>b.exp-a.exp);
+  const max = Math.max(...rows.map(r=>r.exp),1);
+  document.getElementById('expectBars').innerHTML = rows.map(r=>`
+    <div class="bar-row">
+      <div class="lbl">${r.point}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${r.exp/max*100}%;background:${SIZE_COLOR[r.lastSize]||'var(--sz-2)'};opacity:${0.45+0.55*r.fresh}"></div></div>
+      <div class="val">${r.exp.toFixed(1)}匹 <span style="color:var(--sub);font-weight:600">${fmtDate(r.last)}${r.lastSize}</span></div>
+    </div>`).join('');
+  const nDays = CATCH_LOG.length;
+  document.getElementById('expectNote').innerHTML =
+    `基準日：${fmtDate((nextTrip?nextTrip.date:latest.date))}。直近の実績ほど重視（半減期${HALF_LIFE_DAYS}日）するため、`+
+    `時期はずれの古い好漁場（例：6月に良かった丘側）は自動で評価が下がります。バーの薄さ＝データが古い/少ない印。`+
+    (nDays<3?`<br>⚠️ まだ${nDays}日分の記録なので、ほぼ直近実績の並びです。日数がたまるほど季節変化を織り込んだ期待値になります。`:'')+
+    `<br>💡 空振りだった場所も「0匹」でメモしてもらえると、期待値の精度が大きく上がります。箱数が分かれば入箱率（匹/箱）も出せます。`;
 })();
 
 /* ---- サイズ別匹数（最新日・横バー） ---- */
@@ -241,6 +318,27 @@ const dayCount = day => sum(day.entries.map(e=>e.count));
   });
 })();
 
+/* ---- 部会 水揚げ ---- */
+(function(){
+  const el = document.getElementById('bukai');
+  if(!BUKAI_LOG.length){ el.innerHTML = '<div class="empty">部会のデータはまだありません</div>'; return; }
+  el.innerHTML = [...BUKAI_LOG].reverse().map(d=>{
+    const rows = d.rows.map(r=>`
+      <tr><td>${r.name}</td><td class="num">${r.count}</td><td class="num">${r.kg.toFixed(1)}</td><td class="num">${r.avg.toFixed(1)}</td></tr>`).join('');
+    return `
+      <h3 style="margin:4px 0 8px;font-size:13.5px;color:var(--navy2)">${fmtDate(d.date)}　${d.category}</h3>
+      <div class="table-wrap" style="margin-bottom:6px">
+        <table>
+          <thead><tr><th>氏名</th><th class="num">尾数</th><th class="num">数量 (kg)</th><th class="num">目廻り (kg)</th></tr></thead>
+          <tbody>${rows}
+            <tr class="sum-row"><td>合計</td><td class="num">${d.total.count}</td><td class="num">${d.total.kg.toFixed(1)}</td><td class="num">${d.total.avg.toFixed(1)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      ${d.note?`<div class="hint" style="margin:0 0 14px">${d.note}</div>`:''}`;
+  }).join('');
+})();
+
 /* ---- 日別推移（2日分以上で表示） ---- */
 (function(){
   const el = document.getElementById('trend');
@@ -262,8 +360,13 @@ const dayCount = day => sum(day.entries.map(e=>e.count));
         <div class="val">${d.totalKg??'—'}kg</div></div>`).join('');
 })();
 
-/* ---- 漁獲記録テーブル（新しい日が上） ---- */
+/* ---- 漁獲記録テーブル（新しい日が上。boxes記入時は入箱率列を追加） ---- */
 (function(){
+  const hasBoxes = CATCH_LOG.some(d=>d.entries.some(e=>e.boxes));
+  if(hasBoxes){
+    document.querySelector('#logBody').closest('table').querySelector('thead tr')
+      .insertAdjacentHTML('beforeend','<th class="num">入箱率</th>');
+  }
   const rows = [];
   [...CATCH_LOG].reverse().forEach(d=>{
     d.entries.forEach((e,i)=>{
@@ -272,9 +375,10 @@ const dayCount = day => sum(day.entries.map(e=>e.count));
         <td>${e.point}</td>
         <td class="num">${e.count}</td>
         <td><span class="tag"><i class="dot" style="background:${SIZE_COLOR[e.size]}"></i>${e.size}</span></td>
+        ${hasBoxes?`<td class="num">${e.boxes?(e.count/e.boxes).toFixed(2)+' 匹/箱':'—'}</td>`:''}
       </tr>`);
     });
-    rows.push(`<tr class="sum-row"><td></td><td>合計</td><td class="num">${dayCount(d)}</td><td>${d.totalKg??'—'} kg</td></tr>`);
+    rows.push(`<tr class="sum-row"><td></td><td>合計</td><td class="num">${dayCount(d)}</td><td>${d.totalKg??'—'} kg</td>${hasBoxes?'<td></td>':''}</tr>`);
   });
   document.getElementById('logBody').innerHTML = rows.join('');
 })();
