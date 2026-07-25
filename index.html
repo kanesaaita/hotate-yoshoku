@@ -148,6 +148,9 @@
   <button data-tab="buoy">🎈 浮力管理</button>
   <button data-tab="analysis">📊 分析</button>
   <button data-tab="calc">🧮 育成計算</button>
+  <button data-tab="hayadori">🐚 早どり進捗</button>
+  <button data-tab="plan726">📅 7/26</button>
+  <button data-tab="plan727">📅 7/27</button>
   <button data-tab="data">⚙️ 設定・データ</button>
 </nav>
 
@@ -514,6 +517,21 @@
       <div class="muted" style="font-size:12px;margin-top:10px" id="verLabel"></div>
     </div>
   </section>
+
+  <!-- ===== 🐚 早どり 進捗（2026） ===== -->
+  <section id="hayadori">
+    <div id="hayaProgArea"></div>
+  </section>
+
+  <!-- ===== 📅 7/26 の予定 ===== -->
+  <section id="plan726">
+    <div id="haya726Area"></div>
+  </section>
+
+  <!-- ===== 📅 7/27 の予定 ===== -->
+  <section id="plan727">
+    <div id="haya727Area"></div>
+  </section>
 </main>
 
 <nav class="bottom-nav" id="bottomNav">
@@ -521,6 +539,7 @@
   <button id="nav-entry" onclick="gotoTab('entry')"><span class="bn-ic">✍️</span><span class="bn-lb">記録</span></button>
   <button id="nav-stock" onclick="gotoTab('noshi')"><span class="bn-ic">🎣</span><span class="bn-lb">在庫</span></button>
   <button id="nav-insight" onclick="gotoTab('analysis')"><span class="bn-ic">📊</span><span class="bn-lb">分析</span></button>
+  <button id="nav-haya" onclick="gotoTab('hayadori')"><span class="bn-ic">🐚</span><span class="bn-lb">早どり</span></button>
   <button id="nav-data" onclick="gotoTab('data')"><span class="bn-ic">⚙️</span><span class="bn-lb">設定</span></button>
 </nav>
 
@@ -634,7 +653,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.20-1";
+const APP_VERSION = "2026.07.25-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -673,6 +692,7 @@ function normalizeDB(d){
     {id:"cp3", mesh:"1部8厘", targetRen:0, perDan:0, doneRen:0, memo:""},
     {id:"cp4", mesh:"3部5厘", targetRen:0, perDan:0, doneRen:0, memo:""}
   ];
+  d.hayadori = Object.assign({a726:null,t726:null,note726:"",crew727:9}, d.hayadori||{});
   d.lastBackupAt = d.lastBackupAt||null;
   return d;
 }
@@ -725,11 +745,12 @@ function noshiUid(){ return "n"+Date.now().toString(36)+(_idc++).toString(36)+Ma
 
 /* ============ タブ ============ */
 /* UI v2: 画面切替は showView() に一本化。旧 #tabs は非表示のまま残し、gotoTab()/既存の .click() 呼び出しはそのまま動く */
-const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",analysis:"nav-insight",calc:"nav-insight",data:"nav-data"};
+const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",analysis:"nav-insight",calc:"nav-insight",hayadori:"nav-haya",plan726:"nav-haya",plan727:"nav-haya",data:"nav-data"};
 const SEGMENTS={
   "nav-entry":[["entry","✍️ 入力"],["list","📋 一覧"]],
   "nav-stock":[["noshi","🎣 のし在庫"],["buoy","🎈 浮力調整"]],
-  "nav-insight":[["analysis","📊 分析"],["calc","🧮 育成計算"]]
+  "nav-insight":[["analysis","📊 分析"],["calc","🧮 育成計算"]],
+  "nav-haya":[["hayadori","📊 進捗"],["plan726","📅 7/26"],["plan727","📅 7/27"]]
 };
 function showView(key){
   const sec=document.getElementById(key); if(!sec){ try{ console.warn("unknown view:", key); }catch(e){} return; }
@@ -749,6 +770,9 @@ function showView(key){
   if(key==="buoy") renderBuoy();
   if(key==="analysis") renderAnalysis();
   if(key==="calc") renderCalc();
+  if(key==="hayadori") renderHayaProg();
+  if(key==="plan726") renderHaya726();
+  if(key==="plan727") renderHaya727();
   if(key==="data"){ renderNoshiMaster(); renderHistory(); }
 }
 document.querySelectorAll("#tabs button").forEach(b=>{ b.onclick=()=>showView(b.dataset.tab); });
@@ -1847,7 +1871,182 @@ function safeId(s){ return String(s||"").replace(/[^A-Za-z0-9_-]/g,""); } // onc
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
-function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); }
+/* ============ 🐚 早どり 2026（進捗・7/26・7/27） ============ */
+/* 数字の出所: 社長の実地カウント＋日次実績（2026-07-25確定）。①丸籠1連＝1万粒で換算。 */
+const HAYA={
+  goal:1100, base:748, ref725:153,
+  ratioA:1.67, ratioB:1.59, ratioT:1.00,
+  laborA:1.0, laborT:1.9, laborYabuki:1.5, crewBase:3,
+  planAren:130, planTren:40, remainT:189,
+  log:[
+    ["7/12","試運転","赤川通路10・ちやB10・ちやB(元A)1",21,28,"1部2厘／ちかまB-3"],
+    ["7/14","本番①","ちやA（元B海区）",80,83,"1部2厘／ちかまB-3"],
+    ["7/16","本番②","ちやB（元B海区）",105,157,"1部2厘／B-2・B-3"],
+    ["7/17","本番③","ちやA（元B海区）",120,246,"1部2厘33＋1部5厘213"],
+    ["7/25","本番④","ちやB64・採苗地70・赤川通路B10",144,234,"1部8厘／ちやA49・ちやB170・採苗地15"]
+  ],
+  saibyoki:[
+    ["ちやA","元B海区",0,"✅ 完了"],["ちやB","元A海区",0,"✅ 完了"],
+    ["採苗地","元A海区",130,"7/26 に全部"],
+    ["赤川かみ","元トウフツ沖",150,"7/26〜27"],["赤川通路B","元トウフツ沖",39,"7/26〜27"]
+  ],
+  boxes:[["1部2厘","4.5mm",300,301,0],["1部5厘","5.5mm",451,213,238],["1部8厘","7mm",764,234,530]]
+};
+function esc(s){ return escapeHtml(s); }
+function hayaNum(v,def){ const n=Number(v); return (v===null||v===""||v===undefined||isNaN(n))?def:n; }
+function hayaCalc(){
+  const h=DB.hayadori||{};
+  const entered = (h.a726!==null&&h.a726!==""&&h.a726!==undefined);
+  const aOut = hayaNum(h.a726, Math.round(HAYA.planAren*HAYA.ratioA));
+  const tRen = hayaNum(h.t726ren, HAYA.planTren);
+  const tOut = hayaNum(h.t726, HAYA.planTren);
+  const rT   = tRen>0 ? (tOut/tRen) : HAYA.ratioT;
+  const out726 = aOut + tOut, cum726 = HAYA.base + out726;
+  const need = Math.max(0, HAYA.goal - cum726);
+  const tRemain = Math.max(0, HAYA.remainT - tRen);
+  const normalRen = Math.min(Math.ceil(rT>0?need/rT:need), tRemain);
+  const yabukiRen = Math.max(0, tRemain - normalRen);
+  const out727 = Math.round(normalRen*rT), fin = cum726 + out727;
+  const crew = hayaNum(h.crew727, 9);
+  const yCoef = HAYA.laborYabuki/(crew/HAYA.crewBase);
+  return {entered, aOut, tRen, tOut, rT, out726, cum726, need, tRemain, normalRen, yabukiRen, out727, fin, crew, yCoef,
+    labor726: HAYA.planAren*HAYA.laborA + tRen*HAYA.laborT,
+    labor727: normalRen*HAYA.laborT + yabukiRen*yCoef};
+}
+function hayaSet(k,v){ DB.hayadori[k] = (v===""?null:v); save(); renderHayaProg(); renderHaya726(); renderHaya727(); }
+function hayaReset(){ if(!confirm("7/26の実績入力を消して、予定値に戻しますか？")) return;
+  DB.hayadori.a726=null; DB.hayadori.t726=null; DB.hayadori.t726ren=null; save(); renderHayaProg(); renderHaya726(); renderHaya727(); toast("予定値に戻しました"); }
+function hayaBar(cur,goal,label){
+  const pct=Math.min(100, Math.round(cur/goal*1000)/10);
+  return `<div class="bar-row" style="margin:10px 0"><div class="lbl">${esc(label)}</div>
+    <div class="bar-track" style="height:30px"><div class="bar-fill" style="width:${pct}%">${pct}%</div></div>
+    <div style="flex:0 0 118px;text-align:right;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums">${cur.toLocaleString()} / ${goal.toLocaleString()}</div></div>`;
+}
+function renderHayaProg(){
+  const el=document.getElementById("hayaProgArea"); if(!el) return; const c=hayaCalc();
+  const restSai = HAYA.saibyoki.reduce((s,r)=>s+r[2],0);
+  const restBox = HAYA.boxes.reduce((s,r)=>s+r[4],0);
+  el.innerHTML=`
+  <div class="card">
+    <h2>🎯 早どり 2026 の進捗</h2>
+    <div class="hint">目標 <b>1,100連＝1,100万粒</b>（①丸籠 1連＝1万粒で換算）</div>
+    ${hayaBar(HAYA.base, HAYA.goal, "現在(7/25)")}
+    ${hayaBar(c.fin, HAYA.goal, "7/27終了時")}
+    <div class="kpi-grid" style="margin-top:14px">
+      <div class="kpi"><div class="v">${HAYA.base.toLocaleString()}</div><div class="l">現在の累計（連）</div></div>
+      <div class="kpi"><div class="v">${(HAYA.goal-HAYA.base).toLocaleString()}</div><div class="l">目標まで残り（連）</div></div>
+      <div class="kpi"><div class="v">${restSai.toLocaleString()}</div><div class="l">採苗器の残り（連）</div></div>
+      <div class="kpi"><div class="v">${restBox.toLocaleString()}</div><div class="l">空き箱の残り（連）</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📈 元の外海海区べつの倍率</h2>
+    <div class="hint">採苗器1連から①丸籠が何連できるか。<b>元の海区で決まる</b>（7/25に元A・元トウフツを同日処理して直接比較）</div>
+    <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>元海区</th><th>倍率</th><th>作業の重さ</th><th>付着物</th></tr></thead><tbody>
+      <tr><td><b>元A海区</b></td><td><b>1.67</b></td><td>1.0（標準）</td><td>標準</td></tr>
+      <tr><td>元B海区</td><td>1.59</td><td>1.0（標準）</td><td>イガイが非常に多い</td></tr>
+      <tr><td><b>元トウフツ沖</b></td><td><b>1.00</b></td><td><b>1.9倍</b></td><td>寒天（海藻）で中網が重い</td></tr>
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">⚠️ 通しのサイズを<b>上げる</b>ほど雑物の除去効率が上がる。数量に余裕がある年は網目を細かくしない。<br>今季は最後まで <b>1部8厘（通し7mm）</b> で続行。</div>
+  </div>
+  <div class="card">
+    <h2>🎣 採苗器（ちょうちん）の残り</h2>
+    <div class="table-wrap"><table><thead><tr><th>のし</th><th>元海区</th><th>残り(連)</th><th>予定</th></tr></thead><tbody>
+      ${HAYA.saibyoki.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td><b>${r[2]}</b></td><td>${esc(r[3])}</td></tr>`).join("")}
+      <tr style="background:var(--ice)"><td colspan="2"><b>合計</b></td><td><b>${restSai}</b></td><td></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <h2>📦 丸籠（空き箱）の残り</h2>
+    <div class="table-wrap"><table><thead><tr><th>網目</th><th>通し下限</th><th>元在庫</th><th>使用済</th><th>残り</th></tr></thead><tbody>
+      ${HAYA.boxes.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td><td><b>${r[4]===0?"0 ✅使い切り":r[4]}</b></td></tr>`).join("")}
+      <tr style="background:var(--ice)"><td colspan="4"><b>合計 残り</b></td><td><b>${restBox}</b></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <h2>🗒 早どり 実績ログ</h2>
+    <div class="table-wrap"><table><thead><tr><th>日付</th><th>回</th><th>引き上げ元</th><th>採苗器</th><th>①丸籠</th><th>倍率</th><th>網目・下げ先</th></tr></thead><tbody>
+      ${HAYA.log.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${r[3]}</td><td><b>${r[4]}</b></td><td>${(r[4]/r[3]).toFixed(2)}</td><td class="muted">${esc(r[5])}</td></tr>`).join("")}
+      <tr style="background:var(--ice)"><td colspan="3"><b>累計</b></td><td><b>470</b></td><td><b>748</b></td><td><b>1.59</b></td><td></td></tr>
+    </tbody></table></div>
+  </div>`;
+}
+function renderHaya726(){
+  const el=document.getElementById("haya726Area"); if(!el) return; const c=hayaCalc(); const h=DB.hayadori||{};
+  const planOut = Math.round(HAYA.planAren*HAYA.ratioA)+HAYA.planTren;
+  el.innerHTML=`
+  <div class="card">
+    <h2>📅 7/26（日）の予定</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="v">${(HAYA.planAren+c.tRen)}</div><div class="l">水揚げ（連）</div></div>
+      <div class="kpi"><div class="v">${c.out726}</div><div class="l">出来上がり（連）</div></div>
+      <div class="kpi"><div class="v">${c.cum726.toLocaleString()}</div><div class="l">終了時の累計（連）</div></div>
+      <div class="kpi"><div class="v">${Math.round(c.labor726)}</div><div class="l">労力（7/25比 ${Math.round(c.labor726/HAYA.ref725*100)}%）</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🚢 水揚げ</h2>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>場所</th><th>元海区</th><th>連数</th><th>倍率</th><th>出来高</th></tr></thead><tbody>
+      <tr><td>1</td><td><b>採苗地（残り全部）</b></td><td>元A海区</td><td><b>${HAYA.planAren}</b></td><td>1.67</td><td><b>${c.aOut}</b></td></tr>
+      <tr><td>2</td><td><b>トウフツ沖</b><div class="muted" style="font-size:12px">赤川かみ or 赤川通路B</div></td><td>元トウフツ沖</td><td><b>${c.tRen}</b></td><td>${c.rT.toFixed(2)}</td><td><b>${c.tOut}</b></td></tr>
+      <tr style="background:var(--ice)"><td colspan="3"><b>計</b></td><td><b>${HAYA.planAren+c.tRen}</b></td><td></td><td><b>${c.out726}</b></td></tr>
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">下げ＝<b>1部8厘（通し7mm）</b>で ${c.out726} 連。空き箱 1部8厘 残530連 → 使用後 <b>${530-c.out726}連</b> 残り</div>
+  </div>
+  <div class="card">
+    <h2>✍️ 実績を入れる（終わったら）</h2>
+    <div class="hint">ここに入れると <b>7/27の予定が自動で組み直されます</b>。空欄なら予定値（${planOut}連）で計算します。</div>
+    <div class="filters" style="margin-top:12px">
+      <div class="field"><label>採苗地の出来高（籠＝連）</label><input type="number" inputmode="numeric" id="hy_a726" value="${h.a726==null?"":esc(String(h.a726))}" placeholder="${Math.round(HAYA.planAren*HAYA.ratioA)}" onchange="hayaSet('a726', this.value)"></div>
+      <div class="field"><label>トウフツ沖 処理した連数</label><input type="number" inputmode="numeric" id="hy_t726r" value="${h.t726ren==null?"":esc(String(h.t726ren))}" placeholder="${HAYA.planTren}" onchange="hayaSet('t726ren', this.value)"></div>
+      <div class="field"><label>トウフツ沖の出来高（籠）</label><input type="number" inputmode="numeric" id="hy_t726" value="${h.t726==null?"":esc(String(h.t726))}" placeholder="${HAYA.planTren}" onchange="hayaSet('t726', this.value)"></div>
+    </div>
+    <div class="row-actions" style="margin-top:12px">
+      <button class="btn ghost" onclick="hayaReset()">予定値に戻す</button>
+      <span class="muted" style="align-self:center">${c.entered?"✅ 実績で計算中":"予定値で計算中"}</span>
+    </div>
+  </div>`;
+}
+function renderHaya727(){
+  const el=document.getElementById("haya727Area"); if(!el) return; const c=hayaCalc(); const h=DB.hayadori||{};
+  const crew3 = c.normalRen*HAYA.laborT + c.yabukiRen*HAYA.laborYabuki;
+  const done = c.fin>=HAYA.goal;
+  el.innerHTML=`
+  <div class="card">
+    <h2>📅 7/27（月）の予定 ${done?"🏁":"⚠️"}</h2>
+    ${c.entered?'<div class="hint">7/26の実績をもとに組み直しています</div>':'<div class="hint">7/26は予定値で計算しています。実績を入れると自動で組み直します</div>'}
+    <div class="kpi-grid" style="margin-top:10px">
+      <div class="kpi"><div class="v">${c.normalRen+c.yabukiRen}</div><div class="l">水揚げ（連）</div></div>
+      <div class="kpi"><div class="v">${c.out727}</div><div class="l">出来上がり（連）</div></div>
+      <div class="kpi"><div class="v" style="${done?"":"color:#b4460f"}">${c.fin.toLocaleString()}</div><div class="l">最終の累計（目標${HAYA.goal.toLocaleString()}）</div></div>
+      <div class="kpi"><div class="v">${Math.round(c.labor727)}</div><div class="l">労力（7/25比 ${Math.round(c.labor727/HAYA.ref725*100)}%）</div></div>
+    </div>
+    ${done?`<div style="margin-top:12px;background:#eaf6ee;border:1px solid #b9e4d0;color:#2e7d5b;border-radius:10px;padding:12px 14px;font-weight:700">🏁 これで <b>${c.fin.toLocaleString()}連 ＝ ${c.fin.toLocaleString()}万粒</b>。目標達成です</div>`
+      :`<div style="margin-top:12px;background:#fdeee6;border:1px solid #f3c6ab;color:#b4460f;border-radius:10px;padding:12px 14px;font-weight:700">⚠️ 目標に <b>${(HAYA.goal-c.fin).toLocaleString()}連</b> 届きません。採苗器の残りが尽きています。3日目を取るか、目標を見直してください</div>`}
+  </div>
+  <div class="card">
+    <h2>🚢 水揚げ</h2>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>場所</th><th>連数</th><th>処理</th><th>出来高</th></tr></thead><tbody>
+      <tr><td>1</td><td><b>トウフツ沖</b></td><td><b>${c.normalRen}</b></td><td>通常（通しあり）</td><td><b>${c.out727}</b></td></tr>
+      <tr><td>2</td><td><b>トウフツ沖 余剰</b></td><td><b>${c.yabukiRen}</b></td><td><b>破き</b>（通しなし・稚貝は出さない）</td><td>─</td></tr>
+      <tr style="background:var(--ice)"><td colspan="2"><b>計</b></td><td><b>${c.normalRen+c.yabukiRen}</b></td><td></td><td><b>${c.out727}</b></td></tr>
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">余剰分も<b>水揚げして外網と中網を分ける必要あり</b>。普段どおりホロわず、ビリビリ破いて分離すれば可。</div>
+  </div>
+  <div class="card">
+    <h2>👥 破き作業の人手（ここが7/27の分かれ目）</h2>
+    <div class="hint">破きは通しをかけないので<b>人海戦術が効く</b>。普段3人の作業に8〜9人を投入できる＝所要時間は約1/3。</div>
+    <div class="field" style="max-width:260px;margin-top:12px"><label>7/27に破きへ回せる人数</label>
+      <input type="number" inputmode="numeric" value="${esc(String(c.crew))}" onchange="hayaSet('crew727', this.value)"></div>
+    <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>人数</th><th>破き${c.yabukiRen}連の時間換算</th><th>7/27の労力</th><th>7/25比</th></tr></thead><tbody>
+      ${[3,6,9].map(n=>{const co=HAYA.laborYabuki/(n/HAYA.crewBase), L=c.normalRen*HAYA.laborT+c.yabukiRen*co;
+        return `<tr${n===Math.round(c.crew)?' style="background:var(--ice);font-weight:700"':''}><td>${n}人</td><td>${Math.round(c.yabukiRen*co)}</td><td>${Math.round(L)}</td><td>${Math.round(L/HAYA.ref725*100)}%</td></tr>`;}).join("")}
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">3人しか集まらない場合は <b>${Math.round(crew3)}（7/25の${Math.round(crew3/HAYA.ref725*100)}%）</b>。きつければ<b>破き${c.yabukiRen}連は独立ブロックとして7/28へ切り出せます</b>（稚貝を扱わないので急がない）。</div>
+  </div>`;
+}
+
+function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); renderHayaProg(); renderHaya726(); renderHaya727(); }
 
 /* ============ T04 初回起動オンボーディングウィザード ============
    規約同意フラグ(hotate_saibou_v1_tos)が無く、既存データも無い時だけ表示する3ステップの案内。
