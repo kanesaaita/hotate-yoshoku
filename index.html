@@ -541,7 +541,7 @@
   <button id="nav-entry" onclick="gotoTab('entry')"><span class="bn-ic">✍️</span><span class="bn-lb">記録</span></button>
   <button id="nav-stock" onclick="gotoTab('noshi')"><span class="bn-ic">🎣</span><span class="bn-lb">在庫</span></button>
   <button id="nav-insight" onclick="gotoTab('analysis')"><span class="bn-ic">📊</span><span class="bn-lb">分析</span></button>
-  <button id="nav-haya" style="display:none" onclick="gotoTab('hayadori')"><span class="bn-ic">🐚</span><span class="bn-lb">早どり</span></button>
+  <button id="nav-haya" onclick="gotoTab('hayadori')"><span class="bn-ic">🐚</span><span class="bn-lb">早どり</span></button>
   <button id="nav-data" onclick="gotoTab('data')"><span class="bn-ic">⚙️</span><span class="bn-lb">設定</span></button>
 </nav>
 
@@ -1939,8 +1939,18 @@ const HAYA={
   ratioA:1.67, ratioB:1.59, ratioT:1.00,
   laborA:1.0, laborT:1.9, laborYabuki:1.5, crewBase:3,
   planAren:130, planTren:40, remainT:189,
-  log:[],
-  saibyoki:[],
+  log:[
+    ["7/12","試運転","赤川通路10・ちやB10・ちやB(元A)1",21,28,"1部2厘／ちかまB-3"],
+    ["7/14","本番①","ちやA（元B海区）",80,83,"1部2厘／ちかまB-3"],
+    ["7/16","本番②","ちやB（元B海区）",105,157,"1部2厘／B-2・B-3"],
+    ["7/17","本番③","ちやA（元B海区）",120,246,"1部2厘33＋1部5厘213"],
+    ["7/25","本番④","ちやB64・採苗地70・赤川通路B10",144,234,"1部8厘／ちやA49・ちやB170・採苗地15"]
+  ],
+  saibyoki:[
+    ["ちやA","元B海区",0,"✅ 完了"],["ちやB","元A海区",0,"✅ 完了"],
+    ["採苗地","元A海区",130,"7/26 に全部"],
+    ["赤川かみ","元トウフツ沖",150,"7/26〜27"],["赤川通路B","元トウフツ沖",39,"7/26〜27"]
+  ],
   boxes:[["1部2厘","4.5mm",300,301,0],["1部5厘","5.5mm",451,213,238],["1部8厘","7mm",764,234,530]]
 };
 function esc(s){ return escapeHtml(s); }
@@ -2039,7 +2049,7 @@ function renderHaya726(){
     <h2>🚢 水揚げ</h2>
     <div class="table-wrap"><table><thead><tr><th>#</th><th>場所</th><th>元海区</th><th>連数</th><th>倍率</th><th>出来高</th></tr></thead><tbody>
       <tr><td>1</td><td><b>採苗地（残り全部）</b></td><td>元A海区</td><td><b>${HAYA.planAren}</b></td><td>1.67</td><td><b>${c.aOut}</b></td></tr>
-      <tr><td>2</td><td><b>トウフツ沖</b><div class="muted" style="font-size:12px">トウフツ沖 のし</div></td><td>元トウフツ沖</td><td><b>${c.tRen}</b></td><td>${c.rT.toFixed(2)}</td><td><b>${c.tOut}</b></td></tr>
+      <tr><td>2</td><td><b>トウフツ沖</b><div class="muted" style="font-size:12px">赤川かみ or 赤川通路B</div></td><td>元トウフツ沖</td><td><b>${c.tRen}</b></td><td>${c.rT.toFixed(2)}</td><td><b>${c.tOut}</b></td></tr>
       <tr style="background:var(--ice)"><td colspan="3"><b>計</b></td><td><b>${HAYA.planAren+c.tRen}</b></td><td></td><td><b>${c.out726}</b></td></tr>
     </tbody></table></div>
     <div class="hint" style="margin-top:8px">下げ＝<b>1部8厘（通し7mm）</b>で ${c.out726} 連。空き箱 1部8厘 残530連 → 使用後 <b>${530-c.out726}連</b> 残り</div>
