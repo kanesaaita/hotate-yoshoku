@@ -209,8 +209,10 @@
     </div>
     <div class="card">
       <h2>📦 場所別の状態・最終作業</h2>
+      <div class="hint">数が合わないときは「🔍 内訳」で、どの記録から来た数字かを確認・修正できます。</div>
       <div id="noshiState"></div>
     </div>
+    <div id="noshiDetail"></div>
   </section>
 
   <!-- ===== 浮力管理 ===== -->
@@ -539,7 +541,7 @@
   <button id="nav-entry" onclick="gotoTab('entry')"><span class="bn-ic">✍️</span><span class="bn-lb">記録</span></button>
   <button id="nav-stock" onclick="gotoTab('noshi')"><span class="bn-ic">🎣</span><span class="bn-lb">在庫</span></button>
   <button id="nav-insight" onclick="gotoTab('analysis')"><span class="bn-ic">📊</span><span class="bn-lb">分析</span></button>
-  <button id="nav-haya" onclick="gotoTab('hayadori')"><span class="bn-ic">🐚</span><span class="bn-lb">早どり</span></button>
+  <button id="nav-haya" style="display:none" onclick="gotoTab('hayadori')"><span class="bn-ic">🐚</span><span class="bn-lb">早どり</span></button>
   <button id="nav-data" onclick="gotoTab('data')"><span class="bn-ic">⚙️</span><span class="bn-lb">設定</span></button>
 </nav>
 
@@ -630,6 +632,15 @@ const KOUTEI = [
       {k:"houryuKago", label:"放流した籠数", type:"number"},
       {k:"houryuSuryo", label:"放流数(個)", type:"number"},
     ]},
+  /* 実測合わせ：現物を数え直した結果だけ入れれば、原因の記録を探さなくても在庫が実測に合う。
+     保存時に「アプリ在庫との差分」を tanaDelta として確定保存する（後から通常記録を足しても意味が変わらない） */
+  { key:"chousei", name:"棚卸し・実測合わせ", icon:"📏", dateLabel:"数え直した日",
+    inv:(r)=>[{noshi:r.noshi, delta:num(r.tanaDelta), unit:(r.tanaUnit==="採苗器（連）")?"ren":"kago"}],
+    fields:[
+      {k:"noshi", label:"のし場所", type:"noshi"},
+      {k:"tanaUnit", label:"数え直した対象", type:"select", opts:["丸籠（籠）","採苗器（連）"]},
+      {k:"tanaJissoku", label:"実測数（実際にあった数）", type:"number"},
+    ]},
 ];
 const KMAP = Object.fromEntries(KOUTEI.map(k=>[k.key,k]));
 /* 移動(iko)の下げ先明細。新形式 r.dests[] を優先、旧単一形式(noshiTo/renTo)も互換 */
@@ -653,7 +664,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.25-1";
+const APP_VERSION = "2026.07.26-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -852,6 +863,14 @@ function saveRecord(){
   if(k.key==="tenkan" && !num(rec.uriage) && num(rec.tanka) && num(rec.suryo)) rec.uriage=Math.round(num(rec.tanka)*num(rec.suryo));
   if(!rec.date){ toast("日付を入れてください"); return; }
   if(k.fields.some(f=>f.type==="dests") && (!rec.dests||!rec.dests.length)){ toast("下げ先（のし場所＋連数）を1つ以上入れてください"); return; }
+  if(k.key==="chousei"){
+    if(!rec.noshi){ toast("のし場所を選んでください"); return; }
+    if(rec.tanaJissoku===""||rec.tanaJissoku==null){ toast("実測数を入れてください"); return; }
+    const unit=(rec.tanaUnit==="採苗器（連）")?"ren":"kago";
+    const invNow=computeInventory(editingId); // 編集時は自分の旧調整分を除いた在庫と比較
+    const cur=(unit==="ren"?invNow.ren:invNow.kago)[rec.noshi]||0;
+    rec.tanaDelta=num(rec.tanaJissoku)-cur;
+  }
   const wasEditing=!!editingId;
   if(editingId){
     const i=DB.records.findIndex(r=>r.id===editingId);
@@ -861,12 +880,17 @@ function saveRecord(){
   }
   save(); editingId=null;
   renderForm(); renderRecent(); renderSeasonSel();
-  flashSaved(k, wasEditing);
+  flashSaved(k, wasEditing, rec);
 }
-function flashSaved(k, wasEditing){
+function flashSaved(k, wasEditing, rec){
   const el=document.getElementById("saveFlash");
+  let msg=`✅ ${wasEditing?"更新":"記録"}しました！ <span style="font-weight:400;color:var(--sub)">（${k.icon} ${k.name}）</span>`;
+  if(k.key==="chousei" && rec){
+    const d=num(rec.tanaDelta);
+    msg=`✅ ${escapeHtml(noshiName(rec.noshi))} の${escapeHtml(rec.tanaUnit||"丸籠（籠）")}を実測 <b>${fmt(num(rec.tanaJissoku))}</b> に合わせました <span style="font-weight:400;color:var(--sub)">（調整 ${d>=0?"+":""}${fmt(d)}・履歴に残ります）</span>`;
+  }
   if(el){ el.style.display="block";
-    el.innerHTML=`✅ ${wasEditing?"更新":"記録"}しました！ <span style="font-weight:400;color:var(--sub)">（${k.icon} ${k.name}）</span>`;
+    el.innerHTML=msg;
     clearTimeout(window._sfT); window._sfT=setTimeout(()=>{ el.style.display="none"; }, 3500);
   }
   toast("✅ "+k.name+" を保存しました");
@@ -1000,18 +1024,19 @@ function summary(r){
     case "fujo": return `${e(noshiName(r.noshi))}／浮上 ${fmt(num(r.taishoKago))}籠`;
     case "tenkan": return `${e(noshiName(r.noshi))}／${fmt(num(r.hanbaiKago))}籠・${fmt(num(r.suryo))}個・売上¥${fmt(num(r.uriage))}${r.hanbaisaki?"・"+e(r.hanbaisaki):""}`;
     case "houryu": return `${e(r.basho||noshiName(r.noshi))}／放流 ${fmt(num(r.houryuKago))}籠・${fmt(num(r.houryuSuryo))}個`;
+    case "chousei": { const d=num(r.tanaDelta); return `${e(noshiName(r.noshi))}／${e(r.tanaUnit||"丸籠（籠）")} 実測 ${fmt(num(r.tanaJissoku))} <span class="muted">(調整 ${d>=0?"+":""}${fmt(d)})</span>`; }
     default: return "";
   }
 }
 function tagColor(key){
-  const c={larva:"#dcecd6",tounyu:"#d6e8f4",iko:"#c9e4d6",mizuage:"#cfe4f2",irekae:"#e5ddf2",seiiku:"#fdeecb",chinka:"#d9e7f0",fujo:"#e7f0d9",tenkan:"#fbe0cf",houryu:"#cfeef0"};
+  const c={larva:"#dcecd6",tounyu:"#d6e8f4",iko:"#c9e4d6",mizuage:"#cfe4f2",irekae:"#e5ddf2",seiiku:"#fdeecb",chinka:"#d9e7f0",fujo:"#e7f0d9",tenkan:"#fbe0cf",houryu:"#cfeef0",chousei:"#f2e6cc"};
   return c[key]||"#eee";
 }
 
 /* ============ のし在庫 ============ */
-function computeInventory(){
+function computeInventory(excludeId){
   const ren={}, kago={}; DB.noshi.forEach(n=>{ren[n.id]=0;kago[n.id]=0;});
-  DB.records.filter(r=>r.season===DB.season).forEach(r=>{
+  DB.records.filter(r=>r.season===DB.season && (!excludeId || r.id!==excludeId)).forEach(r=>{
     const k=KMAP[r.koutei]; if(!k||!k.inv) return;
     k.inv(r).forEach(m=>{ if(!m.noshi) return; const bag=(m.unit==="kago")?kago:ren; if(bag[m.noshi]!=null) bag[m.noshi]+=m.delta; });
   });
@@ -1080,9 +1105,40 @@ function renderNoshiInv(){
     const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
     if(!s && rv===0 && kv===0) return "";
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
-    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td></tr>`;
+    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
+}
+/* この数字はどの記録から来たか（内訳トレース）：記入漏れ・誤記を見つけて、その場で編集する */
+function showNoshiDetail(id){
+  const box=document.getElementById("noshiDetail"); if(!box) return;
+  const n=DB.noshi.find(x=>x.id===id); if(!n){ box.innerHTML=""; delete box.dataset.noshi; return; }
+  box.dataset.noshi=id;
+  const rows=[];
+  let runRen=0, runKago=0;
+  DB.records.filter(r=>r.season===DB.season).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(r=>{
+    const k=KMAP[r.koutei]; if(!k||!k.inv) return;
+    k.inv(r).forEach(m=>{
+      if(m.noshi!==id || !num(m.delta)) return;
+      if(m.unit==="kago") runKago+=m.delta; else runRen+=m.delta;
+      const d=num(m.delta);
+      rows.push(`<tr><td>${escapeHtml(r.date||"—")}</td><td><span class="tag" style="background:${tagColor(r.koutei)}">${k.icon} ${k.name}</span></td><td class="num" style="color:${d<0?"var(--danger)":"var(--ok)"}">${d>=0?"+":""}${fmt(d)}${m.unit==="kago"?"籠":"連"}</td><td class="num">${fmt(runRen)}連 / ${fmt(runKago)}籠</td><td class="muted">${escapeHtml(r.memo||"")}</td><td><button class="btn sm ghost" onclick="editRecord('${safeId(r.id)}')">編集</button></td></tr>`);
+    });
+  });
+  box.innerHTML=`<div class="card" style="margin-top:12px;border-color:var(--navy2)">
+    <h2>🔍 ${escapeHtml(n.name)} の内訳 <button class="btn sm ghost" style="margin-left:auto" onclick="document.getElementById('noshiDetail').innerHTML='';delete document.getElementById('noshiDetail').dataset.noshi;">閉じる</button></h2>
+    <div class="hint">この場所の在庫が「どの記録で増減したか」の履歴です。数が合わないときは、①間違っている記録をここから直接「編集」、②記録し忘れがあれば通常どおり記録を追加、③原因がわからないときは「実測に合わせる」で現物の数だけ入れれば合います。</div>
+    ${rows.length?`<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>日付</th><th>工程</th><th class="num">増減</th><th class="num">累計(連/籠)</th><th>メモ</th><th></th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`:`<div class="empty">この場所の増減記録はまだありません。</div>`}
+    <div class="row-actions"><button class="btn" onclick="chouseiPrefill('${safeId(id)}')">📏 実測に合わせる（数え直した数を入れる）</button></div>
+  </div>`;
+  box.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function chouseiPrefill(id){
+  gotoTab('entry');
+  pickKoutei('chousei');
+  const sel=document.getElementById("f_noshi"); if(sel) sel.value=id;
+  const j=document.getElementById("f_tanaJissoku"); if(j) j.focus();
 }
 
 /* ============ 浮力管理 ============ */
@@ -1614,8 +1670,8 @@ function importJSON(input){
 }
 function exportCSV(){
   const rs=DB.records.slice().sort((a,b)=>(a.season-b.season)||(a.date||"").localeCompare(b.date||""));
-  const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo"];
-  const head=["シーズン","日付","工程","投入海区","区画番号","投入連数","投入段数","沈下方法","引上げ海区","移動 下げ先明細","移動後段数","採苗器のあるのし","引上げ連数","付着個/袋","イガイ個/袋","殻長mm","丸籠数","網目","のし","入替前籠","入替後籠","稚貝個/籠","作業","対象籠","水深m","水温","販売籠","販売個","単価","売上","販売先","放流場所","放流籠","放流個","天候","メモ"];
+  const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo","tanaUnit","tanaJissoku","tanaDelta"];
+  const head=["シーズン","日付","工程","投入海区","区画番号","投入連数","投入段数","沈下方法","引上げ海区","移動 下げ先明細","移動後段数","採苗器のあるのし","引上げ連数","付着個/袋","イガイ個/袋","殻長mm","丸籠数","網目","のし","入替前籠","入替後籠","稚貝個/籠","作業","対象籠","水深m","水温","販売籠","販売個","単価","売上","販売先","放流場所","放流籠","放流個","天候","メモ","棚卸し対象","実測数","調整差分"];
   const rows=rs.map(r=>cols.map(c=>{
     let v=r[c]!=null?r[c]:"";
     if(c==="koutei") v=KMAP[r.koutei]?KMAP[r.koutei].name:r.koutei;
@@ -1878,18 +1934,8 @@ const HAYA={
   ratioA:1.67, ratioB:1.59, ratioT:1.00,
   laborA:1.0, laborT:1.9, laborYabuki:1.5, crewBase:3,
   planAren:130, planTren:40, remainT:189,
-  log:[
-    ["7/12","試運転","赤川通路10・ちやB10・ちやB(元A)1",21,28,"1部2厘／ちかまB-3"],
-    ["7/14","本番①","ちやA（元B海区）",80,83,"1部2厘／ちかまB-3"],
-    ["7/16","本番②","ちやB（元B海区）",105,157,"1部2厘／B-2・B-3"],
-    ["7/17","本番③","ちやA（元B海区）",120,246,"1部2厘33＋1部5厘213"],
-    ["7/25","本番④","ちやB64・採苗地70・赤川通路B10",144,234,"1部8厘／ちやA49・ちやB170・採苗地15"]
-  ],
-  saibyoki:[
-    ["ちやA","元B海区",0,"✅ 完了"],["ちやB","元A海区",0,"✅ 完了"],
-    ["採苗地","元A海区",130,"7/26 に全部"],
-    ["赤川かみ","元トウフツ沖",150,"7/26〜27"],["赤川通路B","元トウフツ沖",39,"7/26〜27"]
-  ],
+  log:[],
+  saibyoki:[],
   boxes:[["1部2厘","4.5mm",300,301,0],["1部5厘","5.5mm",451,213,238],["1部8厘","7mm",764,234,530]]
 };
 function esc(s){ return escapeHtml(s); }
