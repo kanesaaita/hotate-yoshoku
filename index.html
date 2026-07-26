@@ -1073,6 +1073,11 @@ function noshiItems(){
     }
     else if(r.koutei==="tenkan" && r.noshi) reduceBucket(ens(r.noshi).kago, num(r.hanbaiKago));
     else if(r.koutei==="houryu" && r.noshi) reduceBucket(ens(r.noshi).kago, num(r.houryuKago));
+    else if(r.koutei==="chousei" && r.noshi){ // 棚卸し調整もチップ内訳に反映（在庫表とチップの数字を一致させる）
+      const m=ens(r.noshi); const d=num(r.tanaDelta);
+      const bucket=(r.tanaUnit==="採苗器（連）")?m.chochin:m.kago; // ⚠️この判定文言はデータに保存済みのため変更禁止
+      if(d>=0) bucket["棚卸し調整"]=(bucket["棚卸し調整"]||0)+d; else reduceBucket(bucket,-d);
+    }
   });
   return map;
 }
@@ -1092,8 +1097,8 @@ function renderNoshiInv(){
   const brk=DB.noshi.map(n=>{
     const it=items[n.id]; if(!it) return "";
     const chips=[];
-    Object.entries(it.chochin).forEach(([o,v])=>{ if(v>0) chips.push(`<span class="chip">🏮 ちょうちん(元${o}) ${fmt(v)}連</span>`); });
-    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(`<span class="chip" style="background:#e5ddf2">📦 丸籠${m} ${fmt(v)}籠</span>`); });
+    Object.entries(it.chochin).forEach(([o,v])=>{ if(v>0) chips.push(o==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}連</span>`:`<span class="chip">🏮 ちょうちん(元${escapeHtml(o)}) ${fmt(v)}連</span>`); });
+    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(m==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}籠</span>`:`<span class="chip" style="background:#e5ddf2">📦 丸籠${escapeHtml(m)} ${fmt(v)}籠</span>`); });
     if(!chips.length) return "";
     return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${escapeHtml(n.name)}</b>${n.depth?`<span class="muted" style="font-size:11px"> ・${escapeHtml(n.area||"")} ${n.depth}m</span>`:""}<div style="margin-top:5px">${chips.join(" ")}</div></div>`;
   }).filter(Boolean).join("");
@@ -1117,7 +1122,7 @@ function showNoshiDetail(id){
   box.dataset.noshi=id;
   const rows=[];
   let runRen=0, runKago=0;
-  DB.records.filter(r=>r.season===DB.season).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(r=>{
+  DB.records.filter(r=>r.season===DB.season).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")||String(a.id||"").localeCompare(String(b.id||""))).forEach(r=>{ // 同日はid(先頭がタイムスタンプ)で安定ソート＝端末間で累計表示が揃う
     const k=KMAP[r.koutei]; if(!k||!k.inv) return;
     k.inv(r).forEach(m=>{
       if(m.noshi!==id || !num(m.delta)) return;
@@ -1959,7 +1964,7 @@ function hayaCalc(){
     labor726: HAYA.planAren*HAYA.laborA + tRen*HAYA.laborT,
     labor727: normalRen*HAYA.laborT + yabukiRen*yCoef};
 }
-function hayaSet(k,v){ DB.hayadori[k] = (v===""?null:v); save(); renderHayaProg(); renderHaya726(); renderHaya727(); }
+function hayaSet(k,v){ DB.hayadori=DB.hayadori||{}; DB.hayadori[k] = (v===""?null:v); save(); renderHayaProg(); renderHaya726(); renderHaya727(); }
 function hayaReset(){ if(!confirm("7/26の実績入力を消して、予定値に戻しますか？")) return;
   DB.hayadori.a726=null; DB.hayadori.t726=null; DB.hayadori.t726ren=null; save(); renderHayaProg(); renderHaya726(); renderHaya727(); toast("予定値に戻しました"); }
 function hayaBar(cur,goal,label){
