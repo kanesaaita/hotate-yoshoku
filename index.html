@@ -1935,7 +1935,7 @@ function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg
 /* ============ 🐚 早どり 2026（進捗・7/26・7/27） ============ */
 /* 数字の出所: 社長の実地カウント＋日次実績（2026-07-25確定）。①丸籠1連＝1万粒で換算。 */
 const HAYA={
-  goal:1100, base:748, ref725:153,
+  goal:1100, base:983, ref725:153, done726:235, /* base=7/26終了時累計(748+追加235・社長報告2026-07-26・内訳未確認)。done726=baseに反映済みの7/26実績 */
   ratioA:1.67, ratioB:1.59, ratioT:1.00,
   laborA:1.0, laborT:1.9, laborYabuki:1.5, crewBase:3,
   planAren:130, planTren:40, remainT:189,
@@ -1944,7 +1944,8 @@ const HAYA={
     ["7/14","本番①","ちやA（元B海区）",80,83,"1部2厘／ちかまB-3"],
     ["7/16","本番②","ちやB（元B海区）",105,157,"1部2厘／B-2・B-3"],
     ["7/17","本番③","ちやA（元B海区）",120,246,"1部2厘33＋1部5厘213"],
-    ["7/25","本番④","ちやB64・採苗地70・赤川通路B10",144,234,"1部8厘／ちやA49・ちやB170・採苗地15"]
+    ["7/25","本番④","ちやB64・採苗地70・赤川通路B10",144,234,"1部8厘／ちやA49・ちやB170・採苗地15"],
+    ["7/26","本番⑤","（引き上げ元 未確認）",null,235,"追加235連（社長報告）。引き上げ連数・網目・下げ先は未確認"]
   ],
   saibyoki:[
     ["ちやA","元B海区",0,"✅ 完了"],["ちやB","元A海区",0,"✅ 完了"],
@@ -1962,7 +1963,8 @@ function hayaCalc(){
   const tRen = hayaNum(h.t726ren, HAYA.planTren);
   const tOut = hayaNum(h.t726, HAYA.planTren);
   const rT   = tRen>0 ? (tOut/tRen) : HAYA.ratioT;
-  const out726 = aOut + tOut, cum726 = HAYA.base + out726;
+  // 7/26実績(done726=235)はbaseに反映済み。未入力ならbaseがそのまま現在値。内訳を入力したら「入力合計−235」の差分だけ補正する(二重計上防止)
+  const out726 = aOut + tOut, cum726 = HAYA.base + (entered ? (out726 - HAYA.done726) : 0);
   const need = Math.max(0, HAYA.goal - cum726);
   const tRemain = Math.max(0, HAYA.remainT - tRen);
   const normalRen = Math.min(Math.ceil(rT>0?need/rT:need), tRemain);
@@ -1991,7 +1993,7 @@ function renderHayaProg(){
   <div class="card">
     <h2>🎯 早どり 2026 の進捗</h2>
     <div class="hint">目標 <b>1,100連＝1,100万粒</b>（①丸籠 1連＝1万粒で換算）</div>
-    ${hayaBar(HAYA.base, HAYA.goal, "現在(7/25)")}
+    ${hayaBar(HAYA.base, HAYA.goal, "現在(7/26)")}
     ${hayaBar(c.fin, HAYA.goal, "7/27終了時")}
     <div class="kpi-grid" style="margin-top:14px">
       <div class="kpi"><div class="v">${HAYA.base.toLocaleString()}</div><div class="l">現在の累計（連）</div></div>
@@ -2011,14 +2013,14 @@ function renderHayaProg(){
     <div class="hint" style="margin-top:8px">⚠️ 通しのサイズを<b>上げる</b>ほど雑物の除去効率が上がる。数量に余裕がある年は網目を細かくしない。<br>今季は最後まで <b>1部8厘（通し7mm）</b> で続行。</div>
   </div>
   <div class="card">
-    <h2>🎣 採苗器（ちょうちん）の残り</h2>
+    <h2>🎣 採苗器（ちょうちん）の残り <span class="muted" style="font-size:12px;font-weight:400">（7/25時点・7/26作業分は未反映）</span></h2>
     <div class="table-wrap"><table><thead><tr><th>のし</th><th>元海区</th><th>残り(連)</th><th>予定</th></tr></thead><tbody>
       ${HAYA.saibyoki.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td><b>${r[2]}</b></td><td>${esc(r[3])}</td></tr>`).join("")}
       <tr style="background:var(--ice)"><td colspan="2"><b>合計</b></td><td><b>${restSai}</b></td><td></td></tr>
     </tbody></table></div>
   </div>
   <div class="card">
-    <h2>📦 丸籠（空き箱）の残り</h2>
+    <h2>📦 丸籠（空き箱）の残り <span class="muted" style="font-size:12px;font-weight:400">（7/25時点・7/26作業分は未反映）</span></h2>
     <div class="table-wrap"><table><thead><tr><th>網目</th><th>通し下限</th><th>元在庫</th><th>使用済</th><th>残り</th></tr></thead><tbody>
       ${HAYA.boxes.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td><td><b>${r[4]===0?"0 ✅使い切り":r[4]}</b></td></tr>`).join("")}
       <tr style="background:var(--ice)"><td colspan="4"><b>合計 残り</b></td><td><b>${restBox}</b></td></tr>
@@ -2027,8 +2029,8 @@ function renderHayaProg(){
   <div class="card">
     <h2>🗒 早どり 実績ログ</h2>
     <div class="table-wrap"><table><thead><tr><th>日付</th><th>回</th><th>引き上げ元</th><th>採苗器</th><th>①丸籠</th><th>倍率</th><th>網目・下げ先</th></tr></thead><tbody>
-      ${HAYA.log.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${r[3]}</td><td><b>${r[4]}</b></td><td>${(r[4]/r[3]).toFixed(2)}</td><td class="muted">${esc(r[5])}</td></tr>`).join("")}
-      <tr style="background:var(--ice)"><td colspan="3"><b>累計</b></td><td><b>470</b></td><td><b>748</b></td><td><b>1.59</b></td><td></td></tr>
+      ${HAYA.log.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${r[3]==null?"—":r[3]}</td><td><b>${r[4]}</b></td><td>${r[3]?(r[4]/r[3]).toFixed(2):"—"}</td><td class="muted">${esc(r[5])}</td></tr>`).join("")}
+      <tr style="background:var(--ice)"><td colspan="3"><b>累計</b></td><td><b>${HAYA.log.reduce((s,r)=>s+(r[3]||0),0)}${HAYA.log.some(r=>r[3]==null)?"+?":""}</b></td><td><b>${HAYA.log.reduce((s,r)=>s+(r[4]||0),0)}</b></td><td><b>${HAYA.log.some(r=>r[3]==null)?"—":(HAYA.log.reduce((s,r)=>s+(r[4]||0),0)/HAYA.log.reduce((s,r)=>s+(r[3]||0),0)).toFixed(2)}</b></td><td></td></tr>
     </tbody></table></div>
   </div>`;
 }
@@ -2038,9 +2040,10 @@ function renderHaya726(){
   el.innerHTML=`
   <div class="card">
     <h2>📅 7/26（日）の予定</h2>
+    <div style="background:#eaf6ee;border:1px solid #b9e4d0;border-radius:10px;padding:10px 12px;font-size:13px;color:#2e7d5b;margin-bottom:10px">✅ <b>7/26の実績 追加235連は進捗ページに反映済み</b>（内訳未確認）。場所ごとの内訳が分かったら下の「実績を入れる」へ。入力すると差分だけ自動補正されます（二重計上にはなりません）。</div>
     <div class="kpi-grid">
       <div class="kpi"><div class="v">${(HAYA.planAren+c.tRen)}</div><div class="l">水揚げ（連）</div></div>
-      <div class="kpi"><div class="v">${c.out726}</div><div class="l">出来上がり（連）</div></div>
+      <div class="kpi"><div class="v">${c.entered?c.out726:HAYA.done726}</div><div class="l">出来上がり（連・実績）</div></div>
       <div class="kpi"><div class="v">${c.cum726.toLocaleString()}</div><div class="l">終了時の累計（連）</div></div>
       <div class="kpi"><div class="v">${Math.round(c.labor726)}</div><div class="l">労力（7/25比 ${Math.round(c.labor726/HAYA.ref725*100)}%）</div></div>
     </div>
