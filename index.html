@@ -146,6 +146,7 @@
   <button data-tab="list">📋 記録一覧</button>
   <button data-tab="noshi">🎣 のし在庫</button>
   <button data-tab="buoy">🎈 浮力管理</button>
+  <button data-tab="kaizu">🗺 のし海図</button>
   <button data-tab="analysis">📊 分析</button>
   <button data-tab="calc">🧮 育成計算</button>
   <button data-tab="hayadori">🐚 早どり進捗</button>
@@ -213,6 +214,21 @@
       <div id="noshiState"></div>
     </div>
     <div id="noshiDetail"></div>
+  </section>
+
+  <!-- ===== 🗺 のし海図（サロマ湖 常呂側） ===== -->
+  <section id="kaizu">
+    <div class="card">
+      <h2>🗺 のし海図 <span class="muted" style="font-size:12px;font-weight:400">サロマ湖・常呂側（区画6〜15）</span></h2>
+      <div class="hint">自分ののしの位置と在庫がひと目で分かります。📍をタップ→詳細。マーカーの数字＝今そこに下がっている数（連/籠）。</div>
+      <div class="row-actions" style="margin-top:8px;margin-bottom:8px">
+        <button class="btn sm ghost" id="kzZoomBtn" onclick="kaizuZoom()">🔍 拡大</button>
+        <button class="btn sm ghost" onclick="kaizuAddMode()">📍 ピンを追加</button>
+        <span id="kzModeMsg" class="muted" style="font-size:12px;align-self:center"></span>
+      </div>
+      <div id="kaizuWrap" style="overflow:auto;border:1px solid var(--line);border-radius:12px;background:#eef6fb;-webkit-overflow-scrolling:touch"></div>
+      <div id="kaizuDetail"></div>
+    </div>
   </section>
 
   <!-- ===== 浮力管理 ===== -->
@@ -664,7 +680,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.26-1";
+const APP_VERSION = "2026.07.27-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -704,6 +720,7 @@ function normalizeDB(d){
     {id:"cp4", mesh:"3部5厘", targetRen:0, perDan:0, doneRen:0, memo:""}
   ];
   d.hayadori = Object.assign({a726:null,t726:null,note726:"",crew727:9}, d.hayadori||{});
+  d.mapPins = Array.isArray(d.mapPins)? d.mapPins : []; // 🗺 海図ピン [{id,x,y,noshiIds:[],memo}]
   d.lastBackupAt = d.lastBackupAt||null;
   return d;
 }
@@ -756,10 +773,10 @@ function noshiUid(){ return "n"+Date.now().toString(36)+(_idc++).toString(36)+Ma
 
 /* ============ タブ ============ */
 /* UI v2: 画面切替は showView() に一本化。旧 #tabs は非表示のまま残し、gotoTab()/既存の .click() 呼び出しはそのまま動く */
-const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",analysis:"nav-insight",calc:"nav-insight",hayadori:"nav-haya",plan726:"nav-haya",plan727:"nav-haya",data:"nav-data"};
+const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",kaizu:"nav-stock",analysis:"nav-insight",calc:"nav-insight",hayadori:"nav-haya",plan726:"nav-haya",plan727:"nav-haya",data:"nav-data"};
 const SEGMENTS={
   "nav-entry":[["entry","✍️ 入力"],["list","📋 一覧"]],
-  "nav-stock":[["noshi","🎣 のし在庫"],["buoy","🎈 浮力調整"]],
+  "nav-stock":[["noshi","🎣 のし在庫"],["buoy","🎈 浮力調整"],["kaizu","🗺 海図"]],
   "nav-insight":[["analysis","📊 分析"],["calc","🧮 育成計算"]],
   "nav-haya":[["hayadori","📊 進捗"],["plan726","📅 7/26"],["plan727","📅 7/27"]]
 };
@@ -779,6 +796,7 @@ function showView(key){
   if(key==="list") renderList();
   if(key==="noshi") renderNoshiInv();
   if(key==="buoy") renderBuoy();
+  if(key==="kaizu") renderKaizu();
   if(key==="analysis") renderAnalysis();
   if(key==="calc") renderCalc();
   if(key==="hayadori") renderHayaProg();
@@ -1932,6 +1950,123 @@ function safeId(s){ return String(s||"").replace(/[^A-Za-z0-9_-]/g,""); } // onc
 let toastT;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
+/* ============ 🗺 のし海図（サロマ湖・常呂側） ============
+   下敷き＝漁協の区画配置図(1/40000)を簡略トレースした共通SVG（個人情報なし・全ユーザー共通）。
+   ピン＝各家の のし位置。座標系は viewBox 0 0 1289 929。タップで詳細／のし割当／位置調整。 */
+const KAIZU_BLOCKS=[
+  ["6","62,268 178,250 232,676 148,700 60,636"],
+  ["7","188,242 298,212 420,236 414,262 190,260"],
+  ["8","232,620 425,610 430,648 240,690"],
+  ["9-1","420,238 520,285 565,300 565,360 480,330 415,300"],
+  ["9-2","565,300 660,330 725,370 700,415 565,365"],
+  ["10","725,370 800,385 880,400 895,430 810,420 700,415"],
+  ["11-1","262,368 430,330 545,385 560,470 610,545 430,570 372,548 262,430"],
+  ["11-2","565,460 700,417 893,428 898,440 770,510 618,552"],
+  ["12-1","372,552 612,548 640,560 628,592 430,618 368,585"],
+  ["12-2","628,556 772,510 800,545 648,600"],
+  ["13-1","808,362 940,330 947,352 812,383"],
+  ["13-2","985,375 1050,385 1150,455 1148,468 1050,432 988,408"],
+  ["14","908,468 988,432 1002,712 952,690 905,555"],
+  ["15","990,432 1150,460 1145,525 1078,655 1005,710"],
+];
+const KAIZU_LABELS=[["6",130,300],["7",280,232],["8",330,668],["9-1",495,278],["9-2",625,350],["10",790,402],["11-1",430,455],["11-2",790,470],["12-1",495,585],["12-2",715,560],["13-1",865,352],["13-2",1075,420],["14",940,600],["15",1105,590]];
+let _kzZoom=1, _kzSelPin=null, _kzMode=""; // _kzMode: "", "add", "move"
+function kaizuPinStats(pin){
+  const inv=computeInventory(); let ren=0,kago=0,names=[];
+  (pin.noshiIds||[]).forEach(id=>{ ren+=inv.ren[id]||0; kago+=inv.kago[id]||0; const n=DB.noshi.find(x=>x.id===id); if(n) names.push(n.name); });
+  return {ren,kago,names};
+}
+function renderKaizu(){
+  const wrap=document.getElementById("kaizuWrap"); if(!wrap) return;
+  const w=Math.round(100*_kzZoom);
+  const blocks=KAIZU_BLOCKS.map(b=>`<polygon points="${b[1]}" fill="rgba(255,255,255,.75)" stroke="#1c2a36" stroke-width="2.5"/>`).join("");
+  const labels=KAIZU_LABELS.map(l=>`<text x="${l[1]}" y="${l[2]}" font-size="26" font-weight="700" fill="#345" text-anchor="middle">${l[0]}</text>`).join("");
+  const pins=(DB.mapPins||[]).map(p=>{
+    const st=kaizuPinStats(p);
+    const assigned=(p.noshiIds||[]).length>0;
+    const badge=assigned ? (st.ren>0?fmt(st.ren)+"連":"")+(st.ren>0&&st.kago>0?"/":"")+(st.kago>0?fmt(st.kago)+"籠":"")||"0" : "?";
+    const sel=(_kzSelPin===p.id);
+    const fill=assigned?(sel?"#0d2e4d":"#1d5b8f"):(sel?"#8a5a00":"#c2691a");
+    const bw=Math.max(34, String(badge).length*11+14);
+    return `<g onclick="kaizuTapPin('${safeId(p.id)}');event.stopPropagation()" style="cursor:pointer">
+      <circle cx="${p.x}" cy="${p.y}" r="${sel?13:9}" fill="${fill}" stroke="#fff" stroke-width="2.5"/>
+      <rect x="${p.x-bw/2}" y="${p.y-36}" width="${bw}" height="22" rx="11" fill="${fill}"/>
+      <text x="${p.x}" y="${p.y-20}" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">${escapeHtml(String(badge))}</text>
+    </g>`;
+  }).join("");
+  wrap.innerHTML=`<svg id="kaizuSvg" viewBox="0 0 1289 929" style="width:${w}%;display:block;touch-action:pan-x pan-y" xmlns="http://www.w3.org/2000/svg" onclick="kaizuTapMap(event)">
+    <rect x="0" y="0" width="1289" height="929" fill="#dcecf7"/>
+    <path d="M20,50 L400,155 L700,235 L1000,325 L1270,390 L1270,20 L20,20 Z" fill="#f2ede2" stroke="#9ab" stroke-width="1.5"/>
+    <path d="M30,95 L400,200 L700,285 L950,355 L1250,435" fill="none" stroke="#9ab" stroke-width="1"/>
+    <path d="M20,640 L90,705 L230,720 L320,700 L420,650 L500,665 L610,695 L700,720 L760,700 L830,635 L870,650 L960,770 L1080,860 L1180,780 L1270,700 L1270,929 L20,929 Z" fill="#f2ede2" stroke="#9ab" stroke-width="1.5"/>
+    <text x="640" y="150" font-size="30" fill="#7a8ea0" text-anchor="middle" opacity=".7">オホーツク海</text>
+    <text x="640" y="860" font-size="26" fill="#7a8ea0" text-anchor="middle" opacity=".7">サロマ湖（常呂側）</text>
+    ${blocks}${labels}${pins}
+  </svg>`;
+  renderKaizuDetail();
+}
+function kaizuZoom(){ _kzZoom=(_kzZoom===1?2.2:1); const b=document.getElementById("kzZoomBtn"); if(b) b.textContent=(_kzZoom===1?"🔍 拡大":"🔍 等倍に戻す"); renderKaizu(); }
+function kaizuModeMsg(t){ const el=document.getElementById("kzModeMsg"); if(el) el.textContent=t||""; }
+function kaizuAddMode(){ _kzMode="add"; kaizuModeMsg("地図の のし位置をタップ → ピンが追加されます"); }
+function kaizuMoveMode(){ _kzMode="move"; kaizuModeMsg("移動先をタップ → 選択中のピンが動きます"); }
+function kaizuTapMap(ev){
+  const svg=document.getElementById("kaizuSvg"); if(!svg) return;
+  const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
+  const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+  const x=Math.round(p.x), y=Math.round(p.y);
+  if(_kzMode==="add"){
+    const pin={id:"mp"+uid().slice(1), x:x, y:y, noshiIds:[], memo:""};
+    DB.mapPins.push(pin); _kzSelPin=pin.id; _kzMode=""; kaizuModeMsg(""); save(); renderKaizu();
+  } else if(_kzMode==="move" && _kzSelPin){
+    const pin=DB.mapPins.find(q=>q.id===_kzSelPin); if(pin){ pin.x=x; pin.y=y; }
+    _kzMode=""; kaizuModeMsg(""); save(); renderKaizu();
+  } else { _kzSelPin=null; renderKaizu(); }
+}
+function kaizuTapPin(id){ _kzSelPin=id; _kzMode=""; kaizuModeMsg(""); renderKaizu(); }
+function kaizuToggleNoshi(pinId, noshiId){
+  const pin=DB.mapPins.find(q=>q.id===pinId); if(!pin) return;
+  pin.noshiIds=pin.noshiIds||[];
+  const i=pin.noshiIds.indexOf(noshiId);
+  if(i>=0) pin.noshiIds.splice(i,1); else pin.noshiIds.push(noshiId);
+  save(); renderKaizu();
+}
+function kaizuDeletePin(pinId){
+  DB.mapPins=DB.mapPins.filter(q=>q.id!==pinId); _kzSelPin=null; save(); renderKaizu(); toast("ピンを削除しました");
+}
+function renderKaizuDetail(){
+  const el=document.getElementById("kaizuDetail"); if(!el) return;
+  const pin=(DB.mapPins||[]).find(q=>q.id===_kzSelPin);
+  if(!pin){ el.innerHTML=(DB.mapPins||[]).length?`<div class="hint" style="margin-top:8px">📍をタップすると詳細が出ます。</div>`:`<div class="empty">まだピンがありません。「📍 ピンを追加」で地図に自分ののしを置いてください。<div class="row-actions" style="justify-content:center;margin-top:10px"><button class="btn sm ghost" onclick="loadKaizuPins2026()">📥 海図から読み取った位置（20箇所）を取り込む</button></div></div>`; return; }
+  const st=kaizuPinStats(pin);
+  const assigned=(pin.noshiIds||[]).length>0;
+  const noshiChecks=DB.noshi.map(n=>`<label style="display:inline-flex;align-items:center;gap:5px;background:${(pin.noshiIds||[]).includes(n.id)?"var(--ice)":"#fff"};border:1px solid var(--line);border-radius:8px;padding:5px 9px;margin:2px;font-size:12.5px;font-weight:600;cursor:pointer"><input type="checkbox" style="width:auto" ${(pin.noshiIds||[]).includes(n.id)?"checked":""} onchange="kaizuToggleNoshi('${safeId(pin.id)}','${safeId(n.id)}')">${escapeHtml(n.name)}</label>`).join("");
+  const recent=DB.records.filter(r=>r.season===DB.season).filter(r=>{
+    const k=KMAP[r.koutei]; if(!k||!k.inv) return false;
+    return k.inv(r).some(m=>(pin.noshiIds||[]).includes(m.noshi));
+  }).sort(byDateDesc).slice(0,3);
+  el.innerHTML=`<div class="card" style="margin-top:10px;border-color:var(--navy2)">
+    <h2>📍 ${assigned?st.names.map(escapeHtml).join("・"):"未割当のピン"} <button class="btn sm ghost" style="margin-left:auto" onclick="_kzSelPin=null;renderKaizu()">閉じる</button></h2>
+    ${assigned?`<div class="kpi-grid"><div class="kpi"><div class="v">${fmt(st.ren)}<span style="font-size:12px">連</span></div><div class="l">採苗器</div></div><div class="kpi"><div class="v">${fmt(st.kago)}<span style="font-size:12px">籠</span></div><div class="l">丸籠</div></div></div>`:`<div class="hint">このピンがどの のしか、下から選んでください（複数OK。海図の赤マーカーから取り込んだ位置です）。</div>`}
+    <div style="margin-top:8px"><b style="font-size:13px;color:var(--navy)">このピンの のし</b><div style="margin-top:4px">${noshiChecks||'<span class="muted">設定タブで のしを登録してください</span>'}</div></div>
+    ${recent.length?`<div style="margin-top:10px"><b style="font-size:13px;color:var(--navy)">直近の作業</b>${recent.map(r=>{const k=KMAP[r.koutei];return `<div class="recent-row"><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:escapeHtml(r.koutei||"")}</span><div><div class="rr-date">${escapeHtml(r.date||"")}</div><div class="rr-sum">${summary(r)}</div></div></div>`;}).join("")}</div>`:""}
+    <div class="row-actions">
+      ${assigned&&(pin.noshiIds||[]).length===1?`<button class="btn sm ghost" onclick="gotoTab('noshi');showNoshiDetail('${safeId((pin.noshiIds||[])[0])}')">🔍 在庫の内訳</button>`:""}
+      <button class="btn sm ghost" onclick="kaizuMoveMode()">➡️ 位置を直す</button>
+      <button class="btn sm danger" onclick="kaizuDeletePin('${safeId(pin.id)}')">🗑 ピン削除</button>
+    </div>
+  </div>`;
+}
+/* 海図PDF（漁協区画図・7ページ）の赤マーカー20群から読み取った自家のし位置の一括取り込み（位置は区画内のおおよそ・タップ→「位置を直す」で微調整可） */
+function loadKaizuPins2026(){
+  const pts=[[500,580],[330,390],[430,450],[560,470],[370,490],[500,490],[480,300],[610,470],[720,455],[480,580],[760,540],[760,395],[840,410],[950,480],[925,540],[1060,480],[1110,520],[1100,555],[1080,590],[1060,640]];
+  let added=0;
+  pts.forEach(pt=>{
+    if((DB.mapPins||[]).some(p=>Math.abs(p.x-pt[0])<6 && Math.abs(p.y-pt[1])<6)) return;
+    DB.mapPins.push({id:"mp"+uid().slice(1), x:pt[0], y:pt[1], noshiIds:[], memo:"海図取込"}); added++;
+  });
+  save(); renderKaizu(); toast("🗺 海図の赤マーカー位置 "+added+"箇所を取り込みました。ピンをタップして のし名を割り当ててください");
+}
+
 /* ============ 🐚 早どり 2026（進捗・7/26・7/27） ============ */
 /* 数字の出所: 社長の実地カウント＋日次実績（2026-07-25確定）。①丸籠1連＝1万粒で換算。 */
 const HAYA={
@@ -2112,7 +2247,7 @@ function renderHaya727(){
   </div>`;
 }
 
-function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); renderHayaProg(); renderHaya726(); renderHaya727(); }
+function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderKaizu(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); renderHayaProg(); renderHaya726(); renderHaya727(); }
 
 /* ============ T04 初回起動オンボーディングウィザード ============
    規約同意フラグ(hotate_saibou_v1_tos)が無く、既存データも無い時だけ表示する3ステップの案内。
