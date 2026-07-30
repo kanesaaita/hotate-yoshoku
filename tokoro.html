@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123a5e">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="icon-192.png">
+<title>常呂 外海ホタテ 資源・漁獲ダッシュボード</title>
+<style>
+  :root{
+    --navy:#123a5e; --navy2:#1d5b8f; --ice:#eaf3fa; --ice2:#d6e8f4;
+    --line:#c9dcea; --ink:#1c2a36; --sub:#5a7186; --bg:#f4f8fb; --card:#ffffff;
+    --shadow:0 1px 3px rgba(18,58,94,.08),0 4px 16px rgba(18,58,94,.06);
+    --ok:#2e7d5b; --warn:#c2691a;
+    --grid:#e6eef5; --axis:#c9dcea; --muted:#7d92a5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;-webkit-text-size-adjust:100%}
+  header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.02em}
+  header .sub{font-size:12px;opacity:.85;margin-top:2px}
+  main{max-width:860px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 12px;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px}
+  .hero{background:linear-gradient(135deg,#0d2e4d,#1d5b8f 70%,#2b74ad);border-radius:18px;padding:18px 16px 14px;color:#fff;box-shadow:0 6px 24px rgba(13,46,77,.25);margin-bottom:16px}
+  .hero .hd{font-size:13px;opacity:.9;font-weight:700}
+  .hero .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .hk{background:rgba(255,255,255,.10);border-radius:12px;padding:10px 4px;text-align:center}
+  .hk .v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
+  .hk .v small{font-size:12px;font-weight:700;opacity:.85}
+  .hk .l{font-size:10.5px;opacity:.8;margin-top:1px}
+  .price-banner{background:linear-gradient(120deg,#eaf6ee,#d9efe2);border:1px solid #b9e4d0;border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:14.5px;color:#1e5c40}
+  .price-flow{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:12px 0 6px}
+  .price-box{text-align:center;background:var(--ice);border-radius:12px;padding:10px 18px}
+  .price-box.big{background:linear-gradient(120deg,var(--navy2),#2b74ad);color:#fff;box-shadow:0 4px 14px rgba(29,91,143,.3)}
+  .price-box .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .price-box .v small{font-size:13px;font-weight:700}
+  .price-box .l{font-size:11.5px;opacity:.85;font-weight:700;margin-top:1px}
+  .price-arrow{font-size:22px;color:var(--navy2);font-weight:800}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px}
+  .bar-row .lbl{flex:0 0 88px;text-align:right;color:var(--sub);font-size:12px;font-weight:700}
+  .bar-track{flex:1;background:var(--ice);border-radius:0 6px 6px 0;height:26px;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:0 4px 4px 0;min-width:2px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;color:#fff;font-size:11.5px;font-weight:700}
+  .bar-mark{position:absolute;top:0;bottom:0;width:2px;background:var(--navy);opacity:.55}
+  .bar-row .val{flex:0 0 132px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:2px 0 10px;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--ice);color:var(--navy);font-weight:700}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  .sum-row td{background:#fbfdff;font-weight:700;color:var(--navy)}
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .tag.hi{background:#eaf6ee;color:var(--ok)}
+  .tag.lo{background:#fdf1e4;color:var(--warn)}
+  .empty{text-align:center;color:var(--sub);padding:20px;font-size:13px}
+  footer{max-width:860px;margin:0 auto;padding:0 16px 28px;font-size:12px;color:var(--sub)}
+  footer a{color:var(--navy2)}
+  @media(max-width:480px){ .hero .kpis{grid-template-columns:repeat(2,1fr)} .bar-row .lbl{flex-basis:52px} .bar-row .val{flex-basis:118px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐚 常呂 外海ホタテ 資源・漁獲ダッシュボード</h1>
+  <div class="sub">漁場別の資源予定量と漁獲進捗＋乾貝柱・鮮ほたて値決め＋出荷一覧（漁協FAXまとめ）</div>
+</header>
+
+<main>
+  <div class="hero" id="hero"></div>
+
+  <div class="card">
+    <h2>💰 乾貝柱 値決め</h2>
+    <div id="price"></div>
+  </div>
+
+  <div class="card">
+    <h2>🐚 外海鮮ほたて 値決価格（浜値）</h2>
+    <div id="kaijo"></div>
+  </div>
+
+  <div class="card">
+    <h2>🗺️ 漁場別の進捗</h2>
+    <div class="legend"><span><i class="dot" style="background:#2e7d5b"></i>全体より進んでいる</span><span><i class="dot" style="background:#3987e5"></i>全体並み</span><span><i class="dot" style="background:#c2691a"></i>全体より遅れている</span></div>
+    <div id="groundBars"></div>
+    <div class="hint">縦線＝全体の進捗率。バーの色は全体進捗との差（±5ポイント以内なら「全体並み」）。</div>
+  </div>
+
+  <div class="card">
+    <h2>📋 漁場別 資源予定量・漁獲実績</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>漁場</th><th class="num">予定量 (t)</th><th class="num">漁獲済 (t)</th><th class="num">残り (t)</th><th class="num">進捗率</th></tr></thead>
+        <tbody id="groundBody"></tbody>
+      </table>
+    </div>
+    <div class="hint" id="tableNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>🚢 養殖帆立 出荷一覧 <span class="muted" style="font-size:12px;font-weight:400;color:var(--sub)">常呂地方卸売市場</span></h2>
+    <div id="shipment"></div>
+  </div>
+
+  <div class="card">
+    <h2>📈 進捗の推移</h2>
+    <div id="trend"></div>
+  </div>
+</main>
+
+<footer>
+  データはこのページ内に記録されています（端末保存・外部送信なし）。<a href="index.html">ホタテ養殖ツールへ</a>／<a href="tako.html">タコ漁ダッシュボードへ</a>
+</footer>
+
+<script>
+/* =====================================================================
+   資源・漁獲データ（更新はここに1回分ずつ追記するだけ）
+   SURVEY: 漁場①〜④ごとの plan「資源予定量(t)」/ caught「漁獲累計(t)」
+   進捗率・残りは自動計算。2回分以上たまると推移グラフが出ます。
+===================================================================== */
+const SURVEY = [
+  { date: '2026-07-24', grounds: [   // 7/24 漁協FAX「B海区本操業漁獲値決め状況」より
+    { no: '①', plan: 6880, caught: 2962 },
+    { no: '②', plan: 5680, caught: 2877 },
+    { no: '③', plan: 8560, caught: 2234 },
+    { no: '④', plan: 4080, caught: 1418 },
+  ]},
+  { date: '2026-07-30', grounds: [
+    { no: '①', plan: 6880, caught: 3398 },
+    { no: '②', plan: 5680, caught: 3142 },
+    { no: '③', plan: 8560, caught: 2478 },
+    { no: '④', plan: 4080, caught: 1418 },
+  ]},
+];
+
+/* 乾貝柱の値決め（回ごとに追記）
+   up「前年比」/ rawBefore「値決め前の平均生単価(円/kg)」/ rawAfter「値決め後の生単価(円/kg)」
+   grades: [規格, 今回単価, 前回R7第3回, 昨年度同期第1回]（円/ピクル・浜精算価格。nullは値決めなし/記載なし）
+   出典：R8.7.30 常呂漁協FAX「令和8年度 第1回乾貝柱値決結果について」 */
+const PRICE_LOG = [
+  { date: '2026-07-30', round: 1, up: '前年比 50%アップ', rawBefore: 454, rawAfter: 554,
+    note: '第1回乾貝柱値決め。令和7年度第3回値決浜精算価格から一律50%値上げ（Lは上場数量がないため値決めなし）。上場数量950ピクル（うち常呂分400ピクル）。',
+    terms: '決済条件：8/10迄格付分は令和8年9月10日(木)、8/11以降格付分は出荷者負担。対外発表：200ピクル。',
+    grades: [
+      ['L 1等',  null,    1247800, null],
+      ['M 1等',  1796000, 1197300, null],
+      ['S 1等',  1535900, 1023900, 921600],
+      ['SA 1等', 1394900, 929900,  837000],
+      ['SAS 1等',1172700, 781800,  703700],
+      ['4S 1等', 1103700, 735800,  662300],
+      ['B 1等',  1451700, 967800,  871100],
+      ['2等',    1137000, 758000,  682300],
+      ['3等',    974600,  649700,  584800],
+    ] },
+];
+
+/* 外海鮮ほたて値決価格（浜値・円/kg）。announcedは漁協FAXの発表日。
+   history: [期間, 単価(円), 数量(kg)]（7/24FAXの漁場別値決め状況マップより） */
+const KAIJO_PRICE = {
+  announced: '2026-07-24',
+  latest: [
+    { no: '①', price: 497, days: '7/17,18,21' },
+    { no: '②', price: 509, days: '7/17,20,21,22' },
+    { no: '③', price: 462, days: '7/20,23' },
+  ],
+  history: {
+    '①': [['調査 6/1・3', 386, 1384], ['6/15', 476, 271228], ['6/16〜30', 478, 557768], ['7/1〜15', 500, 1509530], ['7/17〜31', 497, 622059]],
+    '②': [['調査 6/1', 389, 418], ['6/5〜15', 414, 396059], ['6/20〜30', 433, 1015972], ['7/4〜15', 492, 843370], ['7/17〜31', 509, 620914]],
+    '③': [['調査 6/12', 328, 9774], ['6/1〜15', 352, 177513], ['6/17〜30', 397, 659918], ['7/6〜15', 400, 988966], ['7/20〜31', 462, 397925]],
+    '④': [['6/2〜15', 355, 653798], ['6/17〜30', 384, 617808], ['7/6〜15', 420, 145924]],
+  },
+};
+
+/* 養殖帆立出荷一覧（常呂漁協の毎朝FAXより。出荷日ごとの支所別合計トン数） */
+const SHIPMENT = [
+  { date: '2026-07-23', sakaeura: 20.3, hamasaroma: 12.3 },
+  { date: '2026-07-25', sakaeura: 9.7,  hamasaroma: 12.0 },
+  { date: '2026-07-27', sakaeura: 18.7, hamasaroma: 11.7 },
+  { date: '2026-07-28', sakaeura: 30.4, hamasaroma: 9.6 },
+  { date: '2026-07-29', sakaeura: 27.8, hamasaroma: 15.4 },
+  { date: '2026-07-31', sakaeura: 29.9, hamasaroma: 18.9 },
+];
+
+const fmtDate = d => { const [y,m,dd] = d.split('-'); return `${m.replace(/^0/,'')}/${dd.replace(/^0/,'')}`; };
+const fmtT = n => n.toLocaleString();
+const sum = a => a.reduce((s,x)=>s+x,0);
+const calc = snap => {
+  const plan = sum(snap.grounds.map(g=>g.plan));
+  const caught = sum(snap.grounds.map(g=>g.caught));
+  return { plan, caught, rest: plan-caught, pct: caught/plan*100 };
+};
+const latest = SURVEY[SURVEY.length-1];
+const tot = calc(latest);
+const latestPrice = PRICE_LOG[PRICE_LOG.length-1];
+
+/* ---- ヒーロー（最新時点のKPI） ---- */
+(function(){
+  document.getElementById('hero').innerHTML = `
+    <div class="hd">${fmtDate(latest.date)} 時点　<span style="opacity:.75">｜ 常呂 外海ホタテ（漁場①〜④）</span></div>
+    <div class="kpis">
+      <div class="hk"><div class="v">${fmtT(tot.plan)}<small>t</small></div><div class="l">資源予定量</div></div>
+      <div class="hk"><div class="v">${fmtT(tot.caught)}<small>t</small></div><div class="l">漁獲累計</div></div>
+      <div class="hk"><div class="v">${tot.pct.toFixed(1)}<small>%</small></div><div class="l">全体進捗</div></div>
+      <div class="hk"><div class="v">${fmtT(tot.rest)}<small>t</small></div><div class="l">残り</div></div>
+    </div>`;
+})();
+
+/* ---- 干貝柱 値決め ---- */
+(function(){
+  const p = latestPrice;
+  const el = document.getElementById('price');
+  if(!p){ el.innerHTML = '<div class="empty">値決めのデータはまだありません</div>'; return; }
+  const diff = p.rawAfter - p.rawBefore;
+  const diffPct = diff / p.rawBefore * 100;
+  const history = PRICE_LOG.length > 1 ? `
+    <div class="table-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>日付</th><th>回</th><th>前年比</th><th class="num">生単価 前</th><th class="num">生単価 後</th></tr></thead>
+      <tbody>${[...PRICE_LOG].reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>第${x.round}回</td><td>${x.up}</td><td class="num">${x.rawBefore}円</td><td class="num">${x.rawAfter}円</td></tr>`).join('')}</tbody>
+    </table></div>` : '';
+  const yen = n => n==null ? '—' : n.toLocaleString();
+  const gradeRows = (p.grades||[]).map(([g, now, prev, ly])=>`
+    <tr>
+      <td><b>${g}</b></td>
+      <td class="num">${now==null?'<span class="muted">値決めなし</span>':'<b>'+yen(now)+'</b>'}</td>
+      <td class="num">${yen(prev)}</td>
+      <td class="num">${now!=null&&prev!=null?'+'+yen(now-prev):'±0'}</td>
+      <td class="num">${yen(ly)}</td>
+    </tr>`).join('');
+  const gradeTable = gradeRows ? `
+    <h3 style="margin:16px 0 6px;font-size:13.5px;color:var(--navy2)">規格別 第${p.round}回値決価格（浜精算価格・円/ピクル）</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>規格</th><th class="num">今回</th><th class="num">前回 (R7第3回)</th><th class="num">差額</th><th class="num">昨年同期 (第1回)</th></tr></thead>
+      <tbody>${gradeRows}</tbody>
+    </table></div>` : '';
+  el.innerHTML = `
+    <div class="price-banner">🎉 <b>第${p.round}回 乾貝柱値決め：${p.up}</b>に決定！（${fmtDate(p.date)}）</div>
+    <div class="price-flow">
+      <div class="price-box"><div class="v">${p.rawBefore}<small>円</small></div><div class="l">現在の平均生単価</div></div>
+      <div class="price-arrow">→</div>
+      <div class="price-box big"><div class="v">${p.rawAfter}<small>円</small></div><div class="l">値決め後の生単価</div></div>
+      <div class="price-box"><div class="v">+${diff}<small>円</small></div><div class="l">上げ幅（+${diffPct.toFixed(1)}%）</div></div>
+    </div>
+    ${p.note?`<div class="hint">${p.note}</div>`:''}
+    ${gradeTable}
+    ${p.terms?`<div class="hint">${p.terms}</div>`:''}${history}`;
+})();
+
+/* ---- 外海鮮ほたて 値決価格（浜値） ---- */
+(function(){
+  const el = document.getElementById('kaijo');
+  const k = KAIJO_PRICE;
+  if(!k || !k.latest.length){ el.innerHTML = '<div class="empty">値決価格のデータはまだありません</div>'; return; }
+  const boxes = k.latest.map(g=>`
+    <div class="price-box"><div class="v">${g.price}<small>円</small></div><div class="l">漁場${g.no}（${g.days}）</div></div>`).join('');
+  const allPrices = Object.values(k.history).flat().map(r=>r[1]);
+  const pMin = Math.min(...allPrices)-40, pMax = Math.max(...allPrices)+10;
+  const groundHtml = Object.entries(k.history).map(([no, rows])=>{
+    const last = rows[rows.length-1];
+    return `
+    <h3 style="margin:14px 0 4px;font-size:13.5px;color:var(--navy2)">漁場${no} <span style="font-weight:600;color:var(--sub);font-size:12px">最新 ${last[0]}：${last[1]}円</span></h3>
+    ${rows.map((r,i)=>`
+      <div class="bar-row" style="margin:4px 0">
+        <div class="lbl">${r[0]}</div>
+        <div class="bar-track" style="height:20px"><div class="bar-fill" style="width:${(r[1]-pMin)/(pMax-pMin)*100}%;background:${i===rows.length-1?'linear-gradient(90deg,var(--navy2),var(--navy))':'#8fb6d9'}">${r[1]}円</div></div>
+        <div class="val" style="color:var(--sub);font-weight:600">${r[2].toLocaleString()}kg</div>
+      </div>`).join('')}`;
+  }).join('');
+  el.innerHTML = `
+    <div class="price-flow" style="margin-top:2px">${boxes}</div>
+    <div class="hint" style="margin-top:0;text-align:center">本操業の値決価格（${fmtDate(k.announced)} 漁協発表・円/kg）。④は次回発表待ち。</div>
+    ${groundHtml}
+    <div class="hint">バー＝期間ごとの値決単価（濃色が最新）。右の数量はその期間の漁獲量。6月から段階的に上がってきています。</div>`;
+})();
+
+/* ---- 養殖帆立 出荷一覧 ---- */
+(function(){
+  const el = document.getElementById('shipment');
+  if(!SHIPMENT.length){ el.innerHTML = '<div class="empty">出荷データはまだありません</div>'; return; }
+  const tot = d => d.sakaeura + d.hamasaroma;
+  const max = Math.max(...SHIPMENT.map(tot), 1);
+  el.innerHTML = `
+    <div class="legend"><span><i class="dot" style="background:#3987e5"></i>栄浦支所</span><span><i class="dot" style="background:#0d366b"></i>浜佐呂間支所</span></div>
+    ${SHIPMENT.map(d=>`
+      <div class="bar-row">
+        <div class="lbl">${fmtDate(d.date)}</div>
+        <div class="bar-track" style="display:flex">
+          <div class="bar-fill" style="width:${d.sakaeura/max*100}%;background:#3987e5;border-radius:0"></div>
+          <div class="bar-fill" style="width:${d.hamasaroma/max*100}%;background:#0d366b"></div>
+        </div>
+        <div class="val">${tot(d).toFixed(1)}t <span style="color:var(--sub);font-weight:600">(${d.sakaeura}+${d.hamasaroma})</span></div>
+      </div>`).join('')}
+    <div class="hint">漁協の毎朝FAX「養殖帆立出荷一覧」の支所別合計（出荷日ベース・入札は前日13:15）。直近1週間は増加傾向で、7/31は今期最多の48.8tです。</div>`;
+})();
+
+/* ---- 漁場別の進捗バー（色＝全体進捗との差） ---- */
+(function(){
+  const rows = latest.grounds.map(g=>({ ...g, pct: g.caught/g.plan*100 }));
+  const colorOf = pct => pct - tot.pct > 5 ? '#2e7d5b' : tot.pct - pct > 5 ? '#c2691a' : '#3987e5';
+  document.getElementById('groundBars').innerHTML = rows.map(g=>`
+    <div class="bar-row">
+      <div class="lbl">漁場${g.no}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${g.pct}%;background:${colorOf(g.pct)}">${g.pct.toFixed(1)}%</div>
+        <div class="bar-mark" style="left:${tot.pct}%"></div>
+      </div>
+      <div class="val">${fmtT(g.caught)} / ${fmtT(g.plan)}t</div>
+    </div>`).join('')
+    + `
+    <div class="bar-row" style="margin-top:14px">
+      <div class="lbl"><b>全体</b></div>
+      <div class="bar-track" style="height:30px">
+        <div class="bar-fill" style="width:${tot.pct}%;background:linear-gradient(90deg,var(--navy2),var(--navy))">${tot.pct.toFixed(1)}%</div>
+      </div>
+      <div class="val"><b>${fmtT(tot.caught)} / ${fmtT(tot.plan)}t</b></div>
+    </div>`;
+})();
+
+/* ---- 漁場別テーブル ---- */
+(function(){
+  const rows = latest.grounds.map(g=>{
+    const pct = g.caught/g.plan*100;
+    const tag = pct - tot.pct > 5 ? '<span class="tag hi">進み</span>' : tot.pct - pct > 5 ? '<span class="tag lo">遅れ</span>' : '';
+    return `<tr><td>漁場${g.no}</td><td class="num">${fmtT(g.plan)}</td><td class="num">${fmtT(g.caught)}</td><td class="num">${fmtT(g.plan-g.caught)}</td><td class="num">${pct.toFixed(1)}% ${tag}</td></tr>`;
+  }).join('');
+  document.getElementById('groundBody').innerHTML = rows
+    + `<tr class="sum-row"><td>計</td><td class="num">${fmtT(tot.plan)}</td><td class="num">${fmtT(tot.caught)}</td><td class="num">${fmtT(tot.rest)}</td><td class="num">${tot.pct.toFixed(1)}%</td></tr>`;
+  document.getElementById('tableNote').textContent =
+    `③（残り ${fmtT(latest.grounds[2].plan-latest.grounds[2].caught)}t）と④が全体より遅れ気味。予定量いちばん大きい③の消化がこれからの中心。`;
+})();
+
+/* ---- 進捗の推移（2回分以上で表示） ---- */
+(function(){
+  const el = document.getElementById('trend');
+  if(SURVEY.length < 2){
+    el.innerHTML = '<div class="empty">データが2回分以上たまると、全体・漁場別の進捗推移がここに表示されます。</div>';
+    return;
+  }
+  el.innerHTML = '<h3 style="margin:0 0 6px;font-size:13px;color:var(--navy2)">全体進捗率</h3>'
+    + SURVEY.map(s=>{
+      const c = calc(s);
+      return `<div class="bar-row"><div class="lbl">${fmtDate(s.date)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%;background:var(--navy2)">${c.pct.toFixed(1)}%</div></div>
+        <div class="val">${fmtT(c.caught)} / ${fmtT(c.plan)}t</div></div>`;
+    }).join('')
+    + '<h3 style="margin:14px 0 6px;font-size:13px;color:var(--navy2)">漁場別 漁獲累計 (t)</h3>'
+    + latest.grounds.map((g,gi)=>{
+      const pts = SURVEY.map(s=>`${fmtDate(s.date)} ${fmtT(s.grounds[gi].caught)}t`).join(' → ');
+      return `<div style="font-size:13px;margin:4px 0"><b>漁場${g.no}</b>：${pts}</div>`;
+    }).join('');
+})();
+</script>
+</body>
+</html>
