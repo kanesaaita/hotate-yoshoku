@@ -1,440 +1,336 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#123a5e">
-<meta name="format-detection" content="telephone=no">
-<link rel="icon" href="icon-192.png">
-<title>タコ漁獲ダッシュボード</title>
+<title>🐙 タコ漁ダッシュボード</title>
 <style>
-  :root{
-    --navy:#123a5e; --navy2:#1d5b8f; --ice:#eaf3fa; --ice2:#d6e8f4;
-    --line:#c9dcea; --ink:#1c2a36; --sub:#5a7186; --bg:#f4f8fb; --card:#ffffff;
-    --shadow:0 1px 3px rgba(18,58,94,.08),0 4px 16px rgba(18,58,94,.06);
-    /* サイズ区分（小→特大）の順序ランプ：青1色相・明→暗（検証済み） */
-    --sz-1:#86b6ef; --sz-2:#3987e5; --sz-3:#1c5cab; --sz-4:#0d366b;
-    --grid:#e6eef5; --axis:#c9dcea; --muted:#7d92a5;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0}
-  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;-webkit-text-size-adjust:100%}
-  header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px;box-shadow:var(--shadow)}
-  header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.02em}
-  header .sub{font-size:12px;opacity:.85;margin-top:2px}
-  main{max-width:860px;margin:0 auto;padding:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
-  .card h2{margin:0 0 12px;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px}
-  .hero{background:linear-gradient(135deg,#0d2e4d,#1d5b8f 70%,#2b74ad);border-radius:18px;padding:18px 16px 14px;color:#fff;box-shadow:0 6px 24px rgba(13,46,77,.25);margin-bottom:16px}
-  .hero .hd{font-size:13px;opacity:.9;font-weight:700}
-  .hero .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-  .hk{background:rgba(255,255,255,.10);border-radius:12px;padding:10px 4px;text-align:center}
-  .hk .v{font-size:21px;font-weight:800}
-  .hk .v small{font-size:12px;font-weight:700;opacity:.85}
-  .hk .l{font-size:10.5px;opacity:.8;margin-top:1px}
-  .bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
-  .bar-row .lbl{flex:0 0 72px;text-align:right;color:var(--sub);font-size:12px;font-weight:600}
-  .bar-track{flex:1;background:var(--ice);border-radius:0 6px 6px 0;height:22px;position:relative;overflow:hidden}
-  .bar-fill{height:100%;border-radius:0 4px 4px 0;min-width:2px}
-  .bar-row .val{flex:0 0 58px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:2px 0 10px;color:var(--sub)}
-  .legend span{display:inline-flex;align-items:center;gap:5px;font-weight:600}
-  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
-  .hint{font-size:12px;color:var(--sub);margin-top:8px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-  th{background:var(--ice);color:var(--navy);font-weight:700}
-  .num{text-align:right;font-variant-numeric:tabular-nums}
-  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-  .tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--ice);color:var(--navy)}
-  .sum-row td{background:#fbfdff;font-weight:700;color:var(--navy)}
-  .map-wrap{position:relative}
-  .map-wrap svg{width:100%;height:auto;display:block}
-  .tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;box-shadow:var(--shadow);opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5}
-  .empty{text-align:center;color:var(--sub);padding:20px;font-size:13px}
-  footer{max-width:860px;margin:0 auto;padding:0 16px 28px;font-size:12px;color:var(--sub)}
-  footer a{color:var(--navy2)}
-  @media(max-width:480px){ .hero .kpis{grid-template-columns:repeat(2,1fr)} .bar-row .lbl{flex-basis:58px} }
-</style>
-</head>
-<body>
-<header>
-  <h1>🐙 タコ漁獲ダッシュボード</h1>
-  <div class="sub">漁獲メモから自動集計（ポイント別・サイズ別・漁場マップ）</div>
-</header>
+.tako-mobile{font-family:'Hiragino Sans',sans-serif;margin:0;background:#f4f7f9;color:#123;font-size:15px;}
+header{background:#0b3550;color:#fff;padding:14px 18px;}
+header h1{margin:0;font-size:18px;} header p{margin:4px 0 0;font-size:12px;opacity:.8;}
+.hero{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.hero span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:10px;
+padding:6px 12px;font-size:13px;line-height:1.5;}
+.hero b{font-size:17px;}
+section{background:#fff;margin:12px;border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+h2{font-size:14px;margin:0 0 10px;border-left:4px solid #0b3550;padding-left:8px;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+td,th{padding:8px 8px;border-bottom:1px solid #e5ecf1;text-align:left;}
+tr.due{background:#fff3e0;} tr.me{background:#e3f2fd;font-weight:bold;}
+tr.hot{background:#fdecea;} tr.warn{background:#fff9db;}
+.big{font-size:22px;font-weight:bold;} .sub{font-size:12px;color:#567;}
+.trip{display:inline-block;background:#0b3550;color:#fff;border-radius:14px;padding:4px 10px;margin:2px;font-size:13px;}
+a.stats{display:inline-block;margin-top:8px;font-size:13px;color:#0b3550;font-weight:bold;}
 
-<main>
-  <div class="hero" id="hero"></div>
 
-  <div class="card">
-    <h2>🎯 次回の狙い目（ポイント期待値）</h2>
-    <div id="expectBars"></div>
-    <div id="course"></div>
-    <div class="hint" id="expectNote"></div>
-  </div>
 
-  <div class="card">
-    <h2>📏 サイズ別匹数 <span id="szDate" style="font-size:12px;color:#fff;background:var(--navy2);padding:1px 8px;border-radius:999px"></span></h2>
-    <div id="sizeBars"></div>
-  </div>
+header{background:#0b3550;color:#fff;padding:14px 18px;}
+header h1{margin:0;font-size:18px;} header p{margin:4px 0 0;font-size:12px;opacity:.8;}
+details{background:#fff;margin:12px;border-radius:10px;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+details.me-block{border-left:4px solid #1565c0;}
+summary{cursor:pointer;font-size:15px;padding:4px 0;}
+h3{font-size:13px;margin:10px 0 6px;color:#0b3550;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+td,th{padding:5px 8px;border-bottom:1px solid #e5ecf1;text-align:left;}
+.sub{font-size:12px;color:#567;font-weight:normal;}
+.cols{display:flex;gap:16px;flex-wrap:wrap;} .cols>div{flex:1;min-width:260px;}
+a.back{display:inline-block;margin:12px 16px 0;font-size:13px;color:#0b3550;font-weight:bold;}
 
-  <div class="card">
-    <h2>📍 ポイント別匹数</h2>
-    <div class="legend" id="legend1"></div>
-    <div id="pointBars"></div>
-    <div class="hint">色はサイズ区分（薄い＝小 → 濃い＝特大）。メモの記載順に表示。</div>
-  </div>
-
-  <div class="card">
-    <h2>🗺️ 漁場マップ</h2>
-    <div class="legend" id="legend2"></div>
-    <div class="map-wrap" id="mapWrap"></div>
-    <div class="hint">ポイント番号「A-B」を A（横軸）× B（縦軸）に配置。丸の大きさ＝匹数。</div>
-  </div>
-
-  <div class="card">
-    <h2>🏢 部会 水揚げ</h2>
-    <div id="bukai"></div>
-  </div>
-
-  <div class="card">
-    <h2>📈 日別推移</h2>
-    <div id="trend"></div>
-  </div>
-
-  <div class="card">
-    <h2>📋 漁獲記録</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>日付</th><th>ポイント</th><th class="num">匹数</th><th>サイズ</th></tr></thead>
-        <tbody id="logBody"></tbody>
-      </table>
-    </div>
-  </div>
-</main>
-
-<footer>
-  データはこのページ内に記録されています（端末保存・外部送信なし）。<a href="index.html">ホタテ養殖ツールへ</a>
-</footer>
-
+.tako-mobile table{font-variant-numeric:tabular-nums;}
+.memo-chip{display:inline-block;background:#e3edf4;color:#0b3550;border:1px solid #b9cedd;border-radius:14px;padding:7px 13px;margin:3px;font-size:14px;font-weight:bold;}
+.memo-chip:active{background:#0b3550;color:#fff;}
+.memo-row{display:flex;align-items:center;gap:6px;margin:6px 0;}
+.memo-row b{white-space:nowrap;min-width:52px;font-size:15px;}
+.memo-row input,#mKg{width:80px;font-size:16px;padding:6px;border:1px solid #b9cedd;border-radius:6px;}
+.memo-row select{font-size:16px;padding:6px 4px;border:1px solid #b9cedd;border-radius:6px;background:#fff;color:#123;}
+.memo-line{margin-top:8px;font-size:14px;}
+#mNote{width:100%;font-size:16px;padding:8px;border:1px solid #b9cedd;border-radius:6px;margin-top:8px;box-sizing:border-box;}
+.memo-btns{display:flex;gap:10px;margin-top:10px;}
+.memo-btns button{font-size:15px;padding:10px 16px;border-radius:8px;border:0;}
+#mCopy{background:#0b3550;color:#fff;font-weight:bold;}
+#mClear{background:#e5ecf1;color:#345;}
+.memo-del{background:none;border:0;color:#c00;font-size:16px;padding:2px 6px;}
+#mMsg{color:#0a7a2f;font-size:13px;margin-top:6px;min-height:1em;}
+.memo-plan{background:#fff8e6;border:1px solid #e6d9a8;border-radius:8px;padding:8px 10px;margin:4px 0 8px;font-size:14px;line-height:1.7;}
+#mPlanSet{background:#8a6d1f;color:#fff;border:0;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:bold;margin-top:4px;}
+.memo-step{width:44px;height:40px;font-size:20px;font-weight:bold;border:1px solid #b9cedd;border-radius:8px;background:#eef4f8;color:#0b3550;}
+.memo-step:active{background:#0b3550;color:#fff;}
+.memo-tot{display:inline-block;background:#0b3550;color:#fff;border-radius:8px;padding:4px 10px;font-size:15px;font-weight:bold;}
+.jumpbar{position:sticky;top:0;z-index:50;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:#0b3550;padding:8px 10px;}
+.jumpbar a{flex:0 0 auto;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:7px 12px;}
+html,body{height:auto !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+.tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
+.tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
+<div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-07-31 更新（部会表7/29〈自船114尾〉＋7/31 反映）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<div class="hero">
+<span>🏁 <b>7位</b> 3,792kg ⬆️<br>7/29に <b>114尾/623kg</b>（計画610kgをクリア）｜6位 湊まで<b>あと30kg</b></span>
+<span>🚤 次便 <b>8/1(土) 4本</b><br>15-9 → 12-16 → 12-18 → 15-26<br><span style="font-size:11px;opacity:.85">7/29の10本は8/1時点で中3日＝まだ早い｜沖6本は8/3〜5が適期</span></span>
+<span>📦 海中 <b>1,816箱</b><br>残り枠 184箱</span>
+</div></header><section id="memo">
+<h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
+<div class="memo-plan">🚤 おすすめ便プラン 8/1(土) 4本：<b>15-9 → 12-16 → 12-18 → 15-26</b><br><span class="sub">※ 7/29は114尾/623kgで着地（計画93匹/610kg）。のし別の内訳をこの欄から送ってもらえると、のし別期待値と次の中日数の精度が上がります。</span><br>
+<button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
+<div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
+<div id="mRows"></div>
+<div class="memo-line">合計kg <input id="mKg" type="number" inputmode="decimal" placeholder="市場で判明後"> <span id="mTot"></span></div>
+<input id="mNote" placeholder="メモ（サイズ感・箱の状態・浜の話など）">
+<div class="memo-btns"><button id="mCopy">📋 報告文をコピー</button><button id="mClear">クリア</button></div>
+<div id="mMsg"></div>
+<p class="sub">のしをタップ→匹数を入力→「コピー」→Claudeに貼るだけで記録されます。<b>AIへの指示文は自動で先頭に入る</b>ので、そのまま貼ってください。入力は端末に自動保存（電波なしでもOK）。</p>
 <script>
-/* =====================================================================
-   漁獲データ（更新はここに1日分ずつ追記するだけ）
-   entries: point「番号」/ count「匹数」/ size「小・中・大・特大」
-           boxes「その筋の箱数」を書くと入箱率（匹/箱）も表示される（省略可）
-   totalKg: その日の合計重量(kg)
-   ※ 0匹だった場所も count:0 で書いておくと「狙い目」の精度が上がる
-===================================================================== */
-const CATCH_LOG = [
-  { date: '2026-07-22', totalKg: 415, entries: [
-    { point: '15-9',  count: 9,  size: '小' },
-    { point: '16-26', count: 7,  size: '中' },
-    { point: '15-26', count: 7,  size: '中' },
-    { point: '15-34', count: 9,  size: '大' },
-    { point: '14-37', count: 4,  size: '特大' },
-    { point: '11-40', count: 7,  size: '特大' },
-    { point: '10-41', count: 12, size: '特大' },
-  ]},
-];
-
-/* 出漁予定（過ぎた日はグレー表示になるだけなので消さなくてOK） */
-const SCHEDULE = [
-  { date: '2026-07-24', note: 'タコ漁' },
-];
-
-/* 部会の水揚げ（日ごとに追記。price不明なら省略） */
-const BUKAI_LOG = [
-  { date: '2026-07-22', category: '活たこ(中)', note: '生たこは水揚げなし',
-    rows: [
-      { name: '相田 裕康', count: 54,  kg: 415.0, avg: 7.7 },
-      { name: '桜井 正樹', count: 144, kg: 854.0, avg: 5.9 },
-      { name: '松下 祐士', count: 42,  kg: 360.0, avg: 8.6 },
-    ],
-    total: { count: 240, kg: 1629.0, avg: 6.8 } },
-  { date: '2026-07-23', category: '活たこ(中)', note: '生たこは水揚げなし・値段は未確定',
-    rows: [
-      { name: '古館 剛',   count: 89, kg: 454.0, avg: 5.1 },
-      { name: '松下 祐士', count: 29, kg: 161.0, avg: 5.6 },
-    ],
-    total: { count: 118, kg: 615.0, avg: 5.2 } },
-];
-
-/* 「狙い目」期待値：直近の実績ほど重視する半減期（日）。
-   タコは水温で場所が移るため、古い実績（例：6月の丘側の好漁）ほど
-   評価を自動で下げる。移りが速い年は小さく、遅い年は大きくする。 */
-const HALF_LIFE_DAYS = 14;
-
-const SIZES = ['小','中','大','特大'];
-const SIZE_COLOR = { '小':'var(--sz-1)', '中':'var(--sz-2)', '大':'var(--sz-3)', '特大':'var(--sz-4)' };
-const SIZE_HEX   = { '小':'#86b6ef', '中':'#3987e5', '大':'#1c5cab', '特大':'#0d366b' };
-
-const latest = CATCH_LOG[CATCH_LOG.length - 1];
-const fmtDate = d => { const [y,m,dd] = d.split('-'); return `${m.replace(/^0/,'')}/${dd.replace(/^0/,'')}`; };
-const sum = a => a.reduce((s,x)=>s+x,0);
-const dayCount = day => sum(day.entries.map(e=>e.count));
-const DAY = 86400000;
-const toDate = s => new Date(s + 'T00:00:00');
-const today = new Date(); today.setHours(0,0,0,0);
-const nextTrip = SCHEDULE.map(s=>({...s,d:toDate(s.date)})).filter(s=>s.d>=today).sort((a,b)=>a.d-b.d)[0] || null;
-
-/* ---- ヒーロー（最新日のKPI＋累計） ---- */
 (function(){
-  const n = dayCount(latest);
-  const avg = latest.totalKg ? (latest.totalKg/n) : null;
-  const cumN = sum(CATCH_LOG.map(dayCount));
-  const cumKg = sum(CATCH_LOG.map(d=>d.totalKg||0));
-  const el = document.getElementById('hero');
-  let sched = '';
-  if(nextTrip){
-    const diff = Math.round((nextTrip.d - today)/DAY);
-    const when = diff===0?'今日':diff===1?'明日':`${diff}日後`;
-    sched = `<div style="margin-top:10px;font-size:12.5px;background:rgba(255,255,255,.14);border-radius:10px;padding:7px 10px;font-weight:700">⛵ 次回出漁：${fmtDate(nextTrip.date)}（${when}）${nextTrip.note?'・'+nextTrip.note:''}</div>`;
-  }
-  el.innerHTML = `
-    <div class="hd">${fmtDate(latest.date)} の漁獲　<span style="opacity:.75">｜ 出漁 ${CATCH_LOG.length}日目・累計 ${cumN}匹 / ${cumKg}kg</span></div>
-    <div class="kpis">
-      <div class="hk"><div class="v">${n}<small>匹</small></div><div class="l">総匹数</div></div>
-      <div class="hk"><div class="v">${latest.totalKg??'—'}<small>kg</small></div><div class="l">総重量</div></div>
-      <div class="hk"><div class="v">${avg?avg.toFixed(1):'—'}<small>kg</small></div><div class="l">平均/匹</div></div>
-      <div class="hk"><div class="v">${latest.entries.length}<small>ヶ所</small></div><div class="l">ポイント数</div></div>
-    </div>${sched}`;
-  document.getElementById('szDate').textContent = fmtDate(latest.date);
-})();
-
-/* ---- 次回の狙い目：直近重み付きのポイント期待値 ----
-   期待匹数 = Σ(重み×匹数) / Σ重み、重み = 0.5^(経過日数/半減期)
-   基準日は次回出漁予定日（なければ今日）。古い好実績ほど自動で割引かれる。 */
-const EXPECT_ROWS = (function(){
-  const ref = nextTrip ? nextTrip.d : today;
-  const stat = {};
-  CATCH_LOG.forEach(day=>{
-    const ageDays = Math.max(0,(ref - toDate(day.date))/DAY);
-    const w = Math.pow(0.5, ageDays/HALF_LIFE_DAYS);
-    day.entries.forEach(e=>{
-      const s = stat[e.point] || (stat[e.point]={wSum:0,wCount:0,last:null,lastSize:null});
-      s.wSum += w; s.wCount += w*e.count;
-      if(!s.last || day.date>s.last){ s.last=day.date; s.lastSize=e.size; }
-    });
+ var KEY='tako_memo_v1';
+ function today(){var t=new Date();return (t.getMonth()+1)+'/'+t.getDate();}
+ var st;
+ try{st=JSON.parse(localStorage.getItem(KEY));}catch(e){st=null;}
+ if(!st||!st.e){st={d:today(),e:[],kg:'',note:''};}
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+ var rows=document.getElementById('mRows');
+ var kgIn=document.getElementById('mKg');
+ var noteIn=document.getElementById('mNote');
+ kgIn.value=st.kg||'';noteIn.value=st.note||'';
+ // サイズ選択時の換算（7/20実績で較正: 目廻り6.1）。未選択はのし別サイズ目安(SPOTKG)→それも無ければ既定
+ var SZW={'小':4.5,'中':6,'大':7.5,'特大':10,'混み':7};
+ var SPOTKG={"15-9": 6.0, "16-18": 6.0, "14-10": 6.0, "10-41": 6.0, "12-16": 6.0, "12-18": 6.0, "14-37": 7.5, "15-34": 7.5, "11-40": 7.5, "15-26": 7.5, "16-26": 7.5, "15-20": 7.5, "14-22": 7.5};
+ var PLAN=["15-9", "12-16", "12-18", "15-26"];
+ function perKg(en){if(en.z&&SZW[en.z]){return SZW[en.z];}return SPOTKG[en.s]||7.5;}
+ function estw(){var w=0;st.e.forEach(function(en){w+=(Number(en.n)||0)*perKg(en);});return Math.round(w);}
+ function tot(){var s=0;st.e.forEach(function(en){s+=Number(en.n)||0;});
+  var el=document.getElementById('mTot');
+  el.textContent=s>0?('計 '+s+'匹・予想 約'+estw()+'kg'):'';
+  el.className=s>0?'memo-tot':'';}
+ function render(){
+  document.getElementById('mDate').textContent=st.d;
+  rows.innerHTML='';
+  st.e.forEach(function(en,i){
+   var div=document.createElement('div');div.className='memo-row';
+   var b=document.createElement('b');b.textContent=en.s;div.appendChild(b);
+   // 船上向けステッパー: 手袋でも押しやすい−/＋ボタン（直接入力も可）
+   var minus=document.createElement('button');minus.textContent='−';minus.className='memo-step';
+   var inp=document.createElement('input');inp.type='number';inp.inputMode='numeric';
+   inp.value=en.n;inp.placeholder='匹数';
+   inp.addEventListener('input',function(){en.n=inp.value;save();tot();});
+   var plus=document.createElement('button');plus.textContent='＋';plus.className='memo-step';
+   function bump(d){var v=(Number(en.n)||0)+d;if(v<0)v=0;en.n=String(v);inp.value=en.n;save();tot();}
+   minus.addEventListener('click',function(){bump(-1);});
+   plus.addEventListener('click',function(){bump(1);});
+   div.appendChild(minus);div.appendChild(inp);div.appendChild(plus);
+   var sp=document.createElement('span');sp.textContent='匹';div.appendChild(sp);
+   var sel=document.createElement('select');
+   ['サイズ','小','中','大','特大','混み'].forEach(function(z){
+    var o=document.createElement('option');o.value=z;o.textContent=z;sel.appendChild(o);
+   });
+   sel.value=en.z||'サイズ';
+   sel.addEventListener('change',function(){en.z=(sel.value==='サイズ'?'':sel.value);save();});
+   div.appendChild(sel);
+   var del=document.createElement('button');del.textContent='✕';del.className='memo-del';
+   del.addEventListener('click',function(){st.e.splice(i,1);save();render();});
+   div.appendChild(del);
+   rows.appendChild(div);
   });
-  return Object.entries(stat).map(([point,s])=>({
-    point, exp: s.wCount/s.wSum, last: s.last, lastSize: s.lastSize,
-    fresh: Math.min(s.wSum,1)  // データの新しさ×量（1に近いほど直近の実績）
-  })).sort((a,b)=>b.exp-a.exp);
-})();
-
-/* おすすめコース：期待値×サイズ格（重量の代役）が最大の点から入り、
-   残りは近い順（同距離なら高スコア優先）でつなぐ */
-const COURSE = (function(){
-  const VAL = {'小':1,'中':2,'大':3,'特大':4};
-  const pts = EXPECT_ROWS.map(r=>{
-    const m = r.point.split('-').map(Number);
-    return {...r, x:m[0], y:m[1], score:r.exp*(VAL[r.lastSize]||2)};
-  }).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
-  if(!pts.length) return [];
-  let cur = pts.reduce((a,b)=>b.score>a.score?b:a);
-  const route=[cur], rest=pts.filter(p=>p!==cur);
-  while(rest.length){
-    rest.sort((a,b)=>{
-      const da=Math.hypot(a.x-cur.x,a.y-cur.y), db=Math.hypot(b.x-cur.x,b.y-cur.y);
-      return da-db || b.score-a.score;
-    });
-    cur = rest.shift(); route.push(cur);
-  }
-  return route;
-})();
-
-(function(){
-  const rows = EXPECT_ROWS;
-  const max = Math.max(...rows.map(r=>r.exp),1);
-  document.getElementById('expectBars').innerHTML = rows.map(r=>`
-    <div class="bar-row">
-      <div class="lbl">${r.point}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${r.exp/max*100}%;background:${SIZE_COLOR[r.lastSize]||'var(--sz-2)'};opacity:${0.45+0.55*r.fresh}"></div></div>
-      <div class="val">${r.exp.toFixed(1)}匹 <span style="color:var(--sub);font-weight:600">${fmtDate(r.last)}${r.lastSize}</span></div>
-    </div>`).join('');
-  // おすすめコース（回り順）
-  if(COURSE.length){
-    const title = nextTrip ? `${fmtDate(nextTrip.date)} のおすすめコース` : 'おすすめコース';
-    const steps = COURSE.map((p,i)=>`
-      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--ice);border-radius:999px;padding:5px 12px 5px 6px;margin:3px 2px;font-size:13px;font-weight:700">
-        <span style="background:var(--navy2);color:#fff;border-radius:999px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px">${i+1}</span>
-        ${p.point}<span style="color:var(--sub);font-weight:600;font-size:11.5px">${p.exp.toFixed(0)}匹・${p.lastSize}</span>
-      </span>`).join('<span style="color:var(--sub)">→</span>');
-    const expTotal = sum(COURSE.map(p=>p.exp));
-    document.getElementById('course').innerHTML = `
-      <h3 style="margin:14px 0 6px;font-size:13.5px;color:var(--navy2)">🧭 ${title}</h3>
-      <div style="line-height:2.1">${steps}</div>
-      <div class="hint">見込み合計 約${Math.round(expTotal)}匹。特大ゾーン（後ろ番号37〜41）から入って重量を確保 → 大・中と回り、小中心の ${COURSE[COURSE.length-1].point} は最後（相場と時間次第で温存もあり）。回り順は期待匹数×サイズ格の高い点を起点に、近い順でつないでいます。マップの点線が回り順です。</div>`;
-  }
-  const nDays = CATCH_LOG.length;
-  document.getElementById('expectNote').innerHTML =
-    `基準日：${fmtDate((nextTrip?nextTrip.date:latest.date))}。直近の実績ほど重視（半減期${HALF_LIFE_DAYS}日）するため、`+
-    `時期はずれの古い好漁場（例：6月に良かった丘側）は自動で評価が下がります。バーの薄さ＝データが古い/少ない印。`+
-    (nDays<3?`<br>⚠️ まだ${nDays}日分の記録なので、ほぼ直近実績の並びです。日数がたまるほど季節変化を織り込んだ期待値になります。`:'')+
-    `<br>💡 空振りだった場所も「0匹」でメモしてもらえると、期待値の精度が大きく上がります。箱数が分かれば入箱率（匹/箱）も出せます。`;
-})();
-
-/* ---- サイズ別匹数（最新日・横バー） ---- */
-(function(){
-  const byS = {}; SIZES.forEach(s=>byS[s]=0);
-  latest.entries.forEach(e=>byS[e.size]=(byS[e.size]||0)+e.count);
-  const max = Math.max(...SIZES.map(s=>byS[s]), 1);
-  const total = dayCount(latest);
-  document.getElementById('sizeBars').innerHTML = SIZES.map(s=>`
-    <div class="bar-row">
-      <div class="lbl">${s}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${byS[s]/max*100}%;background:${SIZE_COLOR[s]}"></div></div>
-      <div class="val">${byS[s]}匹 <span style="color:var(--sub);font-weight:600">(${Math.round(byS[s]/total*100)}%)</span></div>
-    </div>`).join('');
-})();
-
-/* ---- 凡例（サイズ区分） ---- */
-(function(){
-  const html = SIZES.map(s=>`<span><i class="dot" style="background:${SIZE_COLOR[s]}"></i>${s}</span>`).join('');
-  document.getElementById('legend1').innerHTML = html;
-  document.getElementById('legend2').innerHTML = html;
-})();
-
-/* ---- ポイント別匹数（最新日・横バー、色＝サイズ） ---- */
-(function(){
-  const max = Math.max(...latest.entries.map(e=>e.count), 1);
-  document.getElementById('pointBars').innerHTML = latest.entries.map(e=>`
-    <div class="bar-row">
-      <div class="lbl">${e.point}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${e.count/max*100}%;background:${SIZE_COLOR[e.size]}"></div></div>
-      <div class="val">${e.count}匹 <span style="color:var(--sub);font-weight:600">${e.size}</span></div>
-    </div>`).join('');
-})();
-
-/* ---- 漁場マップ（散布図：A×B、丸の面積＝匹数） ---- */
-(function(){
-  const pts = latest.entries.map(e=>{
-    const m = e.point.split('-').map(Number);
-    return { ...e, x:m[0], y:m[1] };
-  }).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
-  const wrap = document.getElementById('mapWrap');
-  if(!pts.length){ wrap.innerHTML = '<div class="empty">座標形式のポイントがありません</div>'; return; }
-
-  const W=760, H=430, pad={t:24,r:20,b:40,l:44};
-  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
-  const x0=Math.min(...xs)-1, x1=Math.max(...xs)+1;
-  const y0=Math.min(...ys)-3, y1=Math.max(...ys)+3;
-  const X=v=>pad.l+(v-x0)/(x1-x0)*(W-pad.l-pad.r);
-  const Y=v=>H-pad.b-(v-y0)/(y1-y0)*(H-pad.t-pad.b);
-  const R=c=>5.5*Math.sqrt(c);
-
-  let g='';
-  for(let v=Math.ceil(x0);v<=Math.floor(x1);v++)
-    g+=`<line x1="${X(v)}" y1="${pad.t}" x2="${X(v)}" y2="${H-pad.b}" stroke="var(--grid)"/><text x="${X(v)}" y="${H-pad.b+18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v}</text>`;
-  for(let v=Math.ceil(y0/5)*5;v<=y1;v+=5)
-    g+=`<line x1="${pad.l}" y1="${Y(v)}" x2="${W-pad.r}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pad.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
-
-  // おすすめコースの点線（マークの下に敷く）
-  const onCourse = COURSE.filter(c=>pts.some(p=>p.point===c.point));
-  const courseLine = onCourse.length>1
-    ? `<polyline points="${onCourse.map(c=>`${X(c.x)},${Y(c.y)}`).join(' ')}" fill="none" stroke="var(--navy2)" stroke-width="2" stroke-dasharray="6 6" opacity=".45"/>`
-      + onCourse.map((c,i)=>`<g><circle cx="${X(c.x)+14}" cy="${Y(c.y)+14}" r="9" fill="#fff" stroke="var(--navy2)" stroke-width="1.5"/><text x="${X(c.x)+14}" y="${Y(c.y)+17.5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--navy)">${i+1}</text></g>`).join('')
-    : '';
-  const marks = pts.map((p,i)=>`
-    <g class="pt" data-i="${i}" style="cursor:pointer">
-      <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${Math.max(R(p.count),8)}" fill="${SIZE_HEX[p.size]}" stroke="#fff" stroke-width="2"/>
-      <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${Math.max(R(p.count)+8,16)}" fill="transparent"/>
-      <text x="${X(p.x)}" y="${Y(p.y)-Math.max(R(p.count),8)-6}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">${p.point}・${p.count}匹</text>
-    </g>`).join('');
-
-  wrap.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ポイント別漁獲マップ">
-      <line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="var(--axis)"/>
-      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="var(--axis)"/>
-      ${g}${courseLine}${marks}
-      <text x="${(pad.l+W-pad.r)/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)">ポイント番号（前）</text>
-      <text x="14" y="${(pad.t+H-pad.b)/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 14 ${(pad.t+H-pad.b)/2})">ポイント番号（後）</text>
-    </svg>
-    <div class="tip" id="mapTip"></div>`;
-
-  const tip = document.getElementById('mapTip');
-  wrap.querySelectorAll('.pt').forEach(el=>{
-    const p = pts[+el.dataset.i];
-    const show = ev=>{
-      tip.textContent = `${p.point}：${p.count}匹（${p.size}）`;
-      const r = wrap.getBoundingClientRect();
-      const cx = (ev.touches?ev.touches[0]:ev).clientX - r.left;
-      const cy = (ev.touches?ev.touches[0]:ev).clientY - r.top;
-      tip.style.left = Math.min(cx+12, r.width-140)+'px';
-      tip.style.top = (cy-34)+'px';
-      tip.style.opacity = 1;
-    };
-    el.addEventListener('mousemove', show);
-    el.addEventListener('touchstart', show, {passive:true});
-    el.addEventListener('mouseleave', ()=>tip.style.opacity=0);
-    el.addEventListener('touchend', ()=>setTimeout(()=>tip.style.opacity=0, 1200), {passive:true});
+  tot();
+ }
+ Array.prototype.forEach.call(document.querySelectorAll('.memo-chip'),function(ch){
+  ch.addEventListener('click',function(){
+   if(st.e.length===0){st.d=today();}
+   var s=ch.textContent;
+   if(!st.e.some(function(en){return en.s===s;})){st.e.push({s:s,n:''});save();render();}
   });
-})();
-
-/* ---- 部会 水揚げ ---- */
-(function(){
-  const el = document.getElementById('bukai');
-  if(!BUKAI_LOG.length){ el.innerHTML = '<div class="empty">部会のデータはまだありません</div>'; return; }
-  el.innerHTML = [...BUKAI_LOG].reverse().map(d=>{
-    const rows = d.rows.map(r=>`
-      <tr><td>${r.name}</td><td class="num">${r.count}</td><td class="num">${r.kg.toFixed(1)}</td><td class="num">${r.avg.toFixed(1)}</td></tr>`).join('');
-    return `
-      <h3 style="margin:4px 0 8px;font-size:13.5px;color:var(--navy2)">${fmtDate(d.date)}　${d.category}</h3>
-      <div class="table-wrap" style="margin-bottom:6px">
-        <table>
-          <thead><tr><th>氏名</th><th class="num">尾数</th><th class="num">数量 (kg)</th><th class="num">目廻り (kg)</th></tr></thead>
-          <tbody>${rows}
-            <tr class="sum-row"><td>合計</td><td class="num">${d.total.count}</td><td class="num">${d.total.kg.toFixed(1)}</td><td class="num">${d.total.avg.toFixed(1)}</td></tr>
-          </tbody>
-        </table>
-      </div>
-      ${d.note?`<div class="hint" style="margin:0 0 14px">${d.note}</div>`:''}`;
-  }).join('');
-})();
-
-/* ---- 日別推移（2日分以上で表示） ---- */
-(function(){
-  const el = document.getElementById('trend');
-  if(CATCH_LOG.length < 2){
-    el.innerHTML = '<div class="empty">記録が2日分以上たまると、匹数・重量の推移がここに表示されます。</div>';
-    return;
-  }
-  const maxN = Math.max(...CATCH_LOG.map(dayCount),1);
-  const maxK = Math.max(...CATCH_LOG.map(d=>d.totalKg||0),1);
-  el.innerHTML = '<h3 style="margin:0 0 6px;font-size:13px;color:var(--navy2)">匹数</h3>'
-    + CATCH_LOG.map(d=>`
-      <div class="bar-row"><div class="lbl">${fmtDate(d.date)}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${dayCount(d)/maxN*100}%;background:var(--sz-2)"></div></div>
-        <div class="val">${dayCount(d)}匹</div></div>`).join('')
-    + '<h3 style="margin:14px 0 6px;font-size:13px;color:var(--navy2)">重量 (kg)</h3>'
-    + CATCH_LOG.map(d=>`
-      <div class="bar-row"><div class="lbl">${fmtDate(d.date)}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(d.totalKg||0)/maxK*100}%;background:var(--sz-3)"></div></div>
-        <div class="val">${d.totalKg??'—'}kg</div></div>`).join('');
-})();
-
-/* ---- 漁獲記録テーブル（新しい日が上。boxes記入時は入箱率列を追加） ---- */
-(function(){
-  const hasBoxes = CATCH_LOG.some(d=>d.entries.some(e=>e.boxes));
-  if(hasBoxes){
-    document.querySelector('#logBody').closest('table').querySelector('thead tr')
-      .insertAdjacentHTML('beforeend','<th class="num">入箱率</th>');
-  }
-  const rows = [];
-  [...CATCH_LOG].reverse().forEach(d=>{
-    d.entries.forEach((e,i)=>{
-      rows.push(`<tr>
-        <td>${i===0?fmtDate(d.date):''}</td>
-        <td>${e.point}</td>
-        <td class="num">${e.count}</td>
-        <td><span class="tag"><i class="dot" style="background:${SIZE_COLOR[e.size]}"></i>${e.size}</span></td>
-        ${hasBoxes?`<td class="num">${e.boxes?(e.count/e.boxes).toFixed(2)+' 匹/箱':'—'}</td>`:''}
-      </tr>`);
-    });
-    rows.push(`<tr class="sum-row"><td></td><td>合計</td><td class="num">${dayCount(d)}</td><td>${d.totalKg??'—'} kg</td>${hasBoxes?'<td></td>':''}</tr>`);
+ });
+ var pbtn=document.getElementById('mPlanSet');
+ if(pbtn){pbtn.addEventListener('click',function(){
+  if(st.e.length===0){st.d=today();}
+  PLAN.forEach(function(s){
+   if(!st.e.some(function(en){return en.s===s;})){st.e.push({s:s,n:''});}
   });
-  document.getElementById('logBody').innerHTML = rows.join('');
+  save();render();
+ });}
+ kgIn.addEventListener('input',function(){st.kg=kgIn.value;save();});
+ noteIn.addEventListener('input',function(){st.note=noteIn.value;save();});
+ function text(){
+  // 先頭にAIへの指示行を必ず入れる。スマホのCoworkはローカルの~/.claude/skills/を
+  // 見られないため、Notionの指示書を読ませる導線がないと記録パイプラインが起動しない。
+  var L=['Notionの「🐙 漁獲メモ 取り込み指示書」のとおりに処理して','','【漁獲メモ '+st.d+'】'];
+  var s=0;
+  st.e.forEach(function(en){
+   L.push(en.s+' '+(en.n===''?'?':en.n)+'匹'+(en.z?'('+en.z+')':''));
+   s+=Number(en.n)||0;});
+  L.push('合計 '+s+'匹'+(st.kg?' / '+st.kg+'kg':'（予想 約'+estw()+'kg）'));
+  if(st.note){L.push('メモ: '+st.note);}
+  return L.join('\n');
+ }
+ function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);}
+ document.getElementById('mCopy').addEventListener('click',function(){
+  var t=text();
+  function done(){var m=document.getElementById('mMsg');
+   m.textContent='✅ コピーしました（指示文つき）。Claudeにそのまま貼ってください';
+   setTimeout(function(){m.textContent='';},5000);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+   navigator.clipboard.writeText(t).then(done,function(){fallbackCopy(t);done();});
+  }else{fallbackCopy(t);done();}
+ });
+ document.getElementById('mClear').addEventListener('click',function(){
+  if(confirm('メモをクリアしますか？')){
+   st={d:today(),e:[],kg:'',note:''};save();
+   kgIn.value='';noteIn.value='';render();
+  }
+ });
+ render();
 })();
 </script>
-</body>
-</html>
+</section>
+<section id="race"><h2>🏁 レース現況（総重量ベース）</h2>
+<span class="big">3,792kg（7位）</span>
+<span class="sub">　518尾・平均 7.3kg/尾｜6位 湊 3,822kg まで <b>あと30kg</b>（次便でほぼ確実に射程）｜3位 佐々木まで 1,323kg</span>
+<table><tr><th>#</th><th>漁師</th><th>総重量</th><th>尾数</th><th>平均</th></tr><tr><td>1</td><td>桜井</td><td><b>6,552kg</b></td><td>1,018尾</td><td>6.4kg/尾</td></tr>
+<tr><td>2</td><td>大井</td><td><b>6,411kg</b></td><td>808尾</td><td>7.9kg/尾</td></tr>
+<tr><td>3</td><td>佐々木</td><td><b>5,115kg</b></td><td>734尾</td><td>7.0kg/尾</td></tr>
+<tr><td>4</td><td>宮崎</td><td><b>4,968kg</b></td><td>664尾</td><td>7.5kg/尾</td></tr>
+<tr><td>5</td><td>川口</td><td><b>4,880kg</b></td><td>825尾</td><td>5.9kg/尾</td></tr>
+<tr class="warn"><td>6</td><td>湊</td><td><b>3,822kg</b></td><td>553尾</td><td>6.9kg/尾</td></tr>
+<tr class="me"><td>7</td><td>相田裕康</td><td><b>3,792kg</b></td><td>518尾</td><td>7.3kg/尾</td></tr>
+<tr><td>8</td><td>沢田</td><td><b>3,417kg</b></td><td>525尾</td><td>6.5kg/尾</td></tr>
+<tr><td>9</td><td>古館</td><td><b>3,371kg</b></td><td>527尾</td><td>6.4kg/尾</td></tr>
+<tr><td>10</td><td>山田</td><td><b>2,175kg</b></td><td>324尾</td><td>6.7kg/尾</td></tr>
+<tr><td>11</td><td>松下</td><td><b>2,135kg</b></td><td>299尾</td><td>7.1kg/尾</td></tr>
+<tr><td>12</td><td>京谷</td><td><b>1,902kg</b></td><td>308尾</td><td>6.2kg/尾</td></tr></table>
+<p class="sub">平均kg/尾が大きい＝大型場（沖・深場）中心、小さい＝小型場中心の目安。</p>
+<a class="stats" href="#stats">📊 漁師別の週次・月次 →</a></section>
+<section id="plan"><h2>🚤 次の便プラン（期待kg×巻き順ルート・AI推計）</h2>
+<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">✅ <b>7/29の10本便：114尾／623.0kg で着地</b>（計画 93匹／610kg → <b>匹数 +23%・重量 +2%</b>で計画クリア）。目廻りは 5.5kg/尾 と計画6.6を下回り、<b>「数は増えたが小さい」</b>部会全体のトレンドどおりの中身。<span class="sub">※部会表の尾数は104と記入されていたが職員さんの記入ミス。実数114で登録（重量623.0kgは計量値のため表のまま）。</span></div>
+<h3>08/01(土) 4本 — 期待 約20匹/約115kg（≒15万円）</h3><table><tr><th>順</th><th>のし</th><th>中日数</th><th>水深帯</th><th>期待匹</th><th>期待kg</th></tr><tr><td>1</td><td><b>15-9</b></td><td>中3日</td><td>中46m</td><td>約13匹</td><td>約57kg</td></tr><tr><td>2</td><td><b>12-16</b></td><td>中12日</td><td>中54m</td><td>約2匹</td><td>約12kg 🔥90%高率の確認</td></tr><tr><td>3</td><td><b>12-18</b></td><td>中12日</td><td>中58m</td><td>約1匹</td><td>約8kg</td></tr><tr><td>4</td><td><b>15-26</b></td><td>中10日</td><td>深75m⚠️満潮</td><td>約4匹</td><td>約38kg</td></tr></table>
+<p class="sub" style="margin:6px 0">7/29に回した10本は8/1時点で中3日＝まだ早い。長く空いている 12-16・12-18（中12）と 15-26（中10）が主目的で、数の出る 15-9 を足す構成。軽い便なので、<b>12-16・12-18のフル化（各+5箱）をこの便で済ませる</b>のも手。</p>
+<h3>08/03〜05ごろ 沖ライン主体の本命便 — 中5〜7日で適期</h3><p style="margin:4px 0;font-size:14px"><b>15-34 → 14-37 → 11-40 → 10-41</b>＋<b>16-26</b>（7/29回収から中5〜7日）。丘の 14-10・16-18・15-20・14-22 は7/29の内訳が分かり次第、取捨を判断。</p>
+<p class="sub">順番＝丘→沖（行番号 小→大）を主軸に、同じ帯は下（番地大）→上（番地小）で移動最小。⚠️干潮=浅場(45m未満)・⚠️満潮=深場(60m超)があぐりにくい→当日の干満時刻（朝ブリ）に合わせて順番を前後させる。<br>💰 金額は7/27の活たこ(中) 単価 <b>1,320円/kg</b> で換算した参考値（単価は日々変動）。7/29の623kgは <b>約82万円</b> 相当。</p></section>
+<section><h2>🌡 水温と漁獲見通し（網走沿岸103・AI推計）</h2>
+<svg width="330" height="64" viewBox="0 0 330 64" style="max-width:100%"><polyline points="5,56 30,55 54,54 79,52 103,51 128,50 153,49 177,47 202,46 227,45 251,44 276,42 300,41 325,40" fill="none" stroke="#8aa4b8" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="5,43 30,40 54,36 79,33 103,13 128,11 153,12 177,12 202,14 227,14 251,10 276,11 300,15 325,8" fill="none" stroke="#c0392b" stroke-width="2"/></svg><p><b>07/21時点 18.5℃（平年差+3.7）</b>｜7日間で+0.5℃｜上昇局面＝沖・深場優勢の継続を想定（浅→深シフトの本格化はピークアウト後）</p><p>📈 <b>漁獲見通し（AI推計）</b>: 7/20週 実績 <b>860kg</b>で確定｜7/27週 実績 <b>623kg</b>（7/29便）＋8/1便 約115 → 約<b>740kg</b>見込み｜⚠️部会の目廻りは 6.1→5.7kg。自船も 6.7→5.5kg/尾 と初めて部会平均並みまで低下＝沖ラインにも小型化が及び始めた可能性。重量を確保するには沖の本数を増やすか、フル化で箱を増やす方向｜現体制の定常期待 約<b>850kg/週</b></p><p class="sub">実線=水温実測・点線=平年値（直近14日・公表2日遅れ）。水温×入箱率の相関: r=+0.61（n=11日・参考値）。中間帯は7/20に立ち上がり確認済み（15-20=13.4%・14-22=7.6%）。フル化余地は15-20/14-22各+78箱・15-26/16-26各+117箱（⚠️残り枠184箱が制約・7/20社長訂正: 15-20/14-22は装着2/3）。</p></section>
+<section><h2>📈 推移グラフ（本操業）</h2>
+<h3>日別の全体水揚げ（部会合計kg）</h3><svg width="340" height="132" viewBox="0 0 340 132" style="max-width:100%"><line x1="36" y1="116" x2="294" y2="116" stroke="#e5ecf1"/><text x="32" y="119" font-size="9" fill="#789" text-anchor="end">0</text><line x1="36" y1="62" x2="294" y2="62" stroke="#e5ecf1"/><text x="32" y="65" font-size="9" fill="#789" text-anchor="end">2,476</text><line x1="36" y1="8" x2="294" y2="8" stroke="#e5ecf1"/><text x="32" y="11" font-size="9" fill="#789" text-anchor="end">4,953</text><text x="36" y="129" font-size="9" fill="#789" text-anchor="middle">6/12</text><text x="169.4" y="129" font-size="9" fill="#789" text-anchor="middle">7/6</text><text x="294" y="129" font-size="9" fill="#789" text-anchor="middle">7/31</text><polyline points="36,96.6 44.9,79.9 53.8,96.6 62.7,105.8 71.6,83.7 80.5,94 89.4,110.4 98.3,112.2 107.2,15.7 116.1,80.8 125,110.6 133.9,48.3 142.8,85 151.7,69.8 160.6,103 169.4,78.3 178.3,70.1 187.2,73.5 196.1,110.4 205,45.4 213.9,103.9 222.8,26.1 231.7,74.7 240.6,80.5 249.5,102.6 258.4,89.7 267.3,26.7 276.2,82.2 285.1,64.7 294,100.4" fill="none" stroke="#0b3550" stroke-width="2"/><circle cx="36" cy="96.6" r="2.5" fill="#0b3550"><title>部会全体 6/12: 891</title></circle><circle cx="44.9" cy="79.9" r="2.5" fill="#0b3550"><title>部会全体 6/13: 1,655</title></circle><circle cx="53.8" cy="96.6" r="2.5" fill="#0b3550"><title>部会全体 6/15: 891</title></circle><circle cx="62.7" cy="105.8" r="2.5" fill="#0b3550"><title>部会全体 6/16: 467</title></circle><circle cx="71.6" cy="83.7" r="2.5" fill="#0b3550"><title>部会全体 6/17: 1,483</title></circle><circle cx="80.5" cy="94" r="2.5" fill="#0b3550"><title>部会全体 6/19: 1,008</title></circle><circle cx="89.4" cy="110.4" r="2.5" fill="#0b3550"><title>部会全体 6/22: 258</title></circle><circle cx="98.3" cy="112.2" r="2.5" fill="#0b3550"><title>部会全体 6/23: 175</title></circle><circle cx="107.2" cy="15.7" r="2.5" fill="#0b3550"><title>部会全体 6/24: 4,599</title></circle><circle cx="116.1" cy="80.8" r="2.5" fill="#0b3550"><title>部会全体 6/26: 1,613</title></circle><circle cx="125" cy="110.6" r="2.5" fill="#0b3550"><title>部会全体 6/29: 248</title></circle><circle cx="133.9" cy="48.3" r="2.5" fill="#0b3550"><title>部会全体 6/30: 3,105</title></circle><circle cx="142.8" cy="85" r="2.5" fill="#0b3550"><title>部会全体 7/1: 1,420</title></circle><circle cx="151.7" cy="69.8" r="2.5" fill="#0b3550"><title>部会全体 7/3: 2,117</title></circle><circle cx="160.6" cy="103" r="2.5" fill="#0b3550"><title>部会全体 7/4: 595</title></circle><circle cx="169.4" cy="78.3" r="2.5" fill="#0b3550"><title>部会全体 7/6: 1,728</title></circle><circle cx="178.3" cy="70.1" r="2.5" fill="#0b3550"><title>部会全体 7/9: 2,104</title></circle><circle cx="187.2" cy="73.5" r="2.5" fill="#0b3550"><title>部会全体 7/10: 1,951</title></circle><circle cx="196.1" cy="110.4" r="2.5" fill="#0b3550"><title>部会全体 7/11: 257</title></circle><circle cx="205" cy="45.4" r="2.5" fill="#0b3550"><title>部会全体 7/13: 3,240</title></circle><circle cx="213.9" cy="103.9" r="2.5" fill="#0b3550"><title>部会全体 7/14: 553</title></circle><circle cx="222.8" cy="26.1" r="2.5" fill="#0b3550"><title>部会全体 7/15: 4,122</title></circle><circle cx="231.7" cy="74.7" r="2.5" fill="#0b3550"><title>部会全体 7/20: 1,893</title></circle><circle cx="240.6" cy="80.5" r="2.5" fill="#0b3550"><title>部会全体 7/22: 1,629</title></circle><circle cx="249.5" cy="102.6" r="2.5" fill="#0b3550"><title>部会全体 7/23: 615</title></circle><circle cx="258.4" cy="89.7" r="2.5" fill="#0b3550"><title>部会全体 7/24: 1,207</title></circle><circle cx="267.3" cy="26.7" r="2.5" fill="#0b3550"><title>部会全体 7/27: 4,096</title></circle><circle cx="276.2" cy="82.2" r="2.5" fill="#0b3550"><title>部会全体 7/28: 1,552</title></circle><circle cx="285.1" cy="64.7" r="2.5" fill="#0b3550"><title>部会全体 7/29: 2,354</title></circle><circle cx="294" cy="100.4" r="2.5" fill="#0b3550"><title>部会全体 7/31: 714</title></circle><circle cx="298" cy="100.4" r="3" fill="#0b3550"/><text x="304" y="103.4" font-size="9" fill="#123">部会全体</text></svg><h3>レース累積（総重量kg・上位5名＋自船）</h3><svg width="340" height="132" viewBox="0 0 340 132" style="max-width:100%"><line x1="36" y1="116" x2="294" y2="116" stroke="#e5ecf1"/><text x="32" y="119" font-size="9" fill="#789" text-anchor="end">0</text><line x1="36" y1="62" x2="294" y2="62" stroke="#e5ecf1"/><text x="32" y="65" font-size="9" fill="#789" text-anchor="end">3,450</text><line x1="36" y1="8" x2="294" y2="8" stroke="#e5ecf1"/><text x="32" y="11" font-size="9" fill="#789" text-anchor="end">6,900</text><text x="36" y="129" font-size="9" fill="#789" text-anchor="middle">6/12</text><text x="165" y="129" font-size="9" fill="#789" text-anchor="middle">7/3</text><text x="294" y="129" font-size="9" fill="#789" text-anchor="middle">7/31</text><polyline points="36,113.3 44.9,113.3 53.8,108.5 62.7,108.5 71.6,104.9 80.5,101.3 89.4,98.8 98.3,98.8 107.2,85.9 116.1,82.6 125,82.6 133.9,77.9 142.8,70.6 151.7,66 160.6,66 169.4,60.4 178.3,53.3 187.2,53.3 196.1,53.3 205,46.5 213.9,46.5 222.8,35.8 231.7,30.3 240.6,30.3 249.5,30.3 258.4,30.3 267.3,16.6 276.2,16.6 285.1,16.6 294,15.7" fill="none" stroke="#0072B2" stroke-width="1.8"/><circle cx="298" cy="25.4" r="3" fill="#0072B2"/><text x="304" y="28.4" font-size="9" fill="#123">大井</text><polyline points="36,104.8 44.9,101.1 53.8,101.1 62.7,95.8 71.6,95.8 80.5,92.9 89.4,92.9 98.3,90.1 107.2,84.5 116.1,81.4 125,77.6 133.9,77.6 142.8,74.4 151.7,71.2 160.6,66.3 169.4,66.3 178.3,58.7 187.2,55.5 196.1,55.5 205,51.2 213.9,45.6 222.8,45.6 231.7,45.6 240.6,32.2 249.5,32.2 258.4,19.9 267.3,14.3 276.2,14.3 285.1,14.3 294,13.4" fill="none" stroke="#E69F00" stroke-width="1.8"/><circle cx="298" cy="13.4" r="3" fill="#E69F00"/><text x="304" y="16.4" font-size="9" fill="#123">桜井</text><polyline points="36,116 44.9,113.6 53.8,113.6 62.7,113.6 71.6,108.5 80.5,108.5 89.4,108.5 98.3,108.5 107.2,99.5 116.1,95.2 125,95.2 133.9,89.5 142.8,89.5 151.7,85.4 160.6,85.4 169.4,79.1 178.3,79.1 187.2,73.7 196.1,73.7 205,69.5 213.9,69.5 222.8,60.7 231.7,54 240.6,54 249.5,54 258.4,54 267.3,45.9 276.2,45.9 285.1,41.5 294,38.2" fill="none" stroke="#CC79A7" stroke-width="1.8"/><circle cx="298" cy="49.4" r="3" fill="#CC79A7"/><text x="304" y="52.4" font-size="9" fill="#123">宮崎</text><polyline points="36,116 44.9,111.9 53.8,111.9 62.7,111.9 71.6,106.1 80.5,106.1 89.4,106.1 98.3,106.1 107.2,95.3 116.1,92.5 125,92.5 133.9,85.4 142.8,85.4 151.7,83.2 160.6,83.2 169.4,83.2 178.3,72.4 187.2,72.4 196.1,72.4 205,62.2 213.9,62.2 222.8,56.8 231.7,56.8 240.6,56.8 249.5,56.8 258.4,56.8 267.3,43.7 276.2,35.9 285.1,35.9 294,35.9" fill="none" stroke="#009E73" stroke-width="1.8"/><circle cx="298" cy="37.4" r="3" fill="#009E73"/><text x="304" y="40.4" font-size="9" fill="#123">佐々木</text><polyline points="36,116 44.9,107.9 53.8,105.8 62.7,105.8 71.6,105.8 80.5,105.8 89.4,104.3 98.3,104.3 107.2,98.5 116.1,98 125,98 133.9,91.7 142.8,91.7 151.7,86.3 160.6,86.3 169.4,82.6 178.3,77.1 187.2,76.9 196.1,76.9 205,70.3 213.9,67.2 222.8,60.8 231.7,57.3 240.6,57.3 249.5,57.3 258.4,50.7 267.3,42 276.2,41.8 285.1,39.6 294,39.6" fill="none" stroke="#56B4E9" stroke-width="1.8"/><circle cx="298" cy="61.4" r="3" fill="#56B4E9"/><text x="304" y="64.4" font-size="9" fill="#123">川口</text><polyline points="36,116 44.9,116 53.8,116 62.7,116 71.6,114.3 80.5,114.3 89.4,114.3 98.3,114.3 107.2,114.3 116.1,110.9 125,110.9 133.9,105.9 142.8,103.8 151.7,102.4 160.6,102.4 169.4,94.9 178.3,94.9 187.2,88.4 196.1,84.4 205,79.8 213.9,79.8 222.8,79.8 231.7,72.9 240.6,66.4 249.5,66.4 258.4,66.4 267.3,66.4 276.2,66.4 285.1,56.6 294,56.6" fill="none" stroke="#D55E00" stroke-width="3"/><circle cx="298" cy="73.4" r="3" fill="#D55E00"/><text x="304" y="76.4" font-size="9" fill="#123">自船</text></svg><p class="sub" style="margin:4px 0 0">⚠️ 線は上位5名＋自船のみ表示。<b>6位・湊 3,822kg は非表示だが自船とわずか30kg差</b>（湊も7/29に557kgの好漁）。8位・沢田 3,417kg／9位・古館 3,371kg も接近中。</p><h3>平均重量（kg/尾・週次）— サイズシフト監視</h3><svg width="340" height="132" viewBox="0 0 340 132" style="max-width:100%"><line x1="36" y1="116" x2="294" y2="116" stroke="#e5ecf1"/><text x="32" y="119" font-size="9" fill="#789" text-anchor="end">4.2</text><line x1="36" y1="62" x2="294" y2="62" stroke="#e5ecf1"/><text x="32" y="65" font-size="9" fill="#789" text-anchor="end">7.8</text><line x1="36" y1="8" x2="294" y2="8" stroke="#e5ecf1"/><text x="32" y="11" font-size="9" fill="#789" text-anchor="end">11.3</text><text x="36" y="129" font-size="9" fill="#789" text-anchor="middle">6/8</text><text x="165" y="129" font-size="9" fill="#789" text-anchor="middle">6/29</text><text x="294" y="129" font-size="9" fill="#789" text-anchor="middle">7/27</text><polyline points="36,82.5 72.9,52.1 109.7,55.2 146.6,64.3 183.4,70.4 220.3,81 257.1,87.1 294,93.2" fill="none" stroke="#123" stroke-width="3"/><circle cx="36" cy="82.5" r="2.5" fill="#123"><title>部会全体 6/8: 6.4</title></circle><circle cx="72.9" cy="52.1" r="2.5" fill="#123"><title>部会全体 6/15: 8.4</title></circle><circle cx="109.7" cy="55.2" r="2.5" fill="#123"><title>部会全体 6/22: 8.2</title></circle><circle cx="146.6" cy="64.3" r="2.5" fill="#123"><title>部会全体 6/29: 7.6</title></circle><circle cx="183.4" cy="70.4" r="2.5" fill="#123"><title>部会全体 7/6: 7.2</title></circle><circle cx="220.3" cy="81" r="2.5" fill="#123"><title>部会全体 7/13: 6.5</title></circle><circle cx="257.1" cy="87.1" r="2.5" fill="#123"><title>部会全体 7/20: 6.1</title></circle><circle cx="294" cy="93.2" r="2.5" fill="#123"><title>部会全体 7/27: 5.7</title></circle><circle cx="298" cy="109.6" r="3" fill="#123"/><text x="304" y="112.6" font-size="9" fill="#123">部会全体</text><polyline points="36,35.4 72.9,43 109.7,35.4 146.6,46 183.4,15.6 220.3,65.8 257.1,94.7 294,96.2" fill="none" stroke="#0072B2" stroke-width="1.5"/><circle cx="36" cy="35.4" r="2.5" fill="#0072B2"><title>大井 6/8: 9.5</title></circle><circle cx="72.9" cy="43" r="2.5" fill="#0072B2"><title>大井 6/15: 9.0</title></circle><circle cx="109.7" cy="35.4" r="2.5" fill="#0072B2"><title>大井 6/22: 9.5</title></circle><circle cx="146.6" cy="46" r="2.5" fill="#0072B2"><title>大井 6/29: 8.8</title></circle><circle cx="183.4" cy="15.6" r="2.5" fill="#0072B2"><title>大井 7/6: 10.8</title></circle><circle cx="220.3" cy="65.8" r="2.5" fill="#0072B2"><title>大井 7/13: 7.5</title></circle><circle cx="257.1" cy="94.7" r="2.5" fill="#0072B2"><title>大井 7/20: 5.6</title></circle><circle cx="294" cy="96.2" r="2.5" fill="#0072B2"><title>大井 7/27: 5.5</title></circle><circle cx="298" cy="145.6" r="3" fill="#0072B2"/><text x="304" y="148.6" font-size="9" fill="#123">大井</text><polyline points="36,90.1 72.9,78 109.7,61.2 146.6,74.9 183.4,91.7 220.3,68.8 257.1,85.6 294,93.2" fill="none" stroke="#E69F00" stroke-width="1.5"/><circle cx="36" cy="90.1" r="2.5" fill="#E69F00"><title>桜井 6/8: 5.9</title></circle><circle cx="72.9" cy="78" r="2.5" fill="#E69F00"><title>桜井 6/15: 6.7</title></circle><circle cx="109.7" cy="61.2" r="2.5" fill="#E69F00"><title>桜井 6/22: 7.8</title></circle><circle cx="146.6" cy="74.9" r="2.5" fill="#E69F00"><title>桜井 6/29: 6.9</title></circle><circle cx="183.4" cy="91.7" r="2.5" fill="#E69F00"><title>桜井 7/6: 5.8</title></circle><circle cx="220.3" cy="68.8" r="2.5" fill="#E69F00"><title>桜井 7/13: 7.3</title></circle><circle cx="257.1" cy="85.6" r="2.5" fill="#E69F00"><title>桜井 7/20: 6.2</title></circle><circle cx="294" cy="93.2" r="2.5" fill="#E69F00"><title>桜井 7/27: 5.7</title></circle><circle cx="298" cy="121.6" r="3" fill="#E69F00"/><text x="304" y="124.6" font-size="9" fill="#123">桜井</text><polyline points="36,49.1 72.9,58.2 109.7,33.9 146.6,44.5 183.4,53.6 220.3,74.9 257.1,78 294,91.7" fill="none" stroke="#CC79A7" stroke-width="1.5"/><circle cx="36" cy="49.1" r="2.5" fill="#CC79A7"><title>宮崎 6/8: 8.6</title></circle><circle cx="72.9" cy="58.2" r="2.5" fill="#CC79A7"><title>宮崎 6/15: 8.0</title></circle><circle cx="109.7" cy="33.9" r="2.5" fill="#CC79A7"><title>宮崎 6/22: 9.6</title></circle><circle cx="146.6" cy="44.5" r="2.5" fill="#CC79A7"><title>宮崎 6/29: 8.9</title></circle><circle cx="183.4" cy="53.6" r="2.5" fill="#CC79A7"><title>宮崎 7/6: 8.3</title></circle><circle cx="220.3" cy="74.9" r="2.5" fill="#CC79A7"><title>宮崎 7/13: 6.9</title></circle><circle cx="257.1" cy="78" r="2.5" fill="#CC79A7"><title>宮崎 7/20: 6.7</title></circle><circle cx="294" cy="91.7" r="2.5" fill="#CC79A7"><title>宮崎 7/27: 5.8</title></circle><circle cx="298" cy="97.6" r="3" fill="#CC79A7"/><text x="304" y="100.6" font-size="9" fill="#123">宮崎</text><polyline points="36,55.2 72.9,44.5 109.7,53.6 146.6,73.4 183.4,59.7 220.3,78 294,93.2" fill="none" stroke="#009E73" stroke-width="1.5"/><circle cx="36" cy="55.2" r="2.5" fill="#009E73"><title>佐々木 6/8: 8.2</title></circle><circle cx="72.9" cy="44.5" r="2.5" fill="#009E73"><title>佐々木 6/15: 8.9</title></circle><circle cx="109.7" cy="53.6" r="2.5" fill="#009E73"><title>佐々木 6/22: 8.3</title></circle><circle cx="146.6" cy="73.4" r="2.5" fill="#009E73"><title>佐々木 6/29: 7.0</title></circle><circle cx="183.4" cy="59.7" r="2.5" fill="#009E73"><title>佐々木 7/6: 7.9</title></circle><circle cx="220.3" cy="78" r="2.5" fill="#009E73"><title>佐々木 7/13: 6.7</title></circle><circle cx="294" cy="93.2" r="2.5" fill="#009E73"><title>佐々木 7/27: 5.7</title></circle><circle cx="298" cy="133.6" r="3" fill="#009E73"/><text x="304" y="136.6" font-size="9" fill="#123">佐々木</text><polyline points="36,103.8 72.9,108.4 109.7,93.2 146.6,71.9 183.4,100.8 220.3,78 257.1,96.2 294,85.6" fill="none" stroke="#56B4E9" stroke-width="1.5"/><circle cx="36" cy="103.8" r="2.5" fill="#56B4E9"><title>川口 6/8: 5.0</title></circle><circle cx="72.9" cy="108.4" r="2.5" fill="#56B4E9"><title>川口 6/15: 4.7</title></circle><circle cx="109.7" cy="93.2" r="2.5" fill="#56B4E9"><title>川口 6/22: 5.7</title></circle><circle cx="146.6" cy="71.9" r="2.5" fill="#56B4E9"><title>川口 6/29: 7.1</title></circle><circle cx="183.4" cy="100.8" r="2.5" fill="#56B4E9"><title>川口 7/6: 5.2</title></circle><circle cx="220.3" cy="78" r="2.5" fill="#56B4E9"><title>川口 7/13: 6.7</title></circle><circle cx="257.1" cy="96.2" r="2.5" fill="#56B4E9"><title>川口 7/20: 5.5</title></circle><circle cx="294" cy="85.6" r="2.5" fill="#56B4E9"><title>川口 7/27: 6.2</title></circle><circle cx="298" cy="85.6" r="3" fill="#56B4E9"/><text x="304" y="88.6" font-size="9" fill="#123">川口</text><polyline points="72.9,24.7 109.7,43 146.6,36.9 183.4,55.2 220.3,78 257.1,78 294,96.2" fill="none" stroke="#D55E00" stroke-width="2.5"/><circle cx="72.9" cy="24.7" r="2.5" fill="#D55E00"><title>自船 6/15: 10.2</title></circle><circle cx="109.7" cy="43" r="2.5" fill="#D55E00"><title>自船 6/22: 9.0</title></circle><circle cx="146.6" cy="36.9" r="2.5" fill="#D55E00"><title>自船 6/29: 9.4</title></circle><circle cx="183.4" cy="55.2" r="2.5" fill="#D55E00"><title>自船 7/6: 8.2</title></circle><circle cx="220.3" cy="78" r="2.5" fill="#D55E00"><title>自船 7/13: 6.7</title></circle><circle cx="257.1" cy="78" r="2.5" fill="#D55E00"><title>自船 7/20: 6.7</title></circle><circle cx="294" cy="96.2" r="2.5" fill="#D55E00"><title>自船 7/27: 5.5</title></circle><circle cx="298" cy="157.6" r="3" fill="#D55E00"/><text x="304" y="160.6" font-size="9" fill="#123">自船</text></svg><p class="sub">本操業（6/1〜）・部会LINE表ベース。点にタッチで数値表示。平均重量は週次平均（日次は行った場所のノイズでジグザグになるため）。<b>点のない週はその漁師の水揚げがなかった週</b>（線は前後をつないでいるだけ）。各漁師の仕掛け位置はほぼ固定なので、多くの漁師の線が同時に上がる＝タコが沖（大型帯）へシフトしている兆候、同時に下がる＝小型化・数のフェーズ。</p></section>
+<section><h2>🔬 沖⇔丘 分析（サイズシフト×漁師別の仕掛け位置）</h2>
+<div class="memo-plan" style="background:#fdecea;border-color:#e0b4ae">
+<b>🔎 7/31の読み：丘側の「見切り」が始まった可能性（社長の見立て）</b><br>
+7/27に873kg・359kgを上げた大井・桜井が、7/31に <b>12尾/60kg（目廻り5.0）</b>・<b>11尾/52kg（4.7）</b>と激減。通常操業ではなく、<b>タコがおらず今後の増加も見込めない丘側（浅場）ののしを上げた＝撤収</b>と見るのが自然。<br>
+<span class="sub">データ上の整合点：①両者の目廻り5.0/4.7は部会平均5.8を大きく下回る＝浅場の小型サイズ　②山田も4.7と小型　③一方で宮崎は7.2と大型＝沖側を回った側　④同じ7/31に自船は休漁（父不在）のため比較対象なし　→ 同じ日でも「丘を回った人＝小型少数／沖を回った人＝大型」に割れている。<br>
+⚠️ 部会表からは「どののしを上げたか」までは読めないため仮説。次回以降、大井・桜井の目廻りが戻る（＝沖中心に切り替わった）かで検証できる。<br>
+👉 自船への含意：トップ2が丘を見切り始めたなら、<b>15-9（小主体）・14-10（急減速）も同じ判断が近い</b>。沖ライン（行26〜41）への比重シフトを加速する材料になる。</span></div>
+<h3>サイズシフト指標（部会全体・週次平均重量）</h3><table><tr><th>週</th><th>平均重量</th><th>標本</th><th></th></tr><tr><td>6/8週</td><td><b>6.4kg/尾</b></td><td>395尾</td><td></td></tr><tr><td>6/15週</td><td><b>8.4kg/尾</b>（+2.0）</td><td>457尾</td><td>📈</td></tr><tr><td>6/22週</td><td><b>8.2kg/尾</b>（-0.2）</td><td>807尾</td><td>→</td></tr><tr><td>6/29週</td><td><b>7.6kg/尾</b>（-0.6）</td><td>979尾</td><td>📉</td></tr><tr><td>7/6週</td><td><b>7.2kg/尾</b>（-0.4）</td><td>836尾</td><td>📉</td></tr><tr><td>7/13週</td><td><b>6.5kg/尾</b>（-0.7）</td><td>1209尾</td><td>📉</td></tr><tr><td>7/20週</td><td><b>6.1kg/尾</b>（-0.4）</td><td>878尾</td><td>📉</td></tr><tr><td>7/27週</td><td><b>5.7kg/尾</b>（-0.4）</td><td>1542尾</td><td>📉</td></tr></table><p>直近週は横ばい〜マイナス＝小型化・数のフェーズ継続（AI推計・中央値は個体データがないため算出不可）。7/27週は7/27・28・29・31の4日で1,542尾＝5.7kg/尾。自船も7/29に 5.5kg/尾（114尾/623kg）と、6月の10.2から半減。7/27は部会全体717尾/4,096kgの大漁ながら目廻り5.7、7/28も山田138尾(5.1)・佐々木90尾(5.5)と「数は出るが小さい」典型。ただし自船7/22の沖ライン（行26〜41）は特大中心＝沖の大型は健在なので、重量を取りにいくなら沖</p><h3>漁師×仕掛け位置（保有マップ5月時点）</h3><table><tr><th>漁師</th><th>のし</th><th>平均行=沖度</th><th>沖30+/丘15-</th><th>水揚げ</th><th>kg/尾</th></tr><tr><td>大井</td><td>14本</td><td>25</td><td>沖5/丘5</td><td>6,411kg</td><td>7.9</td></tr><tr><td>桜井</td><td>13本</td><td>27</td><td>沖5/丘3</td><td>6,552kg</td><td>6.4</td></tr><tr><td>宮崎</td><td>12本</td><td>24</td><td>沖4/丘4</td><td>4,968kg</td><td>7.5</td></tr><tr><td>佐々木</td><td>13本</td><td>22</td><td>沖3/丘3</td><td>5,115kg</td><td>7.0</td></tr><tr><td>川口</td><td>11本</td><td>27</td><td>沖4/丘1</td><td>4,880kg</td><td>5.9</td></tr><tr><td>沢田</td><td>9本</td><td>14</td><td>沖0/丘7</td><td>3,417kg</td><td>6.5</td></tr><tr class="me"><td>自船</td><td>10本</td><td>24</td><td>沖3/丘2</td><td>3,792kg</td><td>7.3</td></tr><tr><td>湊</td><td>15本</td><td>20</td><td>沖3/丘5</td><td>3,822kg</td><td>6.9</td></tr><tr><td>古館</td><td>12本</td><td>20</td><td>沖4/丘6</td><td>3,371kg</td><td>6.4</td></tr><tr><td>京谷</td><td>6本</td><td>11</td><td>沖0/丘4</td><td>1,902kg</td><td>6.2</td></tr><tr><td>山田</td><td>10本</td><td>22</td><td>沖2/丘4</td><td>2,175kg</td><td>6.7</td></tr><tr><td>松下</td><td>9本</td><td>24</td><td>沖3/丘4</td><td>2,135kg</td><td>7.1</td></tr></table><p class="sub">保有沖度×平均重量の相関 r=+0.30。行番号が大きい=沖・深い。⚠️保有マップは5月ドラフト時点＝実際にどこを回しているかは別（相関が弱い漁師は保有と運用がズレている可能性）。自船内の定点比較では 行9-10帯=中型7kg・行34-41帯=特大11kg と沖=大型が明確。水揚げ欄は最新（7/31時点）に更新済み。</p></section>
+<section><h2>🎯 のし別 期待値（真の実力・AI推計）</h2>
+<table><tr><th>漁場</th><th>期待入箱率</th><th>実績</th><th>今日回収なら</th></tr>
+<tr><td><b>12-16</b></td><td>21.2%</td><td>2回</td><td>約1匹</td></tr>
+<tr><td><b>12-18</b></td><td>14.2%</td><td>1回</td><td>約1匹</td></tr>
+<tr><td><b>15-9</b></td><td>10.5%</td><td>10回</td><td>約11匹</td></tr>
+<tr><td><b>15-20</b></td><td>6.7%</td><td>4回</td><td>約7匹</td></tr>
+<tr><td><b>15-34</b></td><td>5.9%</td><td>5回</td><td>約5匹</td></tr>
+<tr><td><b>14-10</b></td><td>5.7%</td><td>5回</td><td>約9匹</td></tr>
+<tr><td><b>10-41</b></td><td>5.6%</td><td>3回</td><td>約3匹 ⬆️</td></tr>
+<tr><td><b>16-18</b></td><td>5.2%</td><td>7回</td><td>約6匹</td></tr>
+<tr><td><b>14-37</b></td><td>5.1%</td><td>5回</td><td>約3匹</td></tr>
+<tr><td><b>11-40</b></td><td>5.0%</td><td>4回</td><td>約3匹</td></tr>
+<tr><td><b>14-22</b></td><td>4.7%</td><td>4回</td><td>約5匹</td></tr>
+<tr><td><b>16-26</b></td><td>4.5%</td><td>5回</td><td>約2匹 ⬆️</td></tr>
+<tr><td><b>15-26</b></td><td>3.9%</td><td>4回</td><td>約2匹 ⬆️</td></tr></table>
+<p class="sub">期待入箱率＝中日数(観測頻度)の影響を補正した全履歴ベースの推定。ホットスポットほど生入箱率が低く見える問題を解消。実績が少ないのしは全体平均(6.6%)寄りに補正。τ実測暫定 5.75（回収58件・計算は現行3.5のまま・20件超えたら採用検討）｜水温相関: r=+0.61（n=11日・参考値）</p></section>
+<section><h2>🔀 移動判断（低実力のしの移動利得・AI推計）</h2>
+<table><tr><th>のし</th><th>実績</th><th>今の週間期待</th><th>平均場へ移動なら</th><th>利得</th><th>判定</th></tr><tr><td><b>15-26</b></td><td>4回</td><td>約4.4匹</td><td>約7.5匹</td><td>+3.1匹/週</td><td>保留（7/22=7匹に改善・次回も見る）</td></tr></table><p class="sub">「平均場」＝実績なし新規場を全体平均と仮定。移動作業コストと新規場の不確実性は含まない。2%未満×2回ルールと併用。</p></section>
+<section><h2>🧵 のし管理（丸数・装着率・箱数／部会規定2,000箱）</h2>
+<table><tr><th>のし</th><th>区分</th><th>長さ</th><th>装着率</th><th>箱数</th><th>フル化余地</th></tr><tr><td><b>15-9</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>14-10</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>12-16</b></td><td>追加</td><td>0.5丸</td><td>50%</td><td>10箱</td><td>+5箱</td></tr><tr><td><b>16-18</b></td><td>番内</td><td>6丸</td><td>76%</td><td>178箱</td><td>+56箱</td></tr><tr><td><b>12-18</b></td><td>追加</td><td>0.5丸</td><td>50%</td><td>10箱</td><td>+5箱</td></tr><tr><td><b>15-20</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr><td><b>14-22</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr><td><b>16-26</b></td><td>番内</td><td>6丸</td><td>50%</td><td>118箱</td><td>+118箱</td></tr><tr><td><b>15-26</b></td><td>番内</td><td>6丸</td><td>50%</td><td>118箱</td><td>+118箱</td></tr><tr><td><b>15-34</b></td><td>番外</td><td>7丸</td><td>72%</td><td>195箱</td><td>+8箱</td></tr><tr><td><b>14-37</b></td><td>番外</td><td>7丸</td><td>50%</td><td>135箱</td><td>+68箱</td></tr><tr><td><b>11-40</b></td><td>番外</td><td>7丸</td><td>50%</td><td>135箱</td><td>+68箱</td></tr><tr><td><b>10-41</b></td><td>追加</td><td>8丸</td><td>44%</td><td>133箱</td><td>+94箱</td></tr></table><p><b>海中の箱 合計 1,816箱 / 部会上限2,000箱（使用率91%・残り184箱）</b></p><p class="sub">⚠️全のしフル化は約2,510箱となり上限超過→実力上位からの選択フル化が必須。規定: のし長=通常6丸+アンカー綱・オープン漁場(番外)は+1丸可・オープンの装着は最大3/4(100%はのしが外れなくなる)。1丸=200mロープ・輪っか38個。一部漁場は帆立・底引きの兼ね合いで短縮規定あり。箱在庫は陸に十分あり（2026-07-03社長）。</p></section>
+<section id="sched"><h2>📅 漁場予定表（3温度管理）</h2>
+<table><tr><th>漁場</th><th>区分</th><th>前回</th><th>補正入箱率</th><th>次回目安</th></tr>
+<tr class="hot"><td><b>12-16</b></td><td>🔥2連続高率(40→90%)・フル化+5箱をこの便で</td><td>07/20（9匹）</td><td>90.0%</td><td><b>08/01（中12）</b></td></tr>
+<tr class="hot"><td><b>12-18</b></td><td>🔥初回収60%(小標本)・フル化+5箱候補</td><td>07/20（6匹）</td><td>60.0%</td><td><b>08/01（中12）</b></td></tr>
+<tr class="due"><td><b>15-26</b></td><td>🌤移動候補→7/22に7匹(中)で保留中</td><td>07/22（7匹・中）</td><td>3.9%</td><td><b>08/01（中10）</b></td></tr>
+<tr class="due"><td><b>15-9</b></td><td>🌤数は出るが⚠️小主体・軽い便の埋め合わせ</td><td>07/29（内訳未登録）</td><td>7.9%</td><td><b>08/01（中3）</b></td></tr>
+<tr><td><b>15-34</b></td><td>🌤好調キープ・箱195</td><td>07/29（内訳未登録）</td><td>5.9%</td><td>08/03〜05（中5〜7）</td></tr>
+<tr><td><b>14-37</b></td><td>🌤沖・やや軽め</td><td>07/29（内訳未登録）</td><td>5.1%</td><td>08/03〜05（中5〜7）</td></tr>
+<tr><td><b>11-40</b></td><td>🌤沖(下側偏在)</td><td>07/29（内訳未登録）</td><td>5.0%</td><td>08/03〜05（中5〜7）</td></tr>
+<tr><td><b>10-41</b></td><td>🔥沖の当たりのし(7/22=特大12匹)</td><td>07/29（内訳未登録）</td><td>5.6%</td><td>08/03〜05（中5〜7）</td></tr>
+<tr><td><b>16-26</b></td><td>🌤沖の入口</td><td>07/29（内訳未登録）</td><td>4.5%</td><td>08/03〜05（中5〜7）</td></tr>
+<tr><td><b>15-20</b></td><td>🔥7/20に21匹(13.4%)・フル化+78箱の筆頭候補</td><td>07/29（内訳未登録）</td><td>13.4%</td><td>08/05〜07（中7〜9）</td></tr>
+<tr><td><b>14-22</b></td><td>🌤上向き(7/20=7.6%)</td><td>07/29（内訳未登録）</td><td>7.6%</td><td>08/05〜07（中7〜9）</td></tr>
+<tr><td><b>16-18</b></td><td>🌤復調(7/20=12匹)</td><td>07/29（内訳未登録）</td><td>7.0%</td><td>08/05〜07（中7〜9）</td></tr>
+<tr class="warn"><td><b>14-10</b></td><td>⚠️7/20に23→2匹の急減速。7/29の結果次第で休ませ延長</td><td>07/29（内訳未登録）</td><td>1.3%</td><td>08/05〜07（中7〜9）</td></tr></table>
+<p class="sub">⚠️ 7/29に10本を回収済み（合計114尾/623kg）。<b>のし別の内訳が未登録</b>のため「前回」は日付のみ。内訳を送ってもらえれば、補正入箱率と次回目安を各のしで引き直します。7/30・31は休漁（父不在）。</p></section>
+<section id="daily"><h2>📖 日別記録（自船）</h2>
+<table><tr><th>日付</th><th>漁場別尾数</th><th>日合計</th></tr>
+<tr><td>07/29</td><td>10本便（15-9・14-10・16-18・15-20・14-22・16-26・15-34・14-37・11-40・10-41）<span class="sub">　のし別内訳は未登録</span></td><td><b>114匹 / 623kg</b></td></tr>
+<tr><td>07/22</td><td>15-9 <b>9</b><span class="sub">(小)</span>　16-26 <b>7</b><span class="sub">(中)</span>　15-26 <b>7</b><span class="sub">(中)</span>　15-34 <b>9</b><span class="sub">(大)</span>　14-37 <b>4</b><span class="sub">(特大)</span>　11-40 <b>7</b><span class="sub">(特大)</span>　10-41 <b>12</b><span class="sub">(特大)</span></td><td><b>55匹 / 415kg</b></td></tr>
+<tr><td>07/20</td><td>15-9 <b>11</b>　14-10 <b>2</b>　12-16 <b>9</b>　16-18 <b>12</b>　15-20 <b>21</b>　14-22 <b>12</b>　12-18 <b>6</b></td><td><b>74匹 / 445kg</b></td></tr>
+<tr><td>07/17</td><td>15-9 <b>42</b>　14-10 <b>23</b></td><td><b>65匹 / 369kg</b></td></tr>
+<tr><td>07/13</td><td>15-9 <b>17</b>　14-10 <b>11</b>　16-18 <b>4</b>　15-34 <b>6</b>　14-37 <b>3</b></td><td><b>43匹 / 290kg</b></td></tr>
+<tr><td>07/11</td><td>15-34 <b>7</b>　14-37 <b>3</b>　11-40 <b>6</b>　10-41 <b>5</b>　15-26 <b>4</b>　16-26 <b>2</b>　12-16 <b>4</b></td><td><b>31匹 / 257kg</b></td></tr>
+<tr><td>07/10</td><td>15-9 <b>25</b>　14-10 <b>10</b>　16-18 <b>5</b>　15-20 <b>7</b>　14-22 <b>8</b>　16-26 <b>6</b></td><td><b>61匹 / 416kg</b></td></tr>
+<tr><td>07/06</td><td>15-9 <b>10</b>　16-18 <b>8</b>　15-34 <b>12</b>　14-37 <b>9</b>　11-40 <b>6</b>　10-41 <b>4</b></td><td><b>48匹 / 474kg</b></td></tr>
+<tr><td>07/03</td><td>15-9 <b>8</b>　15-20 <b>5</b>　14-22 <b>1</b>　14-10 <b>0</b>　13-22 <b>0</b></td><td><b>13匹 / 96kg</b></td></tr>
+<tr><td>07/01</td><td>16-26 <b>4</b>　15-26 <b>5</b>　16-18 <b>5</b></td><td><b>14匹 / 131kg</b></td></tr>
+<tr><td>06/30</td><td>15-9 <b>12</b>　15-34 <b>5</b>　14-37 <b>9</b>　11-40 <b>5</b></td><td><b>31匹 / 317kg</b></td></tr>
+<tr><td>06/26</td><td>15-9 <b>16</b>　16-18 <b>8</b></td><td><b>24匹 / 216kg</b></td></tr>
+<tr><td>06/17</td><td>15-9 <b>8</b>　16-18 <b>1</b>　15-20 <b>0</b>　14-22 <b>1</b>　16-26 <b>1</b>　15-26 <b>0</b></td><td><b>11匹 / 112kg</b></td></tr></table></section>
+<footer style="text-align:center;font-size:11px;color:#789;padding:8px 0 16px;">
+記録はチャットに「漁場 尾数」を送るだけ／部会表はスクショ転送でOK</footer>
+
+
+<header id="stats"><h1>📊 漁師別 週次・月次</h1><p>生成: 2026-07-31 更新（部会表7/29＋7/31反映）｜部会LINE表ベース｜平均kg/尾＝どのサイズ帯（≒どのエリア）を獲っているかの目安</p></header>
+
+<details open class="me-block"><summary><b>相田裕康</b>
+<span class="sub">　通年 5,362kg・676尾・平均 7.9kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>3,147kg</b></td><td>452尾</td><td>7.0kg/尾</td></tr><tr><td>6月</td><td><b>645kg</b></td><td>66尾</td><td>9.8kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,570kg</b></td><td>158尾</td><td>9.9kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>623kg</b></td><td>114尾</td><td>5.5kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>860kg</b></td><td>128尾</td><td>6.7kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>290kg</b></td><td>43尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>1,147kg</b></td><td>140尾</td><td>8.2kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>544kg</b></td><td>58尾</td><td>9.4kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>216kg</b></td><td>24尾</td><td>9.0kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>112kg</b></td><td>11尾</td><td>10.2kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>429kg</b></td><td>28尾</td><td>15.3kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,141kg</b></td><td>130尾</td><td>8.8kg/尾</td></tr></table></div>
+</div></details><details><summary><b>大井</b>
+<span class="sub">　通年 9,485kg・1,152尾・平均 8.2kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>3,981kg</b></td><td>543尾</td><td>7.3kg/尾</td></tr><tr><td>6月</td><td><b>2,430kg</b></td><td>265尾</td><td>9.2kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>3,074kg</b></td><td>344尾</td><td>8.9kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>933kg</b></td><td>170尾</td><td>5.5kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>350kg</b></td><td>63尾</td><td>5.6kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>1,126kg</b></td><td>151尾</td><td>7.5kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>810kg</b></td><td>75尾</td><td>10.8kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>1,060kg</b></td><td>120尾</td><td>8.8kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>1,189kg</b></td><td>125尾</td><td>9.5kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>772kg</b></td><td>86尾</td><td>9.0kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>171kg</b></td><td>18尾</td><td>9.5kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>762kg</b></td><td>86尾</td><td>8.9kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>2,312kg</b></td><td>258尾</td><td>9.0kg/尾</td></tr></table></div>
+</div></details><details><summary><b>桜井</b>
+<span class="sub">　通年 8,951kg・1,234尾・平均 7.3kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>4,099kg</b></td><td>635尾</td><td>6.5kg/尾</td></tr><tr><td>6月</td><td><b>2,453kg</b></td><td>383尾</td><td>6.4kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>2,399kg</b></td><td>216尾</td><td>11.1kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>411kg</b></td><td>72尾</td><td>5.7kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>1,641kg</b></td><td>266尾</td><td>6.2kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>631kg</b></td><td>87尾</td><td>7.3kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>690kg</b></td><td>119尾</td><td>5.8kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>974kg</b></td><td>142尾</td><td>6.9kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>728kg</b></td><td>93尾</td><td>7.8kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>523kg</b></td><td>78尾</td><td>6.7kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>954kg</b></td><td>161尾</td><td>5.9kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>607kg</b></td><td>49尾</td><td>12.4kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,792kg</b></td><td>167尾</td><td>10.7kg/尾</td></tr></table></div>
+</div></details><details><summary><b>川口</b>
+<span class="sub">　通年 6,684kg・980尾・平均 6.8kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>3,332kg</b></td><td>543尾</td><td>6.1kg/尾</td></tr><tr><td>6月</td><td><b>1,548kg</b></td><td>282尾</td><td>5.5kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,804kg</b></td><td>155尾</td><td>11.6kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>708kg</b></td><td>115尾</td><td>6.2kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>643kg</b></td><td>116尾</td><td>5.5kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>1,032kg</b></td><td>154尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>603kg</b></td><td>115尾</td><td>5.2kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>746kg</b></td><td>105尾</td><td>7.1kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>496kg</b></td><td>87尾</td><td>5.7kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>137kg</b></td><td>29尾</td><td>4.7kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>515kg</b></td><td>104尾</td><td>5.0kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>432kg</b></td><td>40尾</td><td>10.8kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,372kg</b></td><td>115尾</td><td>11.9kg/尾</td></tr></table></div>
+</div></details><details><summary><b>佐々木</b>
+<span class="sub">　通年 6,240kg・835尾・平均 7.5kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>3,161kg</b></td><td>495尾</td><td>6.4kg/尾</td></tr><tr><td>6月</td><td><b>1,954kg</b></td><td>239尾</td><td>8.2kg/尾</td></tr><tr><td>4月（越冬）</td><td><b>203kg</b></td><td>14尾</td><td>14.5kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>922kg</b></td><td>87尾</td><td>10.6kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>1,333kg</b></td><td>234尾</td><td>5.7kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>994kg</b></td><td>149尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>688kg</b></td><td>87尾</td><td>7.9kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>597kg</b></td><td>85尾</td><td>7.0kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>869kg</b></td><td>105尾</td><td>8.3kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>373kg</b></td><td>42尾</td><td>8.9kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>261kg</b></td><td>32尾</td><td>8.2kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>203kg</b></td><td>14尾</td><td>14.5kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>922kg</b></td><td>87尾</td><td>10.6kg/尾</td></tr></table></div>
+</div></details><details><summary><b>宮崎</b>
+<span class="sub">　通年 4,968kg・664尾・平均 7.5kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>3,274kg</b></td><td>487尾</td><td>6.7kg/尾</td></tr><tr><td>6月</td><td><b>1,694kg</b></td><td>177尾</td><td>9.6kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>1,005kg</b></td><td>173尾</td><td>5.8kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>431kg</b></td><td>64尾</td><td>6.7kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>833kg</b></td><td>120尾</td><td>6.9kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>742kg</b></td><td>89尾</td><td>8.3kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>632kg</b></td><td>71尾</td><td>8.9kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>850kg</b></td><td>89尾</td><td>9.6kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>320kg</b></td><td>40尾</td><td>8.0kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>155kg</b></td><td>18尾</td><td>8.6kg/尾</td></tr></table></div>
+</div></details><details><summary><b>湊</b>
+<span class="sub">　通年 5,220kg・685尾・平均 7.6kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>2,164kg</b></td><td>356尾</td><td>6.1kg/尾</td></tr><tr><td>6月</td><td><b>1,658kg</b></td><td>197尾</td><td>8.4kg/尾</td></tr><tr><td>4月（越冬）</td><td><b>273kg</b></td><td>22尾</td><td>12.4kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,125kg</b></td><td>110尾</td><td>10.2kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>1,295kg</b></td><td>215尾</td><td>6.0kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>253kg</b></td><td>40尾</td><td>6.3kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>335kg</b></td><td>55尾</td><td>6.1kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>716kg</b></td><td>105尾</td><td>6.8kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>485kg</b></td><td>51尾</td><td>9.5kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>649kg</b></td><td>72尾</td><td>9.0kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>89kg</b></td><td>15尾</td><td>5.9kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>719kg</b></td><td>73尾</td><td>9.8kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>679kg</b></td><td>59尾</td><td>11.5kg/尾</td></tr></table></div>
+</div></details><details><summary><b>古館</b>
+<span class="sub">　通年 4,099kg・579尾・平均 7.1kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>2,297kg</b></td><td>411尾</td><td>5.6kg/尾</td></tr><tr><td>6月</td><td><b>1,074kg</b></td><td>116尾</td><td>9.3kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>728kg</b></td><td>52尾</td><td>14.0kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>653kg</b></td><td>124尾</td><td>5.3kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>454kg</b></td><td>89尾</td><td>5.1kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>680kg</b></td><td>127尾</td><td>5.4kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>128kg</b></td><td>19尾</td><td>6.7kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>591kg</b></td><td>74尾</td><td>8.0kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>217kg</b></td><td>30尾</td><td>7.2kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>391kg</b></td><td>39尾</td><td>10.0kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>257kg</b></td><td>25尾</td><td>10.3kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>126kg</b></td><td>8尾</td><td>15.8kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>602kg</b></td><td>44尾</td><td>13.7kg/尾</td></tr></table></div>
+</div></details><details><summary><b>京谷</b>
+<span class="sub">　通年 2,942kg・407尾・平均 7.2kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>816kg</b></td><td>149尾</td><td>5.5kg/尾</td></tr><tr><td>6月</td><td><b>1,086kg</b></td><td>159尾</td><td>6.8kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,040kg</b></td><td>99尾</td><td>10.5kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/20〜07/26</td><td><b>444kg</b></td><td>81尾</td><td>5.5kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>271kg</b></td><td>49尾</td><td>5.5kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>383kg</b></td><td>63尾</td><td>6.1kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>534kg</b></td><td>79尾</td><td>6.8kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>126kg</b></td><td>14尾</td><td>9.0kg/尾</td></tr><tr><td>06/08〜06/14</td><td><b>144kg</b></td><td>22尾</td><td>6.5kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,040kg</b></td><td>99尾</td><td>10.5kg/尾</td></tr></table></div>
+</div></details><details><summary><b>沢田</b>
+<span class="sub">　通年 3,417kg・525尾・平均 6.5kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>2,177kg</b></td><td>368尾</td><td>5.9kg/尾</td></tr><tr><td>6月</td><td><b>1,240kg</b></td><td>157尾</td><td>7.9kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>492kg</b></td><td>88尾</td><td>5.6kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>747kg</b></td><td>131尾</td><td>5.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>759kg</b></td><td>119尾</td><td>6.4kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>469kg</b></td><td>76尾</td><td>6.2kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>504kg</b></td><td>65尾</td><td>7.8kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>446kg</b></td><td>46尾</td><td>9.7kg/尾</td></tr></table></div>
+</div></details><details><summary><b>松下</b>
+<span class="sub">　通年 3,149kg・375尾・平均 8.4kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>1,848kg</b></td><td>270尾</td><td>6.8kg/尾</td></tr><tr><td>6月</td><td><b>287kg</b></td><td>29尾</td><td>9.9kg/尾</td></tr><tr><td>4月（越冬）</td><td><b>870kg</b></td><td>66尾</td><td>13.2kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>144kg</b></td><td>10尾</td><td>14.4kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>453kg</b></td><td>77尾</td><td>5.9kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>521kg</b></td><td>71尾</td><td>7.3kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>654kg</b></td><td>97尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>138kg</b></td><td>18尾</td><td>7.7kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>136kg</b></td><td>12尾</td><td>11.3kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>233kg</b></td><td>24尾</td><td>9.7kg/尾</td></tr><tr><td>04/06〜04/12</td><td><b>358kg</b></td><td>29尾</td><td>12.3kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>656kg</b></td><td>47尾</td><td>14.0kg/尾</td></tr></table></div>
+</div></details><details><summary><b>山田</b>
+<span class="sub">　通年 2,564kg・362尾・平均 7.1kg/尾</span></summary>
+<div class="cols">
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>7月</td><td><b>1,851kg</b></td><td>289尾</td><td>6.4kg/尾</td></tr><tr><td>6月</td><td><b>324kg</b></td><td>35尾</td><td>9.3kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>389kg</b></td><td>38尾</td><td>10.2kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td>07/27〜08/02</td><td><b>810kg</b></td><td>160尾</td><td>5.1kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>404kg</b></td><td>61尾</td><td>6.6kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>637kg</b></td><td>68尾</td><td>9.4kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>324kg</b></td><td>35尾</td><td>9.3kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>389kg</b></td><td>38尾</td><td>10.2kg/尾</td></tr></table></div>
+</div></details>
+<footer style="text-align:center;font-size:11px;color:#789;padding:8px 0 16px;">
+3・4月は越冬タコ（レース別枠）。週は月曜起点。</footer>
+</div>
