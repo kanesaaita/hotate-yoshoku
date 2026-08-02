@@ -57,14 +57,14 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 .tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
 .tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
 <div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
-<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-01 更新（8/1休漁・8/3＋8/5の2便セットで再設計）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-03 更新（部会表7/29反映済み・今日の10本便プラン）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
 <div class="hero">
 <span>🏁 <b>7位</b> 3,792kg ⬆️<br>7/29に <b>114尾/623kg</b>（計画610kgをクリア）｜6位 湊まで<b>あと30kg</b></span>
-<span>🚤 次便 <b>8/3(月) 10本＋おまけ2本</b><br>9→10→16→18→18→20→22→26→34→37→40→41<br><span style="font-size:11px;opacity:.85">期待 約96匹／<b>約643kg</b>。2便目は<b>8/5推奨</b>（8/4より約130kg多い）</span></span>
+<span>🚤 <b>今日 8/3(月) 10本＋おまけ2本</b><br>9→10→16→18→18→20→22→26→34→37→40→41<br><span style="font-size:11px;opacity:.85">期待 約96匹／<b>約643kg</b>。2便目は<b>8/5推奨</b>（8/4より約130kg多い）</span></span>
 <span>📦 海中 <b>1,816箱</b><br>残り枠 184箱</span>
 </div></header><section id="memo">
 <h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
-<div class="memo-plan">🚤 おすすめ便プラン 8/3(月)：<b>15-9 → 14-10 → 12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-34 → 14-37 → 11-40 → 10-41</b><br><span class="sub">※ 12本並んでいますが 12-16・12-18 は0.5丸＝10箱なので巻く時間はほぼゼロ。<b>実質10本の時間で12本</b>回れます。外したのは15-26のみ。2便目は8/4より<b>8/5を推奨</b>。</span><br>
+<div class="memo-plan">🚤 <b>今日のおすすめ便プラン 8/3(月)</b>：<b>15-9 → 14-10 → 12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-34 → 14-37 → 11-40 → 10-41</b><br><span class="sub">※ 12本並んでいますが 12-16・12-18 は0.5丸＝10箱なので巻く時間はほぼゼロ。<b>実質10本の時間で12本</b>回れます。外したのは15-26のみ。2便目は8/4より<b>8/5を推奨</b>。</span><br>
 <button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
 <div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
 <div id="mRows"></div>
@@ -87,8 +87,8 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
  kgIn.value=st.kg||'';noteIn.value=st.note||'';
  // サイズ選択時の換算（7/20実績で較正: 目廻り6.1）。未選択はのし別サイズ目安(SPOTKG)→それも無ければ既定
  var SZW={'小':4.5,'中':6,'大':7.5,'特大':10,'混み':7};
- var SPOTKG={"15-9": 6.0, "16-18": 6.0, "14-10": 6.0, "10-41": 6.0, "12-16": 6.0, "12-18": 6.0, "14-37": 7.5, "15-34": 7.5, "11-40": 7.5, "15-26": 7.5, "16-26": 7.5, "15-20": 7.5, "14-22": 7.5};
- var PLAN=["15-9", "12-16", "12-18", "15-26"];
+ var SPOTKG={"15-9": 4.5, "14-10": 5.5, "12-16": 5.5, "16-18": 5.5, "12-18": 5.5, "15-20": 5.5, "14-22": 5.5, "16-26": 6.5, "15-26": 6.5, "15-34": 8.0, "14-37": 10.0, "11-40": 10.0, "10-41": 10.5};
+ var PLAN=["15-9", "14-10", "12-16", "16-18", "12-18", "15-20", "14-22", "16-26", "15-34", "14-37", "11-40", "10-41"];
  function perKg(en){if(en.z&&SZW[en.z]){return SZW[en.z];}return SPOTKG[en.s]||7.5;}
  function estw(){var w=0;st.e.forEach(function(en){w+=(Number(en.n)||0)*perKg(en);});return Math.round(w);}
  function tot(){var s=0;st.e.forEach(function(en){s+=Number(en.n)||0;});
@@ -250,19 +250,20 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <section><h2>🧵 のし管理（丸数・装着率・箱数／部会規定2,000箱）</h2>
 <table><tr><th>のし</th><th>区分</th><th>長さ</th><th>装着率</th><th>箱数</th><th>フル化余地</th></tr><tr><td><b>15-9</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>14-10</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>12-16</b></td><td>追加</td><td>0.5丸</td><td>50%</td><td>10箱</td><td>+5箱</td></tr><tr><td><b>16-18</b></td><td>番内</td><td>6丸</td><td>76%</td><td>178箱</td><td>+56箱</td></tr><tr><td><b>12-18</b></td><td>追加</td><td>0.5丸</td><td>50%</td><td>10箱</td><td>+5箱</td></tr><tr><td><b>15-20</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr><td><b>14-22</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr><td><b>16-26</b></td><td>番内</td><td>6丸</td><td>50%</td><td>118箱</td><td>+118箱</td></tr><tr><td><b>15-26</b></td><td>番内</td><td>6丸</td><td>50%</td><td>118箱</td><td>+118箱</td></tr><tr><td><b>15-34</b></td><td>番外</td><td>7丸</td><td>72%</td><td>195箱</td><td>+8箱</td></tr><tr><td><b>14-37</b></td><td>番外</td><td>7丸</td><td>50%</td><td>135箱</td><td>+68箱</td></tr><tr><td><b>11-40</b></td><td>番外</td><td>7丸</td><td>50%</td><td>135箱</td><td>+68箱</td></tr><tr><td><b>10-41</b></td><td>追加</td><td>8丸</td><td>44%</td><td>133箱</td><td>+94箱</td></tr></table><p><b>海中の箱 合計 1,816箱 / 部会上限2,000箱（使用率91%・残り184箱）</b></p><p class="sub">⚠️全のしフル化は約2,510箱となり上限超過→実力上位からの選択フル化が必須。規定: のし長=通常6丸+アンカー綱・オープン漁場(番外)は+1丸可・オープンの装着は最大3/4(100%はのしが外れなくなる)。1丸=200mロープ・輪っか38個。一部漁場は帆立・底引きの兼ね合いで短縮規定あり。箱在庫は陸に十分あり（2026-07-03社長）。</p></section>
 <section id="sched"><h2>📅 漁場予定表（3温度管理）</h2>
+<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">✅ <b>今日 8/3(月) のおすすめは ①〜⑩ の10本</b>（＋印の 12-16・12-18 は0.5丸＝10箱で巻く時間ほぼゼロのおまけ）。上から順に番地9→41で一直線、戻りはありません。期待 約96匹／約643kg。<br><b>8本に絞るなら</b>⑥16-26（33kg）→⑤14-22（39kg）の順に落として約571kg。<b>外したのは⏭15-26のみ</b>で、これは8/5に回します。</div>
 <table><tr><th>漁場</th><th>区分</th><th>前回</th><th>期待入箱率</th><th>次回目安</th></tr>
 <tr class="hot"><td><b>15-9</b>①</td><td>🔥235箱の大場・8/3の重量の柱（約86kg）</td><td>07/29（20匹 8.5%）</td><td>10.4%</td><td><b>08/03（中5）</b></td></tr>
 <tr class="hot"><td><b>14-10</b>②</td><td>🔥0.9%→8.5%に急回復・235箱の大場</td><td>07/29（20匹 8.5%）</td><td>6.0%</td><td><b>08/03（中5）</b></td></tr>
-<tr class="hot"><td><b>12-16</b>③</td><td>🔥2連続高率(40→90%)・0.5丸10箱なので実質タダで拾える／フル化+5箱</td><td>07/20（9匹 90%）</td><td>21.2%</td><td><b>08/03（中14）</b></td></tr>
-<tr class="hot"><td><b>16-18</b>④</td><td>🔥6.7%→<b>20.8%</b>に3.1倍／フル化+56箱の価値大</td><td>07/29（37匹 20.8%）</td><td>6.4%</td><td><b>08/03（中5）</b></td></tr>
-<tr class="hot"><td><b>12-18</b>⑤</td><td>🔥60%・0.5丸10箱・番地18の通り道／フル化+5箱</td><td>07/20（6匹 60%）</td><td>14.2%</td><td><b>08/03（中14）</b></td></tr>
-<tr class="hot"><td><b>15-20</b>⑥</td><td>🔥<b>24.8%で全のし最高</b>／フル化+77箱の筆頭候補</td><td>07/29（39匹 24.8%）</td><td>8.5%</td><td><b>08/03（中5）</b></td></tr>
-<tr class="hot"><td><b>14-22</b>⑦</td><td>🔥<b>化ける可能性あり</b>・中14日放置で当たり帯(番地18〜20)の隣・157箱</td><td>07/20（12匹 7.6%）</td><td>4.7%</td><td><b>08/03（中14）</b></td></tr>
-<tr class="due"><td><b>16-26</b>⑧</td><td>🌤中間・番地22と34の途中／8本に絞るならここから落とす</td><td>07/22（7匹・中）</td><td>4.5%</td><td><b>08/03（中12）</b></td></tr>
-<tr class="hot"><td><b>15-34</b>⑨</td><td>🔥沖・大型8kg級・箱195で<b>8/3の最大重量（88kg）</b></td><td>07/22（9匹・大）</td><td>5.9%</td><td><b>08/03（中12）</b></td></tr>
-<tr class="due"><td><b>14-37</b>⑩</td><td>🌤沖・匹数は少ないが特大10kg級</td><td>07/22（4匹・特大）</td><td>5.1%</td><td><b>08/03（中12）</b></td></tr>
-<tr class="due"><td><b>11-40</b>⑪</td><td>🌤沖・特大10kg級</td><td>07/22（7匹・特大）</td><td>5.0%</td><td><b>08/03（中12）</b></td></tr>
-<tr class="due"><td><b>10-41</b>⑫</td><td>🔥沖の当たりのし・7/22に<b>特大12匹</b></td><td>07/22（12匹・特大）</td><td>5.6%</td><td><b>08/03（中12）</b></td></tr>
+<tr class="hot"><td><b>12-16</b>＋</td><td>🔥2連続高率(40→90%)・0.5丸10箱なので実質タダで拾える／フル化+5箱</td><td>07/20（9匹 90%）</td><td>21.2%</td><td><b>08/03（中14）</b></td></tr>
+<tr class="hot"><td><b>16-18</b>③</td><td>🔥6.7%→<b>20.8%</b>に3.1倍／フル化+56箱の価値大</td><td>07/29（37匹 20.8%）</td><td>6.4%</td><td><b>08/03（中5）</b></td></tr>
+<tr class="hot"><td><b>12-18</b>＋</td><td>🔥60%・0.5丸10箱・番地18の通り道／フル化+5箱</td><td>07/20（6匹 60%）</td><td>14.2%</td><td><b>08/03（中14）</b></td></tr>
+<tr class="hot"><td><b>15-20</b>④</td><td>🔥<b>24.8%で全のし最高</b>／フル化+77箱の筆頭候補</td><td>07/29（39匹 24.8%）</td><td>8.5%</td><td><b>08/03（中5）</b></td></tr>
+<tr class="hot"><td><b>14-22</b>⑤</td><td>🔥<b>化ける可能性あり</b>・中14日放置で当たり帯(番地18〜20)の隣・157箱</td><td>07/20（12匹 7.6%）</td><td>4.7%</td><td><b>08/03（中14）</b></td></tr>
+<tr class="due"><td><b>16-26</b>⑥</td><td>🌤中間・番地22と34の途中／8本に絞るならここから落とす</td><td>07/22（7匹・中）</td><td>4.5%</td><td><b>08/03（中12）</b></td></tr>
+<tr class="hot"><td><b>15-34</b>⑦</td><td>🔥沖・大型8kg級・箱195で<b>8/3の最大重量（88kg）</b></td><td>07/22（9匹・大）</td><td>5.9%</td><td><b>08/03（中12）</b></td></tr>
+<tr class="due"><td><b>14-37</b>⑧</td><td>🌤沖・匹数は少ないが特大10kg級</td><td>07/22（4匹・特大）</td><td>5.1%</td><td><b>08/03（中12）</b></td></tr>
+<tr class="due"><td><b>11-40</b>⑨</td><td>🌤沖・特大10kg級</td><td>07/22（7匹・特大）</td><td>5.0%</td><td><b>08/03（中12）</b></td></tr>
+<tr class="due"><td><b>10-41</b>⑩</td><td>🔥沖の当たりのし・7/22に<b>特大12匹</b></td><td>07/22（12匹・特大）</td><td>5.6%</td><td><b>08/03（中12）</b></td></tr>
 <tr><td><b>15-26</b>⏭</td><td>🌤期待入箱率が全のし最下位・8/3は見送り→8/5で中14日として回収</td><td>07/22（7匹・中）</td><td>3.9%</td><td>08/05（中14）</td></tr></table>
 <p class="sub">📦 <b>箱の置き直しの検討材料。</b>12-16・12-18は0.5丸＝10箱しか入れていないのに90%・60%、隣の16-18も20.8%、15-20は24.8%。<b>番地16〜22帯にもっと丸を割けないか</b>（フル化余地は 16-18 +56箱・15-20 +77箱・14-22 +77箱）は社長に相談する価値があります。⚠️ただし残り枠は184箱しかなく、7/29の実績では15-9・14-10も8.5%＝部会平均6.6%超なので、<b>どののしからも減らしにくい状況</b>。まずは残り184箱を 15-20（+77箱）と 16-18（+56箱）に充てるのが素直です。<br>7/30・31は休漁（父不在）。</p></section>
 <section id="daily"><h2>📖 日別記録（自船）</h2>
