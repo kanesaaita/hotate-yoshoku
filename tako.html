@@ -57,14 +57,14 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 .tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
 .tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
 <div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
-<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（8/11が流れる想定で8/10に8本を前倒し）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（風予報で4便の日程を確定）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
 <div class="hero">
 <span>🏁 <b>6位</b> 4,662kg ⬆️<br>8/3 <b>75尾/559kg</b>＋8/4 <b>53尾/311kg</b>で湊を抜いた｜5位 宮崎まで<b>334kg</b></span>
-<span>🚤 <b>お盆前 4便セット</b><br>今週=作業週(A便7本/B便5本)・8/10に8本→8/11は6本<br><span style="font-size:11px;opacity:.85">4日で約139匹／<b>約838kg</b>＝累計5,500kg。8/11が流れても丘は獲り切り済み</span></span>
+<span>🚤 <b>明日 8/6(木)＝沖・減箱5本</b><br>8/7(金)＝16番通り7本🔧（今週いちばんの凪）<br><span style="font-size:11px;opacity:.85">8/10に沖含む8本／8/11は荒れ想定で丘6本。4日で<b>約838kg</b></span></span>
 <span>📦 海中 <b>2,036箱</b><br>⚠️上限2,000を<b>36箱超過</b></span>
 </div></header><section id="memo">
 <h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
-<div class="memo-plan">🚤 <b>A便＝16番通り・7本（凪の日）</b>：<b>12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-26</b>　🔧16-18・16-26を1丸短縮<br>🚤 <b>B便＝沖・減箱・5本（もう一方の日）</b>：<b>14-10 → 15-34 → 14-37 → 11-40 → 10-41</b>　📦15-34−59箱・14-37−68箱<br><span class="sub">※ 箱を揚げる作業は通常の約3倍の労力なので、重い作業は2件とも今週（8/6・8/7）で完了させます。来週8/10・8/11は通常あぐりのみ13本。A先でもB先でも合計はほぼ同じなので、<b>凪の日でA便を決めてください</b>。15-9の判定は8/11（中8日）。<b>8/10に丘8本を寄せて</b>、8/11が時化で流れても丘は獲り切った状態にしてあります。</span><br>
+<div class="memo-plan">🚤 <b>明日 8/6(木)＝沖・減箱便・5本</b>：<b>14-10 → 15-34 → 14-37 → 11-40 → 10-41</b>　📦15-34−59箱・14-37−68箱<br>🚤 <b>8/7(金)＝16番通り便・7本</b>：<b>12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-26</b>　🔧16-18・16-26を1丸短縮<br><span class="sub">※ 風予報で確定：<b>8/7が今週いちばんの凪</b>（日最大3.1m/s）なのでアンカー作業を伴う16番通り短縮をこの日に。減箱は風でもできるので8/6に。<b>8/11は4時から6m/s・瞬間14m/s</b>と荒れるため、沖4本は8/10へ移し、8/11は港に近い丘6本だけにしてあります。8/12は大凪なので短縮の予備日に使えます。</span><br>
 <button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
 <div id="mStale"></div>
 <div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
@@ -103,7 +103,7 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
  // サイズ選択時の換算（7/20実績で較正: 目廻り6.1）。未選択はのし別サイズ目安(SPOTKG)→それも無ければ既定
  var SZW={'小':4.5,'中':6,'大':7.5,'特大':10,'混み':7};
  var SPOTKG={"15-9": 6.0, "14-10": 5.9, "12-16": 5.9, "16-18": 5.5, "12-18": 5.9, "15-20": 5.9, "14-22": 5.9, "16-26": 7.5, "15-26": 7.5, "15-34": 6.0, "14-37": 6.0, "11-40": 6.0, "10-41": 6.0};
- var PLAN=["12-16", "16-18", "12-18", "15-20", "14-22", "16-26", "15-26"];
+ var PLAN=["14-10", "15-34", "14-37", "11-40", "10-41"];
  function perKg(en){if(en.z&&SZW[en.z]){return SZW[en.z];}return SPOTKG[en.s]||7.5;}
  function estw(){var w=0;st.e.forEach(function(en){w+=(Number(en.n)||0)*perKg(en);});return Math.round(w);}
  function tot(){var s=0;st.e.forEach(function(en){s+=Number(en.n)||0;});
@@ -257,51 +257,58 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <tr class="hot"><td><b>10-41</b></td><td>約7匹</td><td><b>22匹</b></td><td>⬆️⬆️⬆️</td></tr></table>
 <p style="margin:6px 0;font-size:14px">この8本の予測合計は67匹で実績89匹。<b>沖はモデルより濃く、丘の15-9だけが崩れました。</b>私が外したはずの 16-26・15-26 を入れた判断が正解で、2本で20匹（大サイズ）獲れています。逆に私が本命扱いした 15-9 は235箱で1匹でした。</p>
 <div class="memo-plan" style="background:#fdecea;border-color:#e0a0a0">🔎 <b>2つ、前提が崩れています。</b><br>① <b>沖の特大が消えました。</b>7/22に特大10kg級だった 14-37・11-40・10-41 が、8/3は<b>すべて中サイズ</b>。代わりに番地26の 16-26・15-26 が大サイズに。「沖=大型」の前提は一旦保留です。<br>② <b>τ（回復の速さ）が速すぎます。</b>14-22は8/3に12匹獲った翌日8/4（中1日）にまた12匹。モデルは25%しか戻らない想定なので、<b>この帯は連日回っても獲れる</b>可能性があります。</div>
-<h3>🗓 お盆前の4便セット（8/6→8/7→8/10→8/11） — 4日で 約139匹／<b>約838kg</b>（≒111万円）</h3>
-<div class="memo-plan" style="background:#fff4e5;border-color:#e0b070"><b>重い作業は2件とも 8/6・8/7 に片付けます。</b>箱を揚げる作業は通常のあぐりの<b>約3倍の労力</b>なので、来週（8/10・8/11）に残すと総回りの日が回らなくなります。<br>→ <b>今週＝作業週／来週＝通常あぐりのみ</b>。8/10・8/11は13本を普通に回すだけになります。<br><span class="sub">この前倒しで4日合計は 871→843kg と約28kg落ちますが、来週の負担を考えれば妥当な交換です。</span></div>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🌤 <b style="color:#c0392b">凪の日にA便、もう一方の日にB便</b></h4>
-<p style="margin:2px 0;font-size:14px">A便の16番通り短縮は下側アンカーの揚げ直しが要るので<b>凪限定</b>。B便の減箱は箱を外すだけなので風でもできます。<b>どちらを先にしても合計はほぼ同じ</b>（A先=405kg／B先=408kg）なので、<b>純粋に凪の日で決めてください</b>。</p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">A便 ＝ 16番通り便・7本（🔧短縮×2）— 約33匹／202kg</h4>
+<h3>🗓 お盆前の4便【日程確定】 — 4日で 約139匹／<b>約838kg</b>（≒111万円）</h3>
+<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd"><b>🌬 網走沿岸の風予報（Open-Meteo）で確定しました。</b>数字は10m高の風速。<table><tr><th>日</th><th>早朝2〜6時</th><th>日最大</th><th>瞬間</th><th>雨</th><th></th></tr>
+<tr class="hot"><td><b>8/06(木)</b></td><td>3.1〜3.4</td><td>3.8</td><td>7.1</td><td>0</td><td>凪</td></tr>
+<tr class="hot"><td><b>8/07(金)</b></td><td><b>2.9〜3.1</b></td><td><b>3.1</b></td><td>6.6</td><td>0</td><td><b>今週いちばん凪</b></td></tr>
+<tr class="warn"><td>8/08(土)</td><td>—</td><td>5.5</td><td>11.2</td><td><b>6.3mm</b></td><td>雨・風</td></tr>
+<tr><td>8/09(日)</td><td>—</td><td>4.4</td><td>9.5</td><td>0.9mm</td><td>やや荒れ</td></tr>
+<tr><td><b>8/10(月)</b></td><td>2.5〜3.8</td><td>5.4</td><td>12.0</td><td>0</td><td>朝凪→<b>昼に上がる</b></td></tr>
+<tr class="warn"><td><b>8/11(火)</b></td><td>3.1→<b>6.0</b></td><td>6.0</td><td><b>14.2</b></td><td>0</td><td>⚠️<b>4時から吹く</b></td></tr>
+<tr><td>8/12(水)</td><td>—</td><td><b>1.7</b></td><td>5.8</td><td>0</td><td>大凪（お盆・出荷なし）</td></tr></table>
+<b>読み：</b>①<b>8/7が今週いちばんの凪</b>（日最大3.1m/s）→ アンカーを揚げ直す16番通り短縮はこの日。②8/11は<b>4時から6m/s・瞬間14m/s</b>で今週いちばん荒れる → <b>沖の遠出は8/11ではなく8/10に</b>。心配されていたとおりの並びでした。</div>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🔵 8/06（木）沖・減箱便・5本（📦3倍労力×2）— 約28匹／167kg</h4>
 <table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th><th>作業</th></tr>
-<tr><td>1</td><td><b>12-16</b></td><td>中2日</td><td>約3匹 / 18kg</td><td>—</td></tr>
-<tr class="hot"><td>2</td><td><b>16-18</b></td><td>中8日</td><td>約10匹 / <b>55kg</b></td><td>🔧<b>1丸短縮</b>（178→148箱）</td></tr>
-<tr><td>3</td><td><b>12-18</b></td><td>中2日</td><td>約3匹 / 18kg</td><td>—</td></tr>
-<tr><td>4</td><td><b>15-20</b></td><td>中2日</td><td>約6匹 / 35kg</td><td>—</td></tr>
-<tr><td>5</td><td><b>14-22</b></td><td>中2日</td><td>約5匹 / 30kg</td><td>—</td></tr>
-<tr class="hot"><td>6</td><td><b>16-26</b></td><td>中3日</td><td>約3匹 / 23kg</td><td>🔧<b>1丸短縮</b>（118→98箱）</td></tr>
-<tr><td>7</td><td><b>15-26</b></td><td>中3日</td><td>約3匹 / 23kg</td><td>—</td></tr></table>
-<p class="sub" style="margin:2px 0">行16→18→18→20→22→26→26 と一直線で、いちばん遠くても行26。移動が短いぶんアンカー作業に時間を回せます。</p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">B便 ＝ 沖・減箱便・5本（📦3倍労力×2）— 約34匹／203kg</h4>
+<tr><td>1</td><td><b>14-10</b></td><td>中2日</td><td>約6匹 / 35kg</td><td>—</td></tr>
+<tr class="hot"><td>2</td><td><b>15-34</b></td><td>中3日</td><td>約7匹 / <b>42kg</b></td><td>📦<b>−59箱</b>（195→136）</td></tr>
+<tr class="hot"><td>3</td><td><b>14-37</b></td><td>中3日</td><td>約6匹 / 36kg</td><td>📦<b>−68箱</b>（203→135）</td></tr>
+<tr><td>4</td><td><b>11-40</b></td><td>中3日</td><td>約4匹 / 24kg</td><td>—</td></tr>
+<tr><td>5</td><td><b>10-41</b></td><td>中3日</td><td>約5匹 / 30kg</td><td>—</td></tr></table>
+<p class="sub" style="margin:2px 0">📦の2本が通常の3倍かかるので<b>実質9本ぶんの労力</b>。だから5本に絞ってあります。行10 → 34 → 37 → 40 → 41。14-10は港を出てすぐの通り道。<b>減箱は風でもできる作業</b>なので、凪の8/7ではなくこちらに置いています。</p>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🟢 8/07（金）16番通り便・7本（🔧短縮×2）— 約40匹／<b>241kg</b>　<span style="color:#c0392b">今週の凪はこの日</span></h4>
 <table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th><th>作業</th></tr>
-<tr><td>1</td><td><b>14-10</b></td><td>中3日</td><td>約8匹 / 47kg</td><td>—</td></tr>
-<tr class="hot"><td>2</td><td><b>15-34</b></td><td>中4日</td><td>約8匹 / <b>48kg</b></td><td>📦<b>−59箱</b>（195→136）</td></tr>
-<tr class="hot"><td>3</td><td><b>14-37</b></td><td>中4日</td><td>約7匹 / 42kg</td><td>📦<b>−68箱</b>（203→135）</td></tr>
-<tr><td>4</td><td><b>11-40</b></td><td>中4日</td><td>約5匹 / 30kg</td><td>—</td></tr>
-<tr><td>5</td><td><b>10-41</b></td><td>中4日</td><td>約6匹 / 36kg</td><td>—</td></tr></table>
-<p class="sub" style="margin:2px 0">📦の2本が通常の3倍かかるので、<b>実質9本ぶんの労力</b>。だから本数を5本に絞ってあります。行10 → 34 → 37 → 40 → 41 で、14-10は港を出てすぐの通り道。</p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">8/10（月）<b>8本</b>・通常あぐりのみ — 約46匹／<b>280kg</b></h4>
-<p class="sub" style="margin:2px 0">⛅ 8/11が時化で流れるかもしれないので、<b>丘側8本をここに寄せて先に獲り切ります</b>。行10→26の一直線で遠出なし。</p>
+<tr><td>1</td><td><b>12-16</b></td><td>中3日</td><td>約4匹 / 24kg</td><td>—</td></tr>
+<tr class="hot"><td>2</td><td><b>16-18</b></td><td><b>中9日</b></td><td>約11匹 / <b>58kg</b></td><td>🔧<b>1丸短縮</b>（178→148箱）</td></tr>
+<tr><td>3</td><td><b>12-18</b></td><td>中3日</td><td>約4匹 / 24kg</td><td>—</td></tr>
+<tr class="hot"><td>4</td><td><b>15-20</b></td><td>中3日</td><td>約8匹 / <b>47kg</b></td><td>—</td></tr>
+<tr><td>5</td><td><b>14-22</b></td><td>中3日</td><td>約6匹 / 35kg</td><td>—</td></tr>
+<tr class="hot"><td>6</td><td><b>16-26</b></td><td>中4日</td><td>約4匹 / 30kg</td><td>🔧<b>1丸短縮</b>（118→98箱）</td></tr>
+<tr><td>7</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td><td>—</td></tr></table>
+<p class="sub" style="margin:2px 0">行16→18→18→20→22→26→26 の一直線で、いちばん遠くても行26。移動が短いぶんアンカー作業に時間を回せます。日最大3.1m/sは<b>今週で唯一この日だけ</b>なので、短縮はこの日に入れ切りたいところです。<br>🛟 <b>予備日：8/12(水)。</b>日最大1.7m/sと大凪で、お盆で出荷はないものの<b>のしの短縮は出荷と無関係な作業</b>なので実施できます。8/7に終わらなかったぶんはここへ。</p>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🔵 8/10（月）沖＋丘・<b>8本</b>・作業なし — 約48匹／<b>290kg</b></h4>
+<p class="sub" style="margin:2px 0">⛅ 朝は2.5m/sだが<b>10時には4.8m/sまで上がる</b>予報。<b>遠い順番を先に</b>、というより早出して沖を朝のうちに終える組み方が安全です。</p>
 <table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th></tr>
-<tr><td>1</td><td><b>14-10</b></td><td>中3日</td><td>約8匹 / 47kg</td></tr>
+<tr class="hot"><td>1</td><td><b>14-10</b></td><td>中4日</td><td>約10匹 / <b>59kg</b></td></tr>
+<tr class="hot"><td>2</td><td><b>15-20</b></td><td>中3日</td><td>約8匹 / <b>47kg</b></td></tr>
+<tr><td>3</td><td><b>14-22</b></td><td>中3日</td><td>約6匹 / 35kg</td></tr>
+<tr><td>4</td><td><b>16-26</b></td><td>中3日</td><td>約3匹 / 23kg</td></tr>
+<tr><td>5</td><td><b>15-34</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
+<tr><td>6</td><td><b>14-37</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
+<tr><td>7</td><td><b>11-40</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
+<tr class="hot"><td>8</td><td><b>10-41</b></td><td>中4日</td><td>約6匹 / <b>36kg</b></td></tr></table>
+<p class="sub" style="margin:2px 0">行10→20→22→26→34→37→40→41の一直線。<b>沖4本をこの日に移しました</b>（8/11は瞬間14m/sで遠出に向かないため）。</p>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🟡 8/11（火）丘のみ・<b>6本</b>・作業なし — 約23匹／140kg　<span style="color:#c0392b">荒れ想定</span></h4>
+<p class="sub" style="margin:2px 0">⚠️ 4時から6.0m/s・瞬間14.2m/s。<b>港に近い行9〜26だけ</b>に絞ってあります。無理なら中止して構いません（下の「流れた場合」参照）。</p>
+<table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th></tr>
+<tr class="warn"><td>1</td><td><b>15-9</b></td><td><b>中8日</b></td><td>⚠️約1匹 / 6kg（<b>判定日</b>）</td></tr>
 <tr><td>2</td><td><b>12-16</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr><td>3</td><td><b>16-18</b></td><td>中4日</td><td>約6匹 / 33kg</td></tr>
+<tr class="hot"><td>3</td><td><b>16-18</b></td><td>中4日</td><td>約6匹 / <b>33kg</b></td></tr>
 <tr><td>4</td><td><b>12-18</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr class="hot"><td>5</td><td><b>15-20</b></td><td>中4日</td><td>約9匹 / <b>53kg</b></td></tr>
-<tr><td>6</td><td><b>14-22</b></td><td>中4日</td><td>約7匹 / 41kg</td></tr>
-<tr><td>7</td><td><b>16-26</b></td><td>中4日</td><td>約3匹 / 23kg</td></tr>
-<tr><td>8</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td></tr></table>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">8/11（火）<b>6本</b>・通常あぐりのみ — 約26匹／153kg</h4>
-<table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th></tr>
-<tr class="warn"><td>1</td><td><b>15-9</b></td><td>中8日</td><td>⚠️約1匹 / 6kg（<b>判定日</b>）</td></tr>
-<tr><td>2</td><td><b>14-10</b></td><td>中1日</td><td>約4匹 / 21kg <span class="sub">再回収</span></td></tr>
-<tr><td>3</td><td><b>15-34</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr><td>4</td><td><b>14-37</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr><td>5</td><td><b>11-40</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr class="hot"><td>6</td><td><b>10-41</b></td><td>中4日</td><td>約6匹 / <b>36kg</b></td></tr></table>
-<p class="sub" style="margin:2px 0">のしは13本なので8+6にすると1本ぶん足りません。6本目は行10の <b>14-10 を中1日で再回収</b>（約21匹ぶんの箱があるので中1日でも約4匹）。港を出て沖へ向かう通り道なので寄り道になりません。<b>来週は2日とも作業なし</b>です。</p>
-<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd">⛅ <b>8/11が流れた場合。</b>残るのは 15-9 と沖4本（15-34・14-37・11-40・10-41）だけで、<b>損は小さい</b>です。この5本はお盆明けの初便（8/17想定）に<b>中10日</b>で戻ってくるので、むしろ厚い便になります（沖4本だけで約150kg）。<br><b>前倒しの損得。</b>8/10に8本寄せると4日合計は 843→838kg と約5kg落ちますが、8/11が流れたときに手元に残る量が <b>193kg → 280kg</b> と87kg変わります。<b>8/11が流れる可能性が2割を超えるなら前倒しが得</b>という計算です。</div>
-<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">🎋 <b>お盆休み（8/12〜8/16）の置き方。</b>8/10・8/11で全13本を空にしておくと、休み明けの初便（8/17想定）は丘が<b>中7日</b>・沖が<b>中6日</b>で揃います。今の実力どおりなら初便で<b>約400kg</b>級。休み中はのしを入れたままで問題ありません。<br>📦 箱は<b>8/7の時点で 1,927箱</b>（上限2,000・残り枠73箱）となり超過が解消します。空いた73箱はお盆明けに <b>15-20</b>（実力8.7%で全のし2位・今67%）へ回すと、秋に向けて丘を厚くできます。</div>
-<p class="sub">4日合計 約838kg＝累計 <b>5,500kg</b>。今の5位・宮崎(4,996)、4位・川口(5,117)、3位・佐々木(5,232)をいずれも上回る水準です（他船も獲るので順位は変動します）。<br>⚠️干潮=浅場(45m未満)・⚠️満潮=深場(60m超)があぐりにくい→当日の干満時刻に合わせて順番を前後させる。<br>💰 単価 <b>1,320円/kg</b> 換算。⚠️モデルは8/3を67匹と予測して実績89匹（1.3倍の過小）でした。期待kgは下限寄りと見てください。</p></section>
+<tr><td>5</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td></tr>
+<tr><td>6</td><td><b>15-20</b></td><td>中1日</td><td>約3匹 / 18kg <span class="sub">再回収</span></td></tr></table>
+<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd">⛅ <b>8/11が流れた場合。</b>残るのは 15-9・12-16・16-18・12-18・15-26 の5本だけで、<b>沖はすべて8/10で獲り切っています</b>。この5本はお盆明けの初便（8/17想定）に<b>中10日</b>で戻るので、むしろ厚い便になります（16-18だけで約60kg）。<br>15-9の判定だけ8/17にずれますが、中14日での結果になるので判断材料としてはむしろ明確です。</div>
+<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">🎋 <b>お盆休み（8/12〜8/16）。</b>8/12は日最大1.7m/sの大凪なので、<b>短縮作業の予備日</b>に使えます。休み明けの初便（8/17想定）は全のしが中6〜7日で揃い、今の実力どおりなら<b>約400kg</b>級。<br>📦 箱は<b>8/6の減箱と8/7の短縮で 1,927箱</b>（上限2,000・残り枠73箱）となり超過が解消します。空いた73箱はお盆明けに <b>15-20</b>（実力8.7%で全のし2位・今67%）へ。</div>
+<p class="sub">4日合計 約838kg＝累計 <b>5,500kg</b>。今の5位・宮崎(4,996)、4位・川口(5,117)、3位・佐々木(5,232)をいずれも上回る水準です（他船も獲るので順位は変動します）。<br>⚠️干潮=浅場(45m未満)・⚠️満潮=深場(60m超)があぐりにくい→当日の干満時刻に合わせて順番を前後させる。<br>💰 単価 <b>1,320円/kg</b> 換算。⚠️モデルは8/3を67匹と予測して実績89匹（1.3倍の過小）でした。期待kgは下限寄りと見てください。<br>🌬 風はOpen-Meteo（網走沿岸 44.02N/144.27E・10m高）の8/5時点の予報。当日必ず自分の目で確かめてください。</p></section>
 <section><h2>🌡 水温と漁獲見通し（網走沿岸103・AI推計）</h2>
 <svg width="330" height="64" viewBox="0 0 330 64" style="max-width:100%"><polyline points="5,56 30,55 54,54 79,52 103,51 128,50 153,49 177,47 202,46 227,45 251,44 276,42 300,41 325,40" fill="none" stroke="#8aa4b8" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="5,43 30,40 54,36 79,33 103,13 128,11 153,12 177,12 202,14 227,14 251,10 276,11 300,15 325,8" fill="none" stroke="#c0392b" stroke-width="2"/></svg><p><b>07/21時点 18.5℃（平年差+3.7）</b>｜7日間で+0.5℃｜上昇局面＝沖・深場優勢の継続を想定（浅→深シフトの本格化はピークアウト後）</p><p>📈 <b>漁獲見通し（AI推計）</b>: 7/20週 実績 <b>860kg</b>で確定｜7/27週 <b>623kg</b>で確定（7/29便のみ・8/1は諸事情で休漁）｜8/3週 実績 <b>870kg</b>（8/3便 559＋8/4便 311）＋8/7便 約391 → 約<b>1,261kg</b>見込み＝週として今季最高｜⚠️部会の目廻りは 6.1→5.7kg。自船も 6.7→5.5kg/尾 と初めて部会平均並みまで低下＝沖ラインにも小型化が及び始めた可能性。重量を確保するには沖の本数を増やすか、フル化で箱を増やす方向｜現体制の定常期待 約<b>850kg/週</b></p><p class="sub">実線=水温実測・点線=平年値（直近14日・公表2日遅れ）。水温×入箱率の相関: r=+0.61（n=11日・参考値）。中間帯は7/20に立ち上がり、7/29にさらに加速（15-20=13.4%→24.8%・16-18=6.7%→20.8%）。14-22は7/20の7.6%以降ノータッチで中14日。8/3がこの広がりの答え合わせになる。⚠️箱は合計2,036箱で上限2,000箱を36箱超過＝フル化余地は実質なし。増箱するなら、8/3に235箱で1匹だった15-9を引くのが最有力（超過解消と15-20/16-18への増箱が同時にできる）。</p></section>
 <section><h2>📈 推移グラフ（本操業）</h2>
