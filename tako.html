@@ -57,14 +57,14 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 .tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
 .tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
 <div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
-<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（常呂漁港の風で再確定・網走とは別物だった）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（海天気の実数で8/11を訂正・逆回りに変更）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
 <div class="hero">
 <span>🏁 <b>6位</b> 4,662kg ⬆️<br>8/3 <b>75尾/559kg</b>＋8/4 <b>53尾/311kg</b>で湊を抜いた｜5位 宮崎まで<b>334kg</b></span>
-<span>🚤 <b>明日 8/6(木)＝沖・減箱5本</b><br>8/7(金)＝16番通り7本🔧（常呂の凪はこの日）<br><span style="font-size:11px;opacity:.85">⚠️常呂の8/11は8.1m/s・瞬間15.5＝出られない想定。沖は8/10で獲り切る</span></span>
+<span>🚤 <b>明日 8/6(木)＝沖・減箱5本</b><br>8/7(金)＝16番通り7本🔧（常呂の凪はこの日）<br><span style="font-size:11px;opacity:.85">8/11は海天気で5.0m/s＝出られる見込み。大潮のため8/11のみ逆回り</span></span>
 <span>📦 海中 <b>2,036箱</b><br>⚠️上限2,000を<b>36箱超過</b></span>
 </div></header><section id="memo">
 <h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
-<div class="memo-plan">🚤 <b>明日 8/6(木)＝沖・減箱便・5本</b>：<b>14-10 → 15-34 → 14-37 → 11-40 → 10-41</b>　📦15-34−59箱・14-37−68箱<br>🚤 <b>8/7(金)＝16番通り便・7本</b>：<b>12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-26</b>　🔧16-18・16-26を1丸短縮<br><span class="sub">※ <b>常呂漁港の風</b>で確定（網走とは別物でした）。8/7が今週いちばんの凪（日最大3.6m/s）なので16番通りの短縮はこの日、しかも<b>7時以降のべた凪（0.4〜2.2m/s）</b>に当たるよう16番の2本を後半に回してあります。<b>8/11は4時に8.1m/s・瞬間15.5</b>と荒れるので出られない前提。沖4本は8/10で獲り切ります。8/12は日最大2.2m/sの大凪なので短縮の予備日に。</span><br>
+<div class="memo-plan">🚤 <b>明日 8/6(木)＝沖・減箱便・5本</b>：<b>14-10 → 15-34 → 14-37 → 11-40 → 10-41</b>　📦15-34−59箱・14-37−68箱<br>🚤 <b>8/7(金)＝16番通り便・7本</b>：<b>12-16 → 16-18 → 12-18 → 15-20 → 14-22 → 16-26 → 15-26</b>　🔧16-18・16-26を1丸短縮<br><span class="sub">※ <b>常呂漁港の風</b>で確定（網走とは別物でした）。8/7が今週いちばんの凪（日最大3.6m/s）なので16番通りの短縮はこの日、しかも<b>7時以降のべた凪（0.4〜2.2m/s）</b>に当たるよう16番の2本を後半に回してあります。<b>8/11は海天気の実数で5.0m/s</b>（推計8.1は強すぎでした）＝出られる見込み。ただし大潮で08:55が満潮なので、8/11だけ<b>沖→丘の逆回り</b>（深場の15-26を早朝、浅場の15-9を満潮まわりに）。8/12は0.9〜2.2m/sの大凪で短縮の予備日に。</span><br>
 <button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
 <div id="mStale"></div>
 <div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
@@ -258,17 +258,18 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <p style="margin:6px 0;font-size:14px">この8本の予測合計は67匹で実績89匹。<b>沖はモデルより濃く、丘の15-9だけが崩れました。</b>私が外したはずの 16-26・15-26 を入れた判断が正解で、2本で20匹（大サイズ）獲れています。逆に私が本命扱いした 15-9 は235箱で1匹でした。</p>
 <div class="memo-plan" style="background:#fdecea;border-color:#e0a0a0">🔎 <b>2つ、前提が崩れています。</b><br>① <b>沖の特大が消えました。</b>7/22に特大10kg級だった 14-37・11-40・10-41 が、8/3は<b>すべて中サイズ</b>。代わりに番地26の 16-26・15-26 が大サイズに。「沖=大型」の前提は一旦保留です。<br>② <b>τ（回復の速さ）が速すぎます。</b>14-22は8/3に12匹獲った翌日8/4（中1日）にまた12匹。モデルは25%しか戻らない想定なので、<b>この帯は連日回っても獲れる</b>可能性があります。</div>
 <h3>🗓 お盆前の4便【日程確定】 — 4日で 約139匹／<b>約838kg</b>（≒111万円）</h3>
-<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd"><b>🌬 常呂漁港の風予報で再確定しました。</b>数字は10m高の風速(m/s)。<b>網走とはかなり違いました</b>ので、前回の網走ベースの表は破棄しています。<table><tr><th>日</th><th>早朝2〜6時</th><th>7〜10時</th><th>日最大</th><th>瞬間</th><th>雨</th><th>風向</th></tr>
-<tr class="hot"><td><b>8/06(木)</b></td><td>4.0→2.7</td><td><b>0.2〜1.0</b></td><td>4.3</td><td>7.6</td><td>0</td><td>南</td></tr>
-<tr class="hot"><td><b>8/07(金)</b></td><td>2.9〜3.3</td><td><b>0.4〜2.2</b></td><td><b>3.6</b></td><td>7.2</td><td>0</td><td>南</td></tr>
-<tr class="warn"><td>8/08(土)</td><td>—</td><td>—</td><td>5.5</td><td>11.9</td><td><b>38.7mm</b></td><td>—</td></tr>
-<tr><td>8/09(日)</td><td>—</td><td>—</td><td>4.6</td><td>9.3</td><td>0.6mm</td><td>—</td></tr>
-<tr><td><b>8/10(月)</b></td><td>2.6〜3.9</td><td>4.2〜4.6</td><td>5.9</td><td>11.4</td><td>0</td><td>北</td></tr>
-<tr class="warn"><td><b>8/11(火)</b></td><td>4.9→<b>8.1</b></td><td>7.4〜6.4</td><td><b>8.1</b></td><td><b>15.5</b></td><td>0.6mm</td><td>西北西</td></tr>
-<tr><td>8/12(水)</td><td>2.1〜1.6</td><td>1.1〜1.4</td><td><b>2.2</b></td><td>6.1</td><td>0</td><td>南西</td></tr></table>
-<b>網走との差（ここが大事）：</b><br>・<b>8/11</b>：常呂 <b>8.1m/s・瞬間15.5</b> ／ 網走 6.0・14.2 → <b>常呂のほうが明確に悪い</b>。しかも<b>4時ちょうどに8.1まで跳ね上がる</b>ので、出てから吹かれる形。<br>・<b>8/8</b>：常呂 <b>雨38.7mm</b> ／ 網走 6.3mm → 桁が違う。この日は完全に潰れる想定。<br>・<b>8/6・8/7の朝7時以降</b>：常呂は <b>0.2〜2.2m/s のべた凪</b>になる（網走は終日2.5前後）。<b>アンカー作業は朝一より7時以降が楽</b>。<br>
-<b>結論：</b>①16番通りの短縮は <b>8/7</b>（日最大3.6で今週最小）、しかも<b>7時以降の凪の時間帯に</b>。②8/11は常呂だと出られない可能性が高い → <b>沖4本は8/10のうちに獲り切る</b>。<br>
-<span class="sub">🌀 台風は13号（日本の南→8/10に東シナ海）・14号（南シナ海で衰弱中）で、いずれも常呂には直接来ません。ただし8/10以降の予報は気圧配置次第で振れるので、前日に必ず見直してください。<br>🌊 潮汐（常呂・海天気）：8/5は【満潮】06:47/18:29【干潮】00:53/11:51（小潮・月齢21.7・日出04:16）。<b>月齢から8/13前後が新月＝大潮</b>なので、8/10・8/11は干満差が大きくなる方向。深場(60m超)は満潮まわりがあぐりにくいので当日の潮を確認してください。</span></div>
+<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd"><b>🌬 常呂漁港の風（8/11・8/12は<span style="color:#0a7a2f">海天気の実数</span>／他は推計）</b><table><tr><th>日</th><th>00-03</th><th>03-06</th><th>06-09</th><th>09-12</th><th>出典</th></tr>
+<tr class="hot"><td><b>8/06(木)</b></td><td colspan="2">早朝 4.0→2.7</td><td colspan="2">7-10時 <b>0.2〜1.0</b></td><td class="sub">推計</td></tr>
+<tr class="hot"><td><b>8/07(金)</b></td><td colspan="2">早朝 2.9〜3.3</td><td colspan="2">7-10時 <b>0.4〜2.2</b></td><td class="sub">推計</td></tr>
+<tr class="warn"><td>8/08(土)</td><td colspan="4">日最大5.5・<b>雨38.7mm</b></td><td class="sub">推計</td></tr>
+<tr><td>8/09(日)</td><td colspan="4">日最大4.6・瞬間9.3</td><td class="sub">推計</td></tr>
+<tr><td><b>8/10(月)</b></td><td colspan="2">早朝 2.6〜3.9</td><td colspan="2">7-10時 4.2〜4.6（北）</td><td class="sub">推計</td></tr>
+<tr><td><b>8/11(火)</b></td><td><b>5.0</b></td><td><b>4.9</b></td><td><b>5.0</b></td><td>4.7</td><td style="color:#0a7a2f">海天気</td></tr>
+<tr class="hot"><td><b>8/12(水)</b></td><td><b>0.9</b></td><td><b>1.2</b></td><td><b>2.2</b></td><td>2.4</td><td style="color:#0a7a2f">海天気</td></tr></table>
+<b>⚠️ 8/11の見立てを訂正します。</b>推計では 8.1m/s・瞬間15.5 と出ていましたが、<b>海天気の実数は朝を通して 4.9〜5.0m/s</b>、しかも昼から 4.3→3.7→2.8→1.0 と<b>落ちていく</b>一日でした。<b>「出られない前提」は取り下げ、通常どおり出られる想定</b>に戻します。推計値がこの日だけ1.4倍ほど強く出ていたので、<b>8/6・8/7・8/10の推計も強めに出ている可能性</b>があります（実際はもう少し穏やかかもしれません）。海天気の数字が手元にあれば送ってください、差し替えます。<br>
+<b>🌊 潮（海天気・常呂／どちらも大潮）</b><br>・<b>8/11</b>：【満潮】08:55【干潮】00:00　月齢27.7　日出04:23<br>・<b>8/12</b>：【満潮】01:03【干潮】09:31　月齢28.7　日出04:24<br>
+<b>8/11は朝の8:55が満潮</b>なので、<b>深場(60m超)は満潮まわりを外したい</b>＝行26の 15-26 は早い時間に。逆に<b>浅場(45m未満)の 15-9 は満潮に近い遅い時間のほうがあぐりやすい</b>。→ この日だけ<b>沖→丘の逆回り</b>に変更しました（下記）。<br>
+<span class="sub">🌀 台風13号（8/10に東シナ海）・14号（南シナ海で衰弱中）はいずれも常呂に直接来ません。8/13前後が新月＝大潮のピークです。</span></div>
 <h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🔵 8/06（木）沖・減箱便・5本（📦3倍労力×2）— 約28匹／167kg</h4>
 <table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th><th>作業</th></tr>
 <tr><td>1</td><td><b>14-10</b></td><td>中2日</td><td>約6匹 / 35kg</td><td>—</td></tr>
@@ -286,7 +287,7 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <tr><td>5</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td><td>—</td></tr>
 <tr class="hot"><td>6</td><td><b>16-26</b></td><td>中4日</td><td>約4匹 / 30kg</td><td>🔧<b>1丸短縮</b>（118→98箱）</td></tr>
 <tr class="hot"><td>7</td><td><b>16-18</b></td><td><b>中9日</b></td><td>約11匹 / <b>58kg</b></td><td>🔧<b>1丸短縮</b>（178→148箱）／帰り道</td></tr></table>
-<p class="sub" style="margin:2px 0">💡 <b>16番通りの2本を後半に回しました。</b>常呂は<b>7時以降が0.4〜2.2m/sのべた凪</b>になるので、アンカーを打ち直す作業をその時間帯に当てるためです。行16→18→20→22→26→26と進んで、<b>帰り道で行18の16-18を拾う</b>形なので余計な移動はありません。<br>日最大3.6m/sは今週で唯一この日だけなので、短縮はこの日に入れ切りたいところです。<br>🛟 <b>予備日：8/12(水)。</b>日最大2.2m/sの大凪で、お盆で出荷はないものの<b>のしの短縮は出荷と無関係な作業</b>なので実施できます。8/7に終わらなかったぶんはここへ。</p>
+<p class="sub" style="margin:2px 0">💡 <b>16番通りの2本を後半に回しました。</b>常呂は<b>7時以降が0.4〜2.2m/sのべた凪</b>になるので、アンカーを打ち直す作業をその時間帯に当てるためです。行16→18→20→22→26→26と進んで、<b>帰り道で行18の16-18を拾う</b>形なので余計な移動はありません。<br>日最大3.6m/sは今週で唯一この日だけなので、短縮はこの日に入れ切りたいところです。<br>🛟 <b>予備日：8/12(水)。</b>海天気の実数で<b>00-09時が0.9〜2.2m/sの大凪</b>と確定。お盆で出荷はないものの<b>のしの短縮は出荷と無関係な作業</b>なので実施できます。8/7に終わらなかったぶんはここへ。</p>
 <h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🔵 8/10（月）沖＋丘・<b>8本</b>・作業なし — 約48匹／<b>290kg</b></h4>
 <p class="sub" style="margin:2px 0">⛅ 常呂は朝2.6m/s → <b>10時に4.6m/s（北風）</b>まで上がる予報。日出は04:16。<b>早出して沖4本を朝のうちに終える</b>のが安全です。北風は岸に向かう風なので、沖ほどウネリが出ます。</p>
 <table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th></tr>
@@ -299,18 +300,18 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <tr><td>7</td><td><b>11-40</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
 <tr class="hot"><td>8</td><td><b>10-41</b></td><td>中4日</td><td>約6匹 / <b>36kg</b></td></tr></table>
 <p class="sub" style="margin:2px 0">行10→20→22→26→34→37→40→41の一直線。<b>沖4本をこの日に移しました</b>（8/11は瞬間14m/sで遠出に向かないため）。</p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🟡 8/11（火）丘のみ・<b>6本</b>・作業なし — 約23匹／140kg　<span style="color:#c0392b">荒れ想定</span></h4>
-<p class="sub" style="margin:2px 0">⚠️ 常呂の予報は<b>4時ちょうどに8.1m/sへ跳ね上がり、瞬間15.5m/s</b>（網走の6.0/14.2より明確に悪い）。<b>出られない前提で組んでください。</b>のしは港に近い行9〜26だけに絞ってあり、中止しても沖は8/10で獲り切っています。</p>
-<table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th></tr>
-<tr class="warn"><td>1</td><td><b>15-9</b></td><td><b>中8日</b></td><td>⚠️約1匹 / 6kg（<b>判定日</b>）</td></tr>
-<tr><td>2</td><td><b>12-16</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr class="hot"><td>3</td><td><b>16-18</b></td><td>中4日</td><td>約6匹 / <b>33kg</b></td></tr>
-<tr><td>4</td><td><b>12-18</b></td><td>中4日</td><td>約5匹 / 30kg</td></tr>
-<tr><td>5</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td></tr>
-<tr><td>6</td><td><b>15-20</b></td><td>中1日</td><td>約3匹 / 18kg <span class="sub">再回収</span></td></tr></table>
-<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd">⛅ <b>8/11が流れた場合。</b>残るのは 15-9・12-16・16-18・12-18・15-26 の5本だけで、<b>沖はすべて8/10で獲り切っています</b>。この5本はお盆明けの初便（8/17想定）に<b>中10日</b>で戻るので、むしろ厚い便になります（16-18だけで約60kg）。<br>15-9の判定だけ8/17にずれますが、中14日での結果になるので判断材料としてはむしろ明確です。</div>
-<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">🎋 <b>お盆休み（8/12〜8/16）。</b>8/12は日最大1.7m/sの大凪なので、<b>短縮作業の予備日</b>に使えます。休み明けの初便（8/17想定）は全のしが中6〜7日で揃い、今の実力どおりなら<b>約400kg</b>級。<br>📦 箱は<b>8/6の減箱と8/7の短縮で 1,927箱</b>（上限2,000・残り枠73箱）となり超過が解消します。空いた73箱はお盆明けに <b>15-20</b>（実力8.7%で全のし2位・今67%）へ。</div>
-<p class="sub">4日合計 約838kg＝累計 <b>5,500kg</b>。今の5位・宮崎(4,996)、4位・川口(5,117)、3位・佐々木(5,232)をいずれも上回る水準です（他船も獲るので順位は変動します）。<br>⚠️干潮=浅場(45m未満)・⚠️満潮=深場(60m超)があぐりにくい→当日の干満時刻に合わせて順番を前後させる。<br>💰 単価 <b>1,320円/kg</b> 換算。⚠️モデルは8/3を67匹と予測して実績89匹（1.3倍の過小）でした。期待kgは下限寄りと見てください。<br>🌬 風は<b>常呂漁港（44.11N/143.97E・10m高）</b>の8/5時点の予報値。潮汐・台風は<a href="https://www.umitenki.jp/tenki/287/3hours">海天気.jp 常呂漁港</a>より。当日必ず自分の目で確かめてください。</p></section>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🟡 8/11（火）丘のみ・<b>6本</b>・作業なし — 約23匹／140kg　<span style="color:#0a7a2f">出られる見込み</span></h4>
+<p class="sub" style="margin:2px 0">🔄 <b>この日だけ沖→丘の逆回りです。</b>大潮で08:55が満潮なので、①深場の15-26を潮の低い早朝に、⑥浅場の15-9を満潮に近い遅い時間に当てるためです。帰港方向にそのまま進む形なので移動の無駄もありません。風は朝5.0m/sで、昼にかけて4.3→3.7→2.8と落ちていきます。</p>
+<table><tr><th>順</th><th>のし</th><th>中日数</th><th>期待</th><th>潮の狙い</th></tr>
+<tr><td>1</td><td><b>15-26</b></td><td>中4日</td><td>約3匹 / 23kg</td><td>深75m・<b>潮が低いうちに</b></td></tr>
+<tr><td>2</td><td><b>15-20</b></td><td>中1日</td><td>約3匹 / 18kg <span class="sub">再回収</span></td><td>—</td></tr>
+<tr><td>3</td><td><b>12-18</b></td><td>中4日</td><td>約5匹 / 30kg</td><td>—</td></tr>
+<tr class="hot"><td>4</td><td><b>16-18</b></td><td>中4日</td><td>約6匹 / <b>33kg</b></td><td>—</td></tr>
+<tr><td>5</td><td><b>12-16</b></td><td>中4日</td><td>約5匹 / 30kg</td><td>—</td></tr>
+<tr class="warn"><td>6</td><td><b>15-9</b></td><td><b>中8日</b></td><td>⚠️約1匹 / 6kg（<b>判定日</b>）</td><td>浅46m・<b>満潮まわりで</b></td></tr></table>
+<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd">⛅ <b>それでも8/11が流れた場合。</b>残るのは 15-9・12-16・16-18・12-18・15-26 の5本だけで、<b>沖はすべて8/10で獲り切っています</b>。この5本はお盆明けの初便（8/17想定）に<b>中10日</b>で戻るので、むしろ厚い便になります（16-18だけで約60kg）。<br>15-9の判定だけ8/17にずれますが、中14日での結果になるので判断材料としてはむしろ明確です。</div>
+<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">🎋 <b>お盆休み（8/12〜8/16）。</b>8/12は海天気でも朝が0.9〜2.2m/sの大凪と確定したので、<b>短縮作業の予備日</b>として確実です（干潮09:31なので深場の16-26もあぐりやすい）。休み明けの初便（8/17想定）は全のしが中6〜7日で揃い、今の実力どおりなら<b>約400kg</b>級。<br>📦 箱は<b>8/6の減箱と8/7の短縮で 1,927箱</b>（上限2,000・残り枠73箱）となり超過が解消します。空いた73箱はお盆明けに <b>15-20</b>（実力8.7%で全のし2位・今67%）へ。</div>
+<p class="sub">4日合計 約838kg＝累計 <b>5,500kg</b>。今の5位・宮崎(4,996)、4位・川口(5,117)、3位・佐々木(5,232)をいずれも上回る水準です（他船も獲るので順位は変動します）。<br>⚠️干潮=浅場(45m未満)・⚠️満潮=深場(60m超)があぐりにくい→当日の干満時刻に合わせて順番を前後させる。<br>💰 単価 <b>1,320円/kg</b> 換算。⚠️モデルは8/3を67匹と予測して実績89匹（1.3倍の過小）でした。期待kgは下限寄りと見てください。<br>🌬 8/11・8/12の風と潮は<b><a href="https://www.umitenki.jp/tenki/287/3hours">海天気.jp 常呂漁港</a>の実数</b>。8/6〜8/10は常呂漁港座標（44.11N/143.97E・10m高）の推計値で、<b>8/11で実数より1.4倍強く出ていた</b>ため強めに見ておいてください。当日必ず自分の目で確かめてください。</p></section>
 <section><h2>🌡 水温と漁獲見通し（網走沿岸103・AI推計）</h2>
 <svg width="330" height="64" viewBox="0 0 330 64" style="max-width:100%"><polyline points="5,56 30,55 54,54 79,52 103,51 128,50 153,49 177,47 202,46 227,45 251,44 276,42 300,41 325,40" fill="none" stroke="#8aa4b8" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="5,43 30,40 54,36 79,33 103,13 128,11 153,12 177,12 202,14 227,14 251,10 276,11 300,15 325,8" fill="none" stroke="#c0392b" stroke-width="2"/></svg><p><b>07/21時点 18.5℃（平年差+3.7）</b>｜7日間で+0.5℃｜上昇局面＝沖・深場優勢の継続を想定（浅→深シフトの本格化はピークアウト後）</p><p>📈 <b>漁獲見通し（AI推計）</b>: 7/20週 実績 <b>860kg</b>で確定｜7/27週 <b>623kg</b>で確定（7/29便のみ・8/1は諸事情で休漁）｜8/3週 実績 <b>870kg</b>（8/3便 559＋8/4便 311）＋8/7便 約391 → 約<b>1,261kg</b>見込み＝週として今季最高｜⚠️部会の目廻りは 6.1→5.7kg。自船も 6.7→5.5kg/尾 と初めて部会平均並みまで低下＝沖ラインにも小型化が及び始めた可能性。重量を確保するには沖の本数を増やすか、フル化で箱を増やす方向｜現体制の定常期待 約<b>850kg/週</b></p><p class="sub">実線=水温実測・点線=平年値（直近14日・公表2日遅れ）。水温×入箱率の相関: r=+0.61（n=11日・参考値）。中間帯は7/20に立ち上がり、7/29にさらに加速（15-20=13.4%→24.8%・16-18=6.7%→20.8%）。14-22は7/20の7.6%以降ノータッチで中14日。8/3がこの広がりの答え合わせになる。⚠️箱は合計2,036箱で上限2,000箱を36箱超過＝フル化余地は実質なし。増箱するなら、8/3に235箱で1匹だった15-9を引くのが最有力（超過解消と15-20/16-18への増箱が同時にできる）。</p></section>
 <section><h2>📈 推移グラフ（本操業）</h2>
