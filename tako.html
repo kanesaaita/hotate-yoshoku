@@ -57,15 +57,16 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 .tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
 .tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
 <div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
-<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（8/3は部会表75尾を採用／14-7・14-8の根情報を追加）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-05 更新（部会表75尾を採用／根情報を追加／メモ日付のバグを修正）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
 <div class="hero">
 <span>🏁 <b>6位</b> 4,662kg ⬆️<br>8/3 <b>75尾/559kg</b>＋8/4 <b>53尾/311kg</b>で湊を抜いた｜5位 宮崎まで<b>334kg</b></span>
-<span>🚤 次便は <b>8/7(木)を推奨</b><br>16-18 → 沖4本 → 丘4本<br><span style="font-size:11px;opacity:.85">8/5なら約242kg／8/6約321kg／<b>8/7約391kg</b>。2日休ませる価値あり</span></span>
+<span>🚤 次便は <b>8/7(木)を推奨</b><br>丘4本(10→18→20→22) → 26帯2本 → 沖4本<br><span style="font-size:11px;opacity:.85">8/5なら約242kg／8/6約321kg／<b>8/7約391kg</b>。2日休ませる価値あり</span></span>
 <span>📦 海中 <b>2,036箱</b><br>⚠️上限2,000を<b>36箱超過</b></span>
 </div></header><section id="memo">
 <h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
 <div class="memo-plan">🚤 <b>次便のおすすめ 8/7(木) 10本</b>：<b>14-10 → 16-18 → 15-20 → 14-22 → 16-26 → 15-26 → 15-34 → 14-37 → 11-40 → 10-41</b><br><span class="sub">※ 8/3・8/4でほぼ全部回したので、8/5は約242kg・8/6は約321kg・<b>8/7なら約391kg</b>。2日休ませると約150kg増えます。頭の16-18が中9日で唯一貯まっています。15-9は8/3に235箱で1匹だったため今回は見送り。</span><br>
 <button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
+<div id="mStale"></div>
 <div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
 <div id="mRows"></div>
 <div class="memo-line">合計kg <input id="mKg" type="number" inputmode="decimal" placeholder="市場で判明後"> <span id="mTot"></span></div>
@@ -81,6 +82,20 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
  try{st=JSON.parse(localStorage.getItem(KEY));}catch(e){st=null;}
  if(!st||!st.e){st={d:today(),e:[],kg:'',note:''};}
  function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+ // 日付が変わったら自動で今日のメモに切り替える。前の日の入力は消さずに退避して復元できるようにする
+ var PKEY='tako_memo_prev', stale=null;
+ if(st.d && st.d!==today()){
+  if((st.e&&st.e.length)||st.kg||st.note){
+   stale=st;
+   try{localStorage.setItem(PKEY,JSON.stringify(stale));}catch(e){}
+  }
+  st={d:today(),e:[],kg:'',note:''};save();
+ }
+ if(!stale){
+  try{var pv=JSON.parse(localStorage.getItem(PKEY));
+   if(pv&&pv.d&&pv.d!==today()&&((pv.e&&pv.e.length)||pv.kg||pv.note)){stale=pv;}
+  }catch(e){}
+ }
  var rows=document.getElementById('mRows');
  var kgIn=document.getElementById('mKg');
  var noteIn=document.getElementById('mNote');
@@ -171,10 +186,44 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
  document.getElementById('mClear').addEventListener('click',function(){
   if(confirm('メモをクリアしますか？')){
    st={d:today(),e:[],kg:'',note:''};save();
-   kgIn.value='';noteIn.value='';render();
+   stale=null;try{localStorage.removeItem(PKEY);}catch(e){}
+   kgIn.value='';noteIn.value='';render();if(typeof showStale==='function'){showStale();}
   }
  });
  render();
+ var sd=document.getElementById('mStale');
+ function showStale(){
+  if(!sd){return;}
+  sd.innerHTML='';
+  if(!stale){return;}
+  var n=0;(stale.e||[]).forEach(function(en){n+=Number(en.n)||0;});
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff4e5;border:1px solid #e0b070;border-radius:8px;padding:9px 11px;margin:8px 0;font-size:14px;line-height:1.7';
+  box.appendChild(document.createTextNode('⚠️ '));
+  var b=document.createElement('b');b.textContent=stale.d+'のメモが送信されないまま残っていました';
+  box.appendChild(b);
+  box.appendChild(document.createTextNode('（'+(stale.e||[]).length+'のし・計'+n+'匹）。日付が変わったので、今日（'+st.d+'）の入力に切り替えました。'));
+  box.appendChild(document.createElement('br'));
+  var b1=document.createElement('button');b1.type='button';b1.textContent='↩️ '+stale.d+'の内容に戻す';
+  b1.style.cssText='margin:8px 8px 0 0;font-size:14px;padding:8px 13px;border:0;border-radius:8px;background:#8a6d1f;color:#fff;font-weight:bold';
+  b1.addEventListener('click',function(){
+   st={d:stale.d,e:stale.e||[],kg:stale.kg||'',note:stale.note||''};
+   stale=null;try{localStorage.removeItem(PKEY);}catch(e){}
+   save();kgIn.value=st.kg||'';noteIn.value=st.note||'';render();showStale();
+  });
+  var b2=document.createElement('button');b2.type='button';b2.textContent='破棄する';
+  b2.style.cssText='margin-top:8px;font-size:14px;padding:8px 13px;border:0;border-radius:8px;background:#e5ecf1;color:#345';
+  b2.addEventListener('click',function(){
+   stale=null;try{localStorage.removeItem(PKEY);}catch(e){}showStale();
+  });
+  box.appendChild(b1);box.appendChild(b2);
+  sd.appendChild(box);
+ }
+ showStale();
+ // 日付をまたいだまま画面を開きっぱなしにしていた場合にも追従させる
+ setInterval(function(){
+  if(st.d!==today()&&(!st.e||st.e.length===0)&&!st.kg&&!st.note){st.d=today();save();render();}
+ },60000);
 })();
 </script>
 </section>
