@@ -57,14 +57,14 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 .tako-mobile{height:auto;min-height:100%;overflow:visible;touch-action:pan-y;}
 .tako-mobile section,.tako-mobile header{scroll-margin-top:64px;}</style>
 <div class="tako-mobile"><nav class="jumpbar"><a href="#memo">📝 メモ</a><a href="#race">🏁 レース</a><a href="#plan">🚤 プラン</a><a href="#sched">📅 予定</a><a href="#daily">📖 記録</a><a href="#stats">📊 統計</a></nav><script>Array.prototype.forEach.call(document.querySelectorAll(".jumpbar a"),function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.querySelector(a.getAttribute("href"));if(t){t.scrollIntoView({behavior:"instant",block:"start"});}});});</script>
-<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-08 更新（8/7部会表を登録・自船休漁で7位へ／予報好転）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
+<header><h1>🐙 タコ漁ダッシュボード</h1><p>生成: 2026-08-08 更新（8/8実績37匹/195kg・行20〜26帯に集中と判明）｜本操業（6月〜）トップ3レース｜順位は総重量(kg)</p>
 <div class="hero">
 <span>🏁 <b>6位</b> 4,662kg ⬆️<br>8/3 <b>75尾/559kg</b>＋8/4 <b>53尾/311kg</b>で湊を抜いた｜5位 宮崎まで<b>334kg</b></span>
-<span>🚤 <b>次便 8/9(日)想定 8本／約515kg</b><br>10→16→20→22→26→26→40→41<br><span style="font-size:11px;opacity:.85">予報好転で8/9・10・11とも出られそう。<b>10-41が中6日で単体112kg</b></span></span>
+<span>🚤 <b>8/9は休漁を推奨 → 8/10と8/11の2便</b><br>8/10=8本390kg／8/11=6本222kg<br><span style="font-size:11px;opacity:.85">🎯タコは<b>62〜75m帯</b>に集中。浅場46〜48mは抜けた</span></span>
 <span>📦 海中 <b>2,036箱</b><br>⚠️上限2,000を<b>36箱超過</b></span>
 </div></header><section id="memo">
 <h2>📝 きょうの漁獲メモ（<span id="mDate"></span>）</h2>
-<div class="memo-plan">🚤 <b>次便（8/9想定）8本</b>：<b>14-10 → 12-16 → 15-20 → 14-22 → 16-26 → 15-26 → 11-40 → 10-41</b><br><span style="font-size:13px">約88匹／約515kg。8/7を休んだぶん中日数が伸びました。<b>10-41が中6日で単体約112kg</b>、11-40と合わせて沖2本で172kg＝この便の3分の1なので、今回は沖まで行く価値があります。時間が足りなければ②12-16→⑤16-26の順に落とす。</span><br><span class="sub">※ 直近の実力%は<b>丘（行9〜20）が−60〜−94%と崩れ、沖（行34〜37）も半減</b>、その中で<b>行26だけ+85%</b>。だから行20〜26に厚く置いています。<b>沖の10-41（実力17.1%）は往復100分かかるため今日は捨て、8/17に中14日で回る</b>のが得。<b>15-34の減箱が未実施なら大凪の8/12に</b>。</span><br>
+<div class="memo-plan">🚤 <b>8/10(月) 8本</b>：<b>12-16 → 12-18 → 16-18 → 15-20 → 16-26 → 15-26 → 11-40 → 10-41</b>（約390kg）<br>🚤 <b>8/11(火) 6本</b>：15-20 → 14-22 → 15-26 → 15-34 → 14-37 → 10-41（約222kg）<br><span style="font-size:13px">⏸<b>8/9は休むことを推奨</b>——主力3本が中1日で3本合わせて72kgにしかなりません。1日空ければ133kg、2日で161kgです。<br>🎯<b>タコは62〜75m帯（15-20・15-26・16-26）に集中</b>。浅場46〜48m（15-9・14-10）は抜けました。</span><br><span class="sub">※ 直近の実力%は<b>丘（行9〜20）が−60〜−94%と崩れ、沖（行34〜37）も半減</b>、その中で<b>行26だけ+85%</b>。だから行20〜26に厚く置いています。<b>沖の10-41（実力17.1%）は往復100分かかるため今日は捨て、8/17に中14日で回る</b>のが得。<b>15-34の減箱が未実施なら大凪の8/12に</b>。</span><br>
 <button id="mPlanSet" type="button">⬇️ このプランののしをセット</button></div>
 <div id="mStale"></div>
 <div id="mChips"><button type="button" class="memo-chip">15-9</button><button type="button" class="memo-chip">14-10</button><button type="button" class="memo-chip">12-16</button><button type="button" class="memo-chip">16-18</button><button type="button" class="memo-chip">12-18</button><button type="button" class="memo-chip">15-20</button><button type="button" class="memo-chip">14-22</button><button type="button" class="memo-chip">16-26</button><button type="button" class="memo-chip">15-26</button><button type="button" class="memo-chip">15-34</button><button type="button" class="memo-chip">14-37</button><button type="button" class="memo-chip">11-40</button><button type="button" class="memo-chip">10-41</button></div>
@@ -102,8 +102,8 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
  kgIn.value=st.kg||'';noteIn.value=st.note||'';
  // サイズ選択時の換算（7/20実績で較正: 目廻り6.1）。未選択はのし別サイズ目安(SPOTKG)→それも無ければ既定
  var SZW={'小':4.5,'中':6,'大':7.5,'特大':10,'混み':7};
- var SPOTKG={"15-9": 6.0, "14-10": 5.9, "12-16": 5.9, "16-18": 5.5, "12-18": 5.9, "15-20": 5.9, "14-22": 5.9, "16-26": 4.5, "15-26": 6.5, "15-34": 6.0, "14-37": 6.0, "11-40": 6.0, "10-41": 6.0};
- var PLAN=["14-10", "12-16", "15-20", "14-22", "16-26", "15-26", "11-40", "10-41"];
+ var SPOTKG={"15-9": 6.0, "14-10": 5.3, "12-16": 5.3, "16-18": 5.3, "12-18": 5.3, "15-20": 5.3, "14-22": 5.3, "16-26": 4.5, "15-26": 5.3, "15-34": 5.3, "14-37": 5.3, "11-40": 5.3, "10-41": 5.3};
+ var PLAN=["12-16", "12-18", "16-18", "15-20", "16-26", "15-26", "11-40", "10-41"];
  function perKg(en){if(en.z&&SZW[en.z]){return SZW[en.z];}return SPOTKG[en.s]||7.5;}
  function estw(){var w=0;st.e.forEach(function(en){w+=(Number(en.n)||0)*perKg(en);});return Math.round(w);}
  function tot(){var s=0;st.e.forEach(function(en){s+=Number(en.n)||0;});
@@ -228,15 +228,16 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 </script>
 </section>
 <section id="race"><h2>🏁 レース現況（総重量ベース）</h2>
-<span class="big">4,805kg（7位）</span>
-<span class="sub">　673尾・平均 7.1kg/尾｜⚠️8/7は休漁、その日に<b>湊が396kg</b>を上げて逆転され<b>6位→7位</b>｜6位 湊 4,968kgまで <b>163kg</b>／5位 宮崎 4,996kgまで 191kg</span>
+<span class="big">5,000kg（5位・暫定）</span>
+<span class="sub">　710尾・平均 7.0kg/尾｜8/8の195kgで<b>湊(4,968)・宮崎(4,996)を抜き返して7位→5位</b>（他船の8/8分は未反映のため暫定）｜4位 川口 5,347kgまで <b>347kg</b></span>
 <table><tr><th>#</th><th>漁師</th><th>総重量</th><th>尾数</th><th>平均</th></tr><tr><td>1</td><td>桜井</td><td><b>6,552kg</b></td><td>1,018尾</td><td>6.4kg/尾</td></tr>
 <tr><td>2</td><td>大井</td><td><b>6,447kg</b></td><td>815尾</td><td>7.9kg/尾</td></tr>
 <tr><td>3</td><td>佐々木</td><td><b>5,570kg</b></td><td>800尾</td><td>7.0kg/尾</td></tr>
 <tr><td>4</td><td>川口</td><td><b>5,347kg</b></td><td>887尾</td><td>6.0kg/尾</td></tr>
-<tr><td>5</td><td>宮崎</td><td><b>4,996kg</b></td><td>670尾</td><td>7.5kg/尾</td></tr>
-<tr class="warn"><td>6</td><td>湊</td><td><b>4,968kg</b></td><td>763尾</td><td>6.5kg/尾</td></tr>
-<tr class="me"><td>7</td><td>相田裕康</td><td><b>4,805kg</b></td><td>673尾</td><td>7.1kg/尾</td></tr>
+<tr class="me"><td>5</td><td>相田裕康</td><td><b>5,000kg</b></td><td>710尾</td><td>7.0kg/尾</td></tr>
+<tr class="warn"><td>6</td><td>宮崎</td><td><b>4,996kg</b></td><td>670尾</td><td>7.5kg/尾</td></tr>
+<tr class="warn"><td>7</td><td>湊</td><td><b>4,968kg</b></td><td>763尾</td><td>6.5kg/尾</td></tr>
+
 <tr><td>8</td><td>沢田</td><td><b>3,792kg</b></td><td>605尾</td><td>6.3kg/尾</td></tr>
 <tr><td>9</td><td>古館</td><td><b>3,703kg</b></td><td>586尾</td><td>6.3kg/尾</td></tr>
 <tr><td>10</td><td>山田</td><td><b>2,603kg</b></td><td>394尾</td><td>6.6kg/尾</td></tr>
@@ -263,43 +264,50 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <tr class="warn"><td>8/07(予報)</td><td><b>21.9℃</b></td><td>0.16m</td><td>3.6</td></tr></table>
 7/21以降ずっと20℃前後で安定していた水温が、<b>8/4を境に一段上がって今季最高を更新中</b>（20.6→21.9℃）。もともと平年差+3.7℃と高い年で、そこへさらに乗った形です。<b>「今週に入ってから」という浜の話と時期がぴったり合います。</b><br>浅いところほど水温の影響を受けやすいので、<b>「特に丘がほとんどいない」という話とも整合</b>します。タコが動かなければ、中日数を延ばしても箱には入りません。</div>
 <p style="margin:6px 0;font-size:14px"><b>ただし、ご自身の8/6のデータは浜の話と方向が逆に出ています。</b>悪かったのは沖の2本（15-34 1.5%・14-37 2.0%）で、丘寄りの <b>16-18 は9匹＝実力5.6%とほぼ平年並み</b>、行26の <b>16-26 は11匹＝9.3%と当たり</b>でした。1日・4本だけでは判断がつきません。<br>👉 <b>決着をつけられるのは部会表です。</b>8/5・8/6の部会全体が落ちていれば海域要因で確定、落ちていなければ自船ののし固有の話になります。出たら送ってください。<br>📌 なお、<b>期待入箱率のモデルはこの1日でほとんど動いていません</b>（15-34は5.8→5.6%、14-37は5.1→5.0%）。全履歴の収縮推定なので1日の不漁には引きずられない作りです。したがって<b>残り3便ののしの並びも実質変わりません</b>——「沖を外す」判断はしていません。</p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">📋 8/07（金）＝出漁なし。<b style="color:#c0392b">この日に6位を明け渡しました</b></h4>
-<p style="margin:4px 0;font-size:14px">部会表の相田行は空欄。一方この日 <b>湊が78尾/396kg</b> を上げ、<b>4,968kg で自船 4,805kg を逆転</b>。<b>6位→7位</b>になりました。差は163kgです。</p>
-<div class="memo-plan" style="background:#eef4f8;border-color:#b9cfdd"><b>🔎 8/7の部会表は「全体的に少ない」説と食い違います。</b>6隻で計257尾/1,527kg＝<b>1隻あたり254kg</b>。8/3（10隻で2,594kg）の1隻259kgとほぼ同じで、<b>部会全体としては落ちていません</b>。<table><tr><th>漁師</th><th>8/3</th><th>8/7</th><th>変化</th></tr>
-<tr class="hot"><td>佐々木</td><td>22尾/117kg</td><td>44尾/338kg</td><td>🔥+189%</td></tr>
-<tr class="hot"><td>古館</td><td>7尾/27kg</td><td>52尾/305kg</td><td>🔥+1030%</td></tr>
-<tr><td>山田</td><td>32尾/198kg</td><td>38尾/230kg</td><td>+16%</td></tr>
-<tr><td>川口</td><td>25尾/237kg</td><td>37尾/230kg</td><td>横ばい（型は小さく）</td></tr>
-<tr class="warn"><td>湊</td><td>132尾/750kg</td><td>78尾/396kg</td><td>−47%</td></tr>
-<tr class="warn"><td>沢田</td><td>72尾/347kg</td><td>8尾/28kg</td><td>−92%</td></tr></table>
-<b>振れ方がバラバラです。</b>佐々木・古館は大きく伸び、沢田・湊は落ちました。つまり<b>「海域全体が低調」も「自船の沖が失速」も、この表だけでは決着しません</b>——どののしを何日ぶりに回ったかで結果が大きく変わっているだけ、という見方が一番自然です。<br>
-👉 決着には<b>8/5・8/6の部会表</b>が要ります。手に入ったら送ってください。</div>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🌤 予報が好転しました — <b style="color:#0a7a2f">8/9・8/10・8/11とも出られそう</b></h4>
-<table><tr><th>日</th><th>早朝2〜6時</th><th>日最大</th><th>瞬間</th><th>雨</th><th>判定</th></tr>
-<tr class="warn"><td>8/08(土)</td><td>—</td><td>5.4</td><td>10.5</td><td><b>10.5mm</b></td><td>雨・見送り</td></tr>
-<tr class="hot"><td><b>8/09(日)</b></td><td><b>2.2〜3.0</b></td><td><b>4.0</b></td><td>8.5</td><td>1.0mm</td><td>⭕出られる</td></tr>
-<tr class="hot"><td><b>8/10(月)</b></td><td><b>2.3〜3.1</b></td><td>4.5</td><td>8.5</td><td>2.1mm</td><td>⭕出られる</td></tr>
-<tr class="hot"><td><b>8/11(火)</b></td><td>3.7〜3.9</td><td><b>3.9</b></td><td>7.0</td><td>2.2mm</td><td>⭕出られる</td></tr>
-<tr><td>8/12(水)</td><td><b>0.8〜1.9</b></td><td>5.9</td><td>11.5</td><td>3.6mm</td><td>早朝は大凪（お盆）</td></tr></table>
-<p style="margin:4px 0;font-size:14px"><b>「8/10は天気が悪い・8/11は波残り」という前提は、最新予報では消えています。</b>3日とも日最大4m/s前後で、8/11に至っては今週でいちばん穏やかな部類です。<b>お盆前にまだ2〜3便いけます。</b></p>
-<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🚤 次便（8/9想定）8本 — 約88匹／<b>約515kg</b>（≒69万円）</h4>
-<p class="sub" style="margin:2px 0">8/7を休んだぶん中日数が伸びて、どののしも厚くなっています。特に<b>10-41が中6日</b>。</p>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">📋 8/08 実績 37匹／195kg — <b style="color:#c0392b">タコの居場所がはっきりしました</b></h4>
+<table><tr><th>のし</th><th>行/水深</th><th>中日数</th><th>実績</th><th>実力%</th><th></th></tr>
+<tr class="warn"><td><b>14-10</b></td><td>10／48m</td><td>中4</td><td><b>0匹</b><span class="sub">(2割見て離した)</span></td><td><b>≒0%</b></td><td>❌抜けた</td></tr>
+<tr class="hot"><td><b>15-20</b></td><td>20／62m</td><td>中4</td><td><b>17匹</b></td><td><b>15.9%</b></td><td>🔥予測13匹を上回る</td></tr>
+<tr><td><b>14-22</b></td><td>22／66m</td><td>中4</td><td>7匹</td><td>6.6%</td><td>やや下</td></tr>
+<tr class="hot"><td><b>15-26</b></td><td>26／75m</td><td>中5</td><td><b>13匹</b></td><td><b>14.5%</b></td><td>🔥予測11匹を上回る</td></tr></table>
+<div class="memo-plan" style="background:#fdecea;border-color:#e0a0a0"><b>🎯 水深でくっきり分かれました。</b>全のしの直近実力%を水深順に並べると、こうなります。<table><tr><th>水深</th><th>のし</th><th>直近実力</th><th>判定</th></tr>
+<tr class="warn"><td>46m</td><td>15-9</td><td>0.6%</td><td>❌</td></tr>
+<tr class="warn"><td>48m</td><td>14-10</td><td><b>0%</b></td><td>❌</td></tr>
+<tr><td>54m</td><td>12-16</td><td>6.8%</td><td>△</td></tr>
+<tr><td>58m</td><td>12-18 / 16-18</td><td>5.9% / 5.6%</td><td>△</td></tr>
+<tr class="hot"><td><b>62m</b></td><td><b>15-20</b></td><td><b>15.9%</b></td><td>🔥</td></tr>
+<tr><td>66m</td><td>14-22</td><td>6.6%</td><td>○</td></tr>
+<tr class="hot"><td><b>75m</b></td><td><b>15-26 / 16-26</b></td><td><b>14.5% / 16.2%</b></td><td>🔥</td></tr>
+<tr class="warn"><td>90m級</td><td>15-34 / 14-37</td><td>2.7% / 3.4%</td><td>❌</td></tr>
+<tr><td>100m級</td><td>11-40 / 10-41</td><td>9.2% / 17.1%<span class="sub">（8/3以降未確認）</span></td><td>？</td></tr></table>
+<b>タコは 62〜75m の帯に固まっています。</b>浅場（46〜48m）は完全に抜け、90m級も薄い。<b>生態メモの「夏は水深40m以深の深所へ・適水温16℃以下」と、水温が浅いほど高い（岸22.3℃／沖20.6℃）という測定結果が、そのまま形になって出ています。</b><br>
+👉 <b>次便は 62〜75m 帯を厚く回るのが正解</b>。ただしこの帯（15-20・15-26・14-22）は8/8に巻いたばかりなので、<b>1日空けたほうが効きます</b>。</div>
+<h4 style="font-size:13px;margin:12px 0 4px;color:#0b3550">🚤 おすすめは <b>8/9は休んで、8/10と8/11の2便</b></h4>
+<p style="margin:4px 0;font-size:14px">8/9に出ると主力3本（15-20・15-26・14-22）が<b>中1日</b>で、3本合わせても約72kgにしかなりません。<b>1日空けて中2日にすると約133kg、2日空けて中3日なら約161kg</b>。休むほうが得です。</p>
+<p style="margin:2px 0;font-size:14px"><b>8/10（月）8本 — 約73匹／約390kg</b>　<span class="sub">早朝2.3〜3.1m/s</span></p>
 <table><tr><th>順</th><th>のし</th><th>行</th><th>中日数</th><th>期待</th></tr>
-<tr><td>1</td><td><b>14-10</b></td><td>10</td><td>中5日</td><td>約11匹 / 65kg</td></tr>
-<tr><td>2</td><td><b>12-16</b></td><td>16</td><td>中5日</td><td>約6匹 / 36kg</td></tr>
-<tr class="hot"><td>3</td><td><b>15-20</b></td><td>20</td><td>中5日</td><td>約13匹 / <b>77kg</b></td></tr>
-<tr><td>4</td><td><b>14-22</b></td><td>22</td><td>中5日</td><td>約9匹 / 55kg</td></tr>
-<tr><td>5</td><td><b>16-26</b></td><td>26</td><td>中3日</td><td>約9匹 / 41kg</td></tr>
-<tr class="hot"><td>6</td><td><b>15-26</b></td><td>26</td><td>中6日</td><td>約11匹 / <b>69kg</b></td></tr>
-<tr><td>7</td><td><b>11-40</b></td><td>40</td><td>中6日</td><td>約10匹 / 60kg</td></tr>
-<tr class="hot"><td>8</td><td><b>10-41</b></td><td>41</td><td><b>中6日</b></td><td>約19匹 / <b>112kg</b></td></tr></table>
-<p style="margin:6px 0;font-size:14px"><b>今回は沖まで行く価値があります。</b>10-41は8/3に22匹＝実力17.1%で全のし最高。中6日ぶん貯まって<b>単体で約112kg</b>、11-40と合わせて<b>沖2本で172kg</b>＝この便の3分の1です。時間の制約がない便なら、往復の100分を払う価値は十分あります。<br>
-行10→16→20→22→26→26→40→41の一直線。<b>時間が足りなければ ②12-16（36kg）→ ⑤16-26（41kg）の順に落として</b>ください（16-26は中3日・98箱・小サイズなので単価も安い）。<br>
-⏭ 15-9（実力0.6%）・15-34（2.7%）・14-37（3.4%）・12-18（32kg）・16-18（26kg）は今回外しています。8/10・8/11に回す想定です。</p>
-<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">📊 <b>この便が決まれば累計 5,320kg</b>。6位・湊(4,968)と5位・宮崎(4,996)を抜き返し、<b>4位・川口(5,347)と3位・佐々木(5,570)が射程</b>に入ります。<br>
-🗓 <b>8/9→8/10→8/11の3連チャンなら</b>、8/9で沖と主力を獲り、8/10・8/11で残り（15-34・14-37・16-18・12-18・15-9）と中2日の再回収に回せます。お盆前に<b>1,000kg近く</b>積める計算です。<br>
-📦 <b>15-34の減箱（195→136箱）</b>がまだなら、8/9か8/10に15-34を回るついでに。早朝べた凪の8/12（0.8〜1.9m/s）も予備日に使えます。</div>
-<p class="sub">💰 単価 <b>1,340円/kg</b>（8/7実績）で換算。<br>🌬 常呂漁港（44.11N/143.97E）の8/8時点の推計。8/11では実数の1.4倍強く出ていたので、実際はもう少し穏やかな可能性があります。当日必ずご自身で確認を。</p></section>
+<tr><td>1</td><td><b>12-16</b></td><td>16</td><td>中6日</td><td>約6匹 / 32kg</td></tr>
+<tr><td>2</td><td><b>12-18</b></td><td>18</td><td>中6日</td><td>約6匹 / 32kg</td></tr>
+<tr><td>3</td><td><b>16-18</b></td><td>18</td><td>中4日</td><td>約6匹 / 32kg</td></tr>
+<tr class="hot"><td>4</td><td><b>15-20</b></td><td>20</td><td>中2日</td><td>約11匹 / <b>58kg</b></td></tr>
+<tr><td>5</td><td><b>16-26</b></td><td>26</td><td>中4日</td><td>約11匹 / 58kg</td></tr>
+<tr class="hot"><td>6</td><td><b>15-26</b></td><td>26</td><td>中2日</td><td>約7匹 / 37kg</td></tr>
+<tr><td>7</td><td><b>11-40</b></td><td>40</td><td>中7日</td><td>約11匹 / 58kg</td></tr>
+<tr class="hot"><td>8</td><td><b>10-41</b></td><td>41</td><td><b>中7日</b></td><td>約20匹 / <b>106kg</b></td></tr></table>
+<p class="sub" style="margin:2px 0">行16→18→18→20→26→26→40→41の一直線。<b>10-41は中7日でこの便の最大（106kg）</b>。ただし隣の行34・37が2.7%・3.4%と薄いので、行40・41も同様なら半分程度に落ちます。<b>8/3以来ノータッチなので、ここで一度確かめる価値があります。</b><br>⏭ 14-22（中2日・28kg）・15-34・14-37（各16kg）・15-9・14-10は外しています。</p>
+<p style="margin:2px 0;font-size:14px"><b>8/11（火）5本 — 約42匹／約222kg</b>　<span class="sub">早朝3.7〜3.9m/s・日最大3.9で今週いちばん穏やか</span></p>
+<table><tr><th>順</th><th>のし</th><th>行</th><th>中日数</th><th>期待</th></tr>
+<tr class="hot"><td>1</td><td><b>15-20</b></td><td>20</td><td>中1日</td><td>約6匹 / 33kg</td></tr>
+<tr><td>2</td><td><b>14-22</b></td><td>22</td><td>中3日</td><td>約6匹 / 32kg</td></tr>
+<tr class="hot"><td>3</td><td><b>15-26</b></td><td>26</td><td>中1日</td><td>約4匹 / 23kg</td></tr>
+<tr><td>4</td><td><b>15-34</b></td><td>34</td><td>中5日</td><td>約4匹 / 21kg</td></tr>
+<tr><td>5</td><td><b>14-37</b></td><td>37</td><td>中5日</td><td>約4匹 / 21kg</td></tr>
+<tr class="hot"><td>6</td><td><b>10-41</b></td><td>41</td><td>中1日</td><td>約6匹 / <b>32kg</b></td></tr></table>
+<p class="sub" style="margin:2px 0">お盆前の締めの便。8/10で回らなかった 14-22・15-34・14-37 を拾いつつ、62〜75m帯をもう一度なぞる形です。<b>8/10で10-41が良ければ、ここでもう一度</b>行く価値があります（中1日でも約32kg）。</p>
+<div class="memo-plan" style="background:#e8f5e9;border-color:#a8d5ab">📊 <b>2便で約612kg＝累計 5,612kg。</b>4位・川口(5,347)と3位・佐々木(5,570)を上回る水準です（他船も獲るので順位は変動）。<br>
+🎋 <b>お盆休み（8/12〜16）。</b>8/11に主力を巻いておけば、8/17の初便は 62〜75m帯が中6日、沖が中6日、浅場2本が中14日で揃います。<b>浅場が秋に戻り始めているかを見るのも、この8/17が最初の機会</b>です。<br>
+📦 <b>15-34の減箱（195→136箱）</b>は8/11に15-34を回るついでに。早朝べた凪（0.8〜1.9m/s）の8/12も予備日です。</div>
+<p class="sub">💰 単価 <b>1,340円/kg</b>（8/7実績）で換算＝2便で約82万円。<br>⚠️ サイズ想定を<b>中=5.3kg</b>に下げました（8/8実績195kg÷37匹＝5.27）。8/3の6.0kgから落ちています。<br>🌬 常呂漁港の8/8時点の推計。</p></section>
 <section><h2>🌡 水温と漁獲見通し（網走沿岸103・AI推計）</h2>
 <svg width="330" height="64" viewBox="0 0 330 64" style="max-width:100%"><polyline points="5,56 30,55 54,54 79,52 103,51 128,50 153,49 177,47 202,46 227,45 251,44 276,42 300,41 325,40" fill="none" stroke="#8aa4b8" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="5,43 30,40 54,36 79,33 103,13 128,11 153,12 177,12 202,14 227,14 251,10 276,11 300,15 325,8" fill="none" stroke="#c0392b" stroke-width="2"/></svg><p><b>常呂沖 08/06｜岸寄り 22.0℃・中 21.7℃・沖 20.1℃</b>（8/7予報は22.3／21.8／20.6℃）｜⚠️<b>ミズダコの適水温は16℃以下</b>なので、いま全域が適水温を大きく外れています</p><p>📈 <b>漁獲見通し（AI推計）</b>: 7/20週 実績 <b>860kg</b>で確定｜7/27週 <b>623kg</b>で確定（7/29便のみ・8/1は諸事情で休漁）｜8/3週 実績 <b>870kg</b>（8/3便 559＋8/4便 311）＋8/7便 約391 → 約<b>1,261kg</b>見込み＝週として今季最高｜⚠️部会の目廻りは 6.1→5.7kg。自船も 6.7→5.5kg/尾 と初めて部会平均並みまで低下＝沖ラインにも小型化が及び始めた可能性。重量を確保するには沖の本数を増やすか、フル化で箱を増やす方向｜現体制の定常期待 約<b>850kg/週</b></p><div class="memo-plan" style="background:#fdecea;border-color:#e0a0a0"><b>🌡 網走沖と常呂沖は違います（4点で測り直しました）。</b>海面水温℃。<table><tr><th>日</th><th>常呂<br>岸寄り</th><th>常呂<br>沖 中</th><th>常呂<br><b>沖 遠</b></th><th>網走<br>岸寄り</th><th>網走<br>沖 遠</th></tr>
 <tr><td>7/25</td><td>20.7</td><td>19.9</td><td class="hot"><b>15.6</b></td><td>19.7</td><td>18.2</td></tr>
@@ -344,26 +352,30 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <section><h2>🎯 のし別 期待値（真の実力・AI推計）</h2>
 <table><tr><th>漁場</th><th>期待入箱率</th><th>実績</th><th>8/7回収なら</th></tr>
 <tr class="warn"><td><b>15-9</b></td><td>9.8%</td><td>12回</td><td>⚠️約1匹</td></tr>
-<tr class="hot"><td><b>15-20</b></td><td>8.7% ⬆️</td><td>6回</td><td>約8匹</td></tr>
-<tr class="hot"><td><b>14-22</b></td><td>7.0% ⬆️</td><td>6回</td><td>約6匹</td></tr>
+<tr class="hot"><td><b>15-20</b></td><td>9.3% ⬆️</td><td>7回</td><td>約14匹</td></tr>
+<tr><td><b>14-22</b></td><td>7.0%</td><td>7回</td><td>約6匹</td></tr>
 <tr class="hot"><td><b>10-41</b></td><td>6.5% ⬆️</td><td>4回</td><td>約6匹</td></tr>
 <tr class="hot"><td><b>16-18</b></td><td>6.4%</td><td>9回</td><td>約6匹</td></tr>
 <tr><td><b>12-16</b></td><td>6.4%</td><td>3回</td><td>約4匹</td></tr>
 <tr><td><b>12-18</b></td><td>6.3%</td><td>2回</td><td>約4匹</td></tr>
-<tr><td><b>14-10</b></td><td>6.0%</td><td>7回</td><td>約8匹</td></tr>
+<tr class="warn"><td><b>14-10</b></td><td>5.6%</td><td>8回</td><td>⚠️約0匹</td></tr>
 <tr><td><b>15-34</b></td><td>5.6%</td><td>7回</td><td>約8匹</td></tr>
 <tr><td><b>14-37</b></td><td>5.0%</td><td>7回</td><td>約5匹</td></tr>
 <tr><td><b>11-40</b></td><td>5.3% ⬆️</td><td>5回</td><td>約5匹</td></tr>
 <tr class="hot"><td><b>16-26</b></td><td>5.6% ⬆️</td><td>7回</td><td>約4匹</td></tr>
-<tr><td><b>15-26</b></td><td>4.3% ⬆️</td><td>5回</td><td>約4匹</td></tr></table>
+<tr class="hot"><td><b>15-26</b></td><td>5.2% ⬆️</td><td>6回</td><td>約10匹</td></tr></table>
 <p class="sub">期待入箱率＝中日数(観測頻度)の影響を補正した全履歴ベースの推定。ホットスポットほど生入箱率が低く見える問題を解消。実績が少ないのしは全体平均(6.6%)寄りに補正（全体平均を6回分の疑似観測として混ぜる収縮推定）。7/29の4回収を反映して 15-9 10.5→10.4%・14-10 5.7→6.0%・16-18 5.2→6.4%・15-20 6.7→8.5% に更新。<br>8/3・8/4の13回収を反映。上がったのは <b>10-41 5.6→6.5%</b>・<b>15-20 8.5→8.7%</b>・<b>14-22 4.7→7.0%</b>・16-26/15-26/14-37/11-40。<br>📌 <b>8/6の4回収を反映。</b>16-26は118箱で11匹＝<b>9.3%</b>（中3日補正後16.2%）と好調で 4.7→5.6%に上昇。沖の15-34（195箱で3匹＝1.5%）・14-37（203箱で4匹＝2.0%）は落ちましたが、<b>これはのし固有ではなく海域全体の低調による可能性が高い</b>（8/4以降 水温が20.6→21.6℃と今季最高を更新中・浜でも「今週に入って全体的に少ない」との話）。収縮推定なので数値も 5.8→5.6%・5.1→5.0% とほぼ動いておらず、<b>この2本を評価替えするのは早い</b>と見ています。<br>📌 <b>14-37は203箱（3/4装着）に訂正。</b>135箱前提で計算していた入箱率が下がり 5.3→5.1% に。ただし箱数が1.5倍なので期待匹数は約5匹→約7匹に増えます。<br>📌 <b>8/3は部会表（75尾）を正として、のし別の船上カウント（89匹）を0.84倍に補正</b>してから反映しています。8/4は部会表と完全一致なので補正なし。
 <br>⚠️<b>15-9は数字を鵜呑みにしないでください。</b>全履歴の平均は9.9%と全のし最高のままですが、直近は 8.5%（7/29・20匹）→ <b>0.43%（8/3・1匹）</b>と崩れています。235箱という最大の箱を使って1匹なので、上の「約1匹」は平均ではなく直近実績で置いた値です。
 <br>🔎 <b>τ（回復の速さ）の前提が怪しくなりました。</b>14-22は8/3に12匹獲った翌日8/4（中1日）にまた12匹。τ=3.5なら25%しか戻らないはずが100%戻っています。この帯はタコの密度が高く、連日回っても獲れる可能性があります。<br>⚠️<b>モデルは今、実力を低く見積もっています。</b>7/29の4本のモデル予測は計53匹でしたが実際は116匹＝<b>2.2倍</b>。丘の急騰に履歴ベースの推定が追いついていないので、下の便プランはモデル値を「下限」として読んでください。τ実測暫定 5.75（回収62件・計算は現行3.5のまま・20件超えたら採用検討）｜水温相関: r=+0.61（n=11日・参考値）</p></section>
 <section><h2>🔀 移動判断（低実力のしの移動利得・AI推計）</h2>
 <table><tr><th>のし</th><th>実績</th><th>今の週間期待</th><th>平均場へ移動なら</th><th>利得</th><th>判定</th></tr>
-<tr class="warn"><td><b>15-9</b></td><td>12回</td><td>直近 約1匹</td><td>約12匹</td><td>+11匹/週</td><td>⏸<b>判定保留</b>（海域全体が低調の可能性）</td></tr>
+<tr class="warn"><td><b>15-9</b></td><td>12回</td><td>直近 約1匹</td><td>約12匹</td><td>+11匹/週</td><td>⏸保留（浅場46m・秋まで様子見）</td></tr>
+<tr class="warn"><td><b>14-10</b></td><td>8回</td><td>直近 <b>0匹</b></td><td>約12匹</td><td>+12匹/週</td><td>⏸保留（浅場48m・8/8に2割見て0匹）</td></tr>
 <tr><td><b>15-26</b></td><td>5回</td><td>約4.9匹</td><td>約7.5匹</td><td>+2.6匹/週</td><td>保留解除寄り（8/3=10匹・大で過去最高）</td></tr></table><p class="sub">「平均場」＝実績なし新規場を全体平均と仮定。移動作業コストと新規場の不確実性は含まない。2%未満×2回ルールと併用。
-<br>🪨 <b>海底が「根」の漁場には移さないこと（漁師さんからの情報）。</b><table><tr><th>漁場</th><th>海底</th><th>根拠</th></tr><tr class="warn"><td><b>14-7</b></td><td>根</td><td>タコの数が少ないと聞いている</td></tr><tr class="warn"><td><b>14-8</b></td><td>根</td><td>川口さんが今期保有。<b>今季まだ1回も100kg超えなし</b>と本人談</td></tr></table>上の「平均場へ移動なら約12匹」は<b>実績のない新規場を部会平均（6.6%）と仮定した値</b>です。移動先が14-7・14-8のような根の漁場なら、この前提は成り立たず移動しても損になります。<b>移動を検討するときは、まず移動先候補の海底質を確認してください。</b>番地7〜8の帯は避け、実績のある番地16〜26帯（16-18が6.4%、15-20が8.7%、16-26/15-26も8/3に大サイズ10匹ずつ）の近くを狙うのが安全です。<br>💡 川口さんは通年6,921kgで4位ながら平均6.0kg/尾と部会でも小さい方。14-8が根で数も型も出ていないことが、この平均を押し下げている可能性があります。<br><br>⏸ <b>15-9の判定は保留にします。</b>7/17に42匹を出した主力が8/3に1匹と崩れましたが、<b>浜でも「今週に入って全体的に少ない・特に丘はほとんどいない」</b>との話があり、水温も8/4以降 今季最高を更新中（20.6→21.6℃）。<b>15-9は自船で最も浅い行9（46m）</b>で、浅場ほど水温の影響を受けやすいため、<b>のしの実力ではなく季節要因で一時的に抜けているだけ</b>の可能性が十分あります。<br>箱の超過も8/6の作業で解消済み（1,986箱）なので、<b>いま急いで235箱を動かす理由はありません</b>。水温が落ち着く秋口まで様子を見て、それでも戻らなければ再検討という順序を勧めます。<br>8/11に中8日で回りますが、<b>その1回の結果だけで決めないでください</b>。</p></section>
+<br>🪨 <b>海底が「根」の漁場には移さないこと（漁師さんからの情報）。</b><table><tr><th>漁場</th><th>海底</th><th>根拠</th></tr><tr class="warn"><td><b>14-7</b></td><td>根</td><td>タコの数が少ないと聞いている</td></tr><tr class="warn"><td><b>14-8</b></td><td>根</td><td>川口さんが今期保有。<b>今季まだ1回も100kg超えなし</b>と本人談</td></tr></table>上の「平均場へ移動なら約12匹」は<b>実績のない新規場を部会平均（6.6%）と仮定した値</b>です。移動先が14-7・14-8のような根の漁場なら、この前提は成り立たず移動しても損になります。<b>移動を検討するときは、まず移動先候補の海底質を確認してください。</b>番地7〜8の帯は避け、実績のある番地16〜26帯（16-18が6.4%、15-20が8.7%、16-26/15-26も8/3に大サイズ10匹ずつ）の近くを狙うのが安全です。<br>💡 川口さんは通年6,921kgで4位ながら平均6.0kg/尾と部会でも小さい方。14-8が根で数も型も出ていないことが、この平均を押し下げている可能性があります。<br><br>📍 <b>浅場2本（15-9・14-10）で 470箱＝全体の24%が実質止まっています。</b>8/8に14-10を2割見て0匹だったことで、行9（46m）だけでなく<b>行10（48m）も抜けた</b>ことがはっきりしました。<br>
+選択肢は2つ。<b>①秋まで待つ</b>——水温が下がれば浅場に戻るのが本来の姿なので、何もしないのが基本線です。<b>②箱の一部を今いる帯へ移す</b>——15-20に+77箱・14-22に+77箱の余地があり、計154箱を移せます。15-20の直近実力15.9%で計算すると<b>1便あたり+50kg前後</b>。ただし箱の移設は重労働で、秋に浅場が戻れば元に戻す手間もかかります。<br>
+<b>お盆休み中（8/12〜16）は出荷がないので、②をやるならこの期間が唯一の窓</b>です。やる・やらないだけ決めてもらえれば、移す本数の内訳を詰めます。<br><br>
+⏸ <b>15-9の判定は保留にします。</b>7/17に42匹を出した主力が8/3に1匹と崩れましたが、<b>浜でも「今週に入って全体的に少ない・特に丘はほとんどいない」</b>との話があり、水温も8/4以降 今季最高を更新中（20.6→21.6℃）。<b>15-9は自船で最も浅い行9（46m）</b>で、浅場ほど水温の影響を受けやすいため、<b>のしの実力ではなく季節要因で一時的に抜けているだけ</b>の可能性が十分あります。<br>箱の超過も8/6の作業で解消済み（1,986箱）なので、<b>いま急いで235箱を動かす理由はありません</b>。水温が落ち着く秋口まで様子を見て、それでも戻らなければ再検討という順序を勧めます。<br>8/11に中8日で回りますが、<b>その1回の結果だけで決めないでください</b>。</p></section>
 <section><h2>🧵 のし管理（丸数・装着率・箱数／部会規定2,000箱）</h2>
 <table><tr><th>のし</th><th>区分</th><th>長さ</th><th>装着率</th><th>箱数</th><th>フル化余地</th></tr><tr><td><b>15-9</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>14-10</b></td><td>番内</td><td>6丸</td><td>100%</td><td>235箱</td><td>上限</td></tr><tr><td><b>12-16</b></td><td>追加</td><td>6丸</td><td>51%</td><td>120箱</td><td>+115箱</td></tr><tr class="hot"><td><b>16-18</b></td><td>番内</td><td><b>5丸</b></td><td>76%</td><td><b>148箱</b></td><td>✅1丸撤去済</td></tr><tr><td><b>12-18</b></td><td>追加</td><td>6丸</td><td>51%</td><td>120箱</td><td>+115箱</td></tr><tr><td><b>15-20</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr><td><b>14-22</b></td><td>番内</td><td>6丸</td><td>67%</td><td>157箱</td><td>+77箱</td></tr><tr class="hot"><td><b>16-26</b></td><td>番内</td><td><b>5丸</b></td><td>50%</td><td><b>98箱</b></td><td>✅1丸撤去済</td></tr><tr><td><b>15-26</b></td><td>番内</td><td>6丸</td><td>50%</td><td>118箱</td><td>+118箱</td></tr><tr><td><b>15-34</b></td><td>番外</td><td>7丸</td><td>72%</td><td>195箱</td><td>ほぼ上限(3/4)</td></tr><tr class="hot"><td><b>14-37</b></td><td>番外</td><td>7丸</td><td>50%</td><td><b>135箱</b></td><td>✅1/2に減箱済</td></tr><tr><td><b>11-40</b></td><td>番外</td><td>7丸</td><td>50%</td><td>135箱</td><td>+68箱</td></tr><tr><td><b>10-41</b></td><td>追加</td><td>8丸</td><td>44%</td><td>133箱</td><td>+94箱</td></tr></table><p><b style="color:#0a7a2f">✅ 海中の箱 合計 1,986箱 / 部会上限2,000箱（使用率99%・残り枠14箱）</b></p><div class="memo-plan" style="background:#fdecea;border-color:#e0a0a0"><b>✅ 8/6の作業で上限内に収まりました。</b>14-37の減箱（−68箱）と、16-18・16-26の1丸撤去（−30・−20箱）で 2,104 → <b>1,986箱</b>。残り枠14箱です。<br>📌 <b>15-34の減箱（195→136箱）はまだ残っています。</b>これを実施すれば1,927箱（残り枠73箱）となり、秋に向けた沖の軽量化も完了します。8/6に15-34もあぐっているので、減箱まで済んでいたら教えてください。<br>⚠️ 他ののしの装着率も一度実数で確認をお願いします（12-16・12-18・14-37と3件続けて記録とズレがありました）。</div><h3>🧰 箱・のしの作業プラン（2件）</h3>
 <h4 style="font-size:13px;margin:10px 0 4px;color:#0b3550">① 16番通りの短縮 ＝ <b style="color:#c0392b">必須・凪限定</b></h4>
@@ -410,6 +422,7 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <p class="sub">📦 <b>⚠️前回お伝えしたフル化の提案は撤回します。</b>12-16・12-18を10箱として数えていたため「残り枠184箱」としていましたが、6丸120箱に訂正すると合計2,036箱で<b>すでに上限2,000箱を36箱超過</b>しています。15-20に+77箱・16-18に+56箱を足す余地はありません。<br>いま増やせるとすれば、まず超過ぶんを解消したうえで、期待入箱率が最下位の <b>15-26（3.9%・118箱）</b> を引いてその箱を 15-20（8.5%）や 16-18（6.4%）に回す形になります。実数の確認を社長にお願いしてから判断してください。<br>7/30・31は休漁（父不在）。</p></section>
 <section id="daily"><h2>📖 日別記録（自船）</h2>
 <table><tr><th>日付</th><th>漁場別尾数</th><th>日合計</th></tr>
+<tr><td>08/08</td><td>14-10 <b>0</b>❌<span class="sub">(2割見て離した)</span>　15-20 <b>17</b>🔥　14-22 <b>7</b>　15-26 <b>13</b>🔥<span class="sub">　全て中サイズ／部会表待ち</span></td><td><b>37匹 / 195kg</b></td></tr>
 <tr><td>08/07</td><td colspan="1"><span class="sub">出漁なし（部会表の相田行は空欄）</span></td><td><span class="sub">—</span></td></tr>
 <tr><td>08/06</td><td>15-34 <b>3</b>⚠️　14-37 <b>4</b>⚠️　16-26 <b>11</b>(小)🔥　16-18 <b>9</b><span class="sub">　4本便／📦14-37を1/2に減箱・🔧16-18と16-26の下側1丸を撤去（資源調査対応）</span></td><td><b>27匹 / 143kg</b><span class="sub">　※部会表待ち</span></td></tr>
 <tr><td>08/04</td><td>14-10 <b>12</b>　12-16 <b>8</b>　12-18 <b>7</b>　15-20 <b>14</b>　14-22 <b>12</b><span class="sub">　全て中サイズ／部会表と完全一致</span></td><td><b>53匹 / 311kg</b></td></tr>
@@ -435,10 +448,10 @@ html,body{height:auto !important;max-height:none !important;overflow-y:auto !imp
 <header id="stats"><h1>📊 漁師別 週次・月次</h1><p>生成: 2026-08-05 更新（8/3・8/4反映）｜部会LINE表ベース｜平均kg/尾＝どのサイズ帯（≒どのエリア）を獲っているかの目安</p></header>
 
 <details open class="me-block"><summary><b>相田裕康</b>
-<span class="sub">　通年 6,375kg・831尾・平均 7.7kg/尾</span></summary>
+<span class="sub">　通年 6,570kg・868尾・平均 7.6kg/尾</span></summary>
 <div class="cols">
-<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td><b>8月</b></td><td><b>1,013kg</b></td><td>155尾</td><td>6.5kg/尾</td></tr><tr><td>7月</td><td><b>3,147kg</b></td><td>452尾</td><td>7.0kg/尾</td></tr><tr><td>6月</td><td><b>645kg</b></td><td>66尾</td><td>9.8kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,570kg</b></td><td>158尾</td><td>9.9kg/尾</td></tr></table></div>
-<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td><b>08/03〜08/09</b></td><td><b>1,013kg</b></td><td>155尾</td><td>6.5kg/尾</td></tr><tr><td>07/27〜08/02</td><td><b>623kg</b></td><td>114尾</td><td>5.5kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>860kg</b></td><td>128尾</td><td>6.7kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>290kg</b></td><td>43尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>1,147kg</b></td><td>140尾</td><td>8.2kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>544kg</b></td><td>58尾</td><td>9.4kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>216kg</b></td><td>24尾</td><td>9.0kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>112kg</b></td><td>11尾</td><td>10.2kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>429kg</b></td><td>28尾</td><td>15.3kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,141kg</b></td><td>130尾</td><td>8.8kg/尾</td></tr></table></div>
+<div><h3>月次</h3><table><tr><th>月</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td><b>8月</b></td><td><b>1,208kg</b></td><td>192尾</td><td>6.3kg/尾</td></tr><tr><td>7月</td><td><b>3,147kg</b></td><td>452尾</td><td>7.0kg/尾</td></tr><tr><td>6月</td><td><b>645kg</b></td><td>66尾</td><td>9.8kg/尾</td></tr><tr><td>3月（越冬）</td><td><b>1,570kg</b></td><td>158尾</td><td>9.9kg/尾</td></tr></table></div>
+<div><h3>週次</h3><table><tr><th>週</th><th>重量</th><th>尾数</th><th>平均</th></tr><tr><td><b>08/03〜08/09</b></td><td><b>1,208kg</b></td><td>192尾</td><td>6.3kg/尾</td></tr><tr><td>07/27〜08/02</td><td><b>623kg</b></td><td>114尾</td><td>5.5kg/尾</td></tr><tr><td>07/20〜07/26</td><td><b>860kg</b></td><td>128尾</td><td>6.7kg/尾</td></tr><tr><td>07/13〜07/19</td><td><b>290kg</b></td><td>43尾</td><td>6.7kg/尾</td></tr><tr><td>07/06〜07/12</td><td><b>1,147kg</b></td><td>140尾</td><td>8.2kg/尾</td></tr><tr><td>06/29〜07/05</td><td><b>544kg</b></td><td>58尾</td><td>9.4kg/尾</td></tr><tr><td>06/22〜06/28</td><td><b>216kg</b></td><td>24尾</td><td>9.0kg/尾</td></tr><tr><td>06/15〜06/21</td><td><b>112kg</b></td><td>11尾</td><td>10.2kg/尾</td></tr><tr><td>03/30〜04/05</td><td><b>429kg</b></td><td>28尾</td><td>15.3kg/尾</td></tr><tr><td>03/23〜03/29</td><td><b>1,141kg</b></td><td>130尾</td><td>8.8kg/尾</td></tr></table></div>
 </div></details><details><summary><b>大井</b>
 <span class="sub">　通年 9,521kg・1,159尾・平均 8.2kg/尾</span></summary>
 <div class="cols">
