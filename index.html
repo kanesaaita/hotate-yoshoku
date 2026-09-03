@@ -368,6 +368,7 @@
         <button class="btn ghost" onclick="exportJSON()">⬇️ 全データ書き出し（JSON・完全バックアップ）</button>
         <label class="btn ghost" style="cursor:pointer">⬆️ JSON読み込み<input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
         <label class="btn" style="cursor:pointer">➕ 追記読み込み（マージ）<input type="file" accept=".json" onchange="mergeImportJSON(this)" style="display:none"></label>
+        <button class="btn ghost" onclick="loadSeed2026()">📥 2026年の記録を取り込む（早どり＋本どり）</button>
       </div>
       <div class="hint" style="margin-top:6px">「JSON読み込み」は<b>全部を置き換え</b>ます。<b>「追記読み込み」は既存データを消さずに記録とのしを足すだけ</b>です。まとめて入れる前に、1件だけ入れて在庫表示を確かめてください。</div>
       <div class="row-actions">
@@ -571,8 +572,316 @@
 <script>
 /* ============ 定数：工程スキーマ ============ */
 const AREAS = ["A海区","B海区","トウフツ沖","その他"];
-/* 公開版: NOSHI_LIST は空。各家で自分ののしを設定タブから登録する */
-const NOSHI_LIST = []; /* 公開版: 各家で自分ののしを登録 */
+/* のしマスタ（2026年9月時点・28本＋予備1本）。他家で使う場合は設定タブで入れ替える */
+const NOSHI_LIST = [
+  {name:"ちかまA-1", area:"ちかま", depth:null},
+  {name:"ちかまA-2", area:"ちかま", depth:null},
+  {name:"ちかまB-1", area:"ちかま", depth:null},
+  {name:"ちかまB-2", area:"ちかま", depth:null},
+  {name:"ちかまB-3", area:"ちかま", depth:null},
+  {name:"ちかまC", area:"ちかま", depth:null},
+  {name:"ちかまD-1", area:"ちかま", depth:null},
+  {name:"ちかまD-2", area:"ちかま", depth:null},
+  {name:"赤川通路A", area:"赤川", depth:null},
+  {name:"赤川通路B", area:"赤川", depth:null},
+  {name:"赤川かみ", area:"赤川", depth:null},
+  {name:"大瀬A", area:"大瀬", depth:null},
+  {name:"大瀬B", area:"大瀬", depth:null},
+  {name:"千谷A", area:"千谷", depth:null},
+  {name:"千谷B", area:"千谷", depth:null},
+  {name:"採苗地", area:"採苗地", depth:null},
+  {name:"古館A", area:"古館・遠目", depth:null},
+  {name:"古館B", area:"古館・遠目", depth:null},
+  {name:"古館C", area:"古館・遠目", depth:null},
+  {name:"古館D", area:"古館・遠目", depth:null},
+  {name:"古館E", area:"古館・遠目", depth:null},
+  {name:"大枠A", area:"大枠・遠目", depth:null},
+  {name:"大枠B", area:"大枠・遠目", depth:null},
+  {name:"大枠C", area:"大枠・遠目", depth:null},
+  {name:"前田A", area:"前田・遠目", depth:null},
+  {name:"前田B", area:"前田・遠目", depth:null},
+  {name:"長いのしA", area:"長いのし・遠目", depth:null},
+  {name:"長いのしB", area:"長いのし・遠目", depth:null},
+  {name:"大井", area:"予備", depth:null},
+];
+
+/* 2026年の記録の種。データが空のときだけ自動で入る。
+   既にデータがある端末には触れない（取り込みたい場合は設定タブの「📥 2026年の記録を取り込む」） */
+const SEED_2026 = [
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 180,
+    "amime": "1部2厘",
+    "noshiToName": "ちかまB-2",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 141,
+    "amime": "1部2厘",
+    "noshiToName": "ちかまB-3",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 82,
+    "amime": "1部5厘",
+    "noshiToName": "赤川通路A",
+    "memo": "早どり2026 集計（山側）／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 180,
+    "amime": "1部5厘",
+    "noshiToName": "千谷A",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 155,
+    "amime": "1部8厘",
+    "noshiToName": "採苗地",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 126,
+    "amime": "1部8厘",
+    "noshiToName": "赤川通路B",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 170,
+    "amime": "1部8厘",
+    "noshiToName": "千谷B",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 71,
+    "amime": "1部8厘",
+    "noshiToName": "赤川通路A",
+    "memo": "早どり2026 集計（海側）／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠A",
+    "kagoBefore": 2,
+    "kagoAfter": 9,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠B",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠C",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "前田A",
+    "kagoBefore": 4,
+    "kagoAfter": 21,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "前田B",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "長いのしA",
+    "kagoBefore": 22,
+    "kagoAfter": 143,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "長いのしB",
+    "kagoBefore": 30,
+    "kagoAfter": 173,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "ちかまD-1",
+    "kagoBefore": 25,
+    "kagoAfter": 145,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "大枠A",
+    "kagoBefore": 23,
+    "kagoAfter": 133,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "前田A",
+    "kagoBefore": 21,
+    "kagoAfter": 121,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "ちかまA-2",
+    "kagoBefore": 16,
+    "kagoAfter": 95,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "長いのしA",
+    "kagoBefore": 5,
+    "kagoAfter": 27,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "seiiku",
+    "season": 2026,
+    "noshiName": "ちかまB-3",
+    "sagyo": "水温測定",
+    "suion": 19.9,
+    "memo": "1:00・3:00とも19.9℃／塩分計45.1mS/cm＝十分／中止ライン23℃に3.1℃の余裕"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "seiiku",
+    "season": 2026,
+    "noshiName": "ちかまB-2",
+    "sagyo": "その他",
+    "memo": "通し17mm。落ちた稚貝 約150kg。増幅5.78倍（16mmは5.99倍）。0:00発〜9:00帰港"
+  }
+];
+
+/* 種の のし名 → id を解決して records に積む。既存と重複する記録は入れない。 */
+function applySeed2026(d){
+  const byName={}; (d.noshi||[]).forEach(n=>{ byName[(n.name||"").trim()]=n.id; });
+  const sig=r=>[r.date,r.koutei,r.noshiFrom||"",r.noshiTo||"",r.noshi||"",r.kagoBefore||"",r.kagoAfter||"",r.marukago||""].join("|");
+  const have=new Set((d.records||[]).map(sig));
+  let n=0;
+  SEED_2026.forEach(src=>{
+    const r=Object.assign({},src);
+    if(r.noshiFromName!==undefined){ r.noshiFrom=byName[r.noshiFromName]||""; delete r.noshiFromName; }
+    if(r.noshiToName!==undefined){ r.noshiTo=byName[r.noshiToName]||""; delete r.noshiToName; }
+    if(r.noshiName!==undefined){ r.noshi=byName[r.noshiName]||""; delete r.noshiName; }
+    r.id="s"+Math.random().toString(36).slice(2,10)+n;
+    if(have.has(sig(r))) return;
+    have.add(sig(r)); d.records.push(r); n++;
+  });
+  return n;
+}
+function loadSeed2026(){
+  if(!confirm("2026年の記録（早どり集計8件＋本どり9/1・9/2の12件＋生育管理2件）を取り込みます。\n既存の記録は消えません。よろしいですか？")) return;
+  const n=applySeed2026(DB);
+  if(!n){ toast("すべて取り込み済みでした"); return; }
+  save(); refreshAll(); toast("📥 記録を"+n+"件 取り込みました");
+}
 const KOUTEI = [
   { key:"tounyu", name:"採苗器投入（海へ）", icon:"⚓", inv:()=>[], dateLabel:"海への投入日",
     fields:[
@@ -682,7 +991,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.03-1";
+const APP_VERSION = "2026.09.03-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -729,13 +1038,18 @@ function normalizeDB(d){
 function load(){
   let d=null;
   try{ const raw=localStorage.getItem(LS_KEY); if(raw) d=JSON.parse(raw); }catch(e){}
-  if(!d) d={
-    version:1,
-    season: new Date().getFullYear(),
-    noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
-    records: []
-  };
+  let seedNew=false;
+  if(!d){
+    d={
+      version:1,
+      season: 2026,
+      noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
+      records: []
+    };
+    seedNew=true;
+  }
   normalizeDB(d);
+  if(seedNew) applySeed2026(d); // 新規インストール時だけ2026年の記録を入れておく
   // --- アプリ更新（バージョン変化）検知：データは引き継ぎ、更新前を自動バックアップ ---
   if(d.appVersion !== APP_VERSION){
     if(d.records && d.records.length){
@@ -1759,9 +2073,10 @@ function loadNoshiList(){
   save(); renderNoshiMaster(); refreshNoshiSelectors();
   toast(added?`のし ${added}本を追加しました`:"のしは既に全部登録済みです");
 }
-function loadPreset2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
-function loadHayadori2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
-function loadHayadori0716(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
+/* 旧・サンプル読み込みの入口。2026年の記録は loadSeed2026() に一本化した */
+function loadPreset2026(){ loadSeed2026(); }
+function loadHayadori2026(){ loadSeed2026(); }
+function loadHayadori0716(){ loadSeed2026(); }
 function wipeAll(){
   if(!confirm("本当にすべてのデータを削除しますか？この操作は元に戻せません。")) return;
   if(!confirm("最終確認：全記録・全のし設定を消去します。よろしいですか？")) return;
