@@ -367,7 +367,9 @@
       <div class="row-actions">
         <button class="btn ghost" onclick="exportJSON()">⬇️ 全データ書き出し（JSON・完全バックアップ）</button>
         <label class="btn ghost" style="cursor:pointer">⬆️ JSON読み込み<input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
+        <label class="btn" style="cursor:pointer">➕ 追記読み込み（マージ）<input type="file" accept=".json" onchange="mergeImportJSON(this)" style="display:none"></label>
       </div>
+      <div class="hint" style="margin-top:6px">「JSON読み込み」は<b>全部を置き換え</b>ます。<b>「追記読み込み」は既存データを消さずに記録とのしを足すだけ</b>です。まとめて入れる前に、1件だけ入れて在庫表示を確かめてください。</div>
       <div class="row-actions">
         <button class="btn ghost" onclick="exportCSV()">⬇️ 記録をCSV書き出し（Excel用）</button>
         <button class="btn ghost" onclick="restorePrev()">↩️ 直前の自動控えに戻す（1手前）</button>
@@ -680,7 +682,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.27-1";
+const APP_VERSION = "2026.09.03-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1687,6 +1689,46 @@ function importJSON(input){
         DB=normalizeDB(d); save(); refreshAll(); toast("読み込みました");
       }
     }catch(err){ toast("読み込み失敗："+err.message); }
+    input.value="";
+  };
+  rd.readAsText(file);
+}
+/* 追記読み込み（マージ）：既存データを消さずに、のしと記録を足すだけ。
+   のしは name で照合し、無ければ新規作成。記録は日付+工程+のし+数量が一致するものを重複としてスキップ。 */
+function mergeImportJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!Array.isArray(d.records)) throw new Error("records がありません");
+      const findNoshi=nm=>{ const t=(nm||"").trim(); return DB.noshi.find(n=>(n.name||"").trim()===t); };
+      const ensureNoshi=(nm,area)=>{
+        if(!nm) return "";
+        let x=findNoshi(nm); if(x) return x.id;
+        const id="n"+(Date.now().toString(36))+Math.floor(Math.random()*1e6).toString(36);
+        DB.noshi.push({id:id, name:String(nm).trim(), area:area||"", depth:null});
+        addedNoshi++; return id;
+      };
+      let addedNoshi=0, addedRec=0, skipped=0;
+      (d.noshi||[]).forEach(n=>ensureNoshi(n.name,n.area));
+      const sig=r=>[r.date,r.koutei,r.noshiFrom||"",r.noshiTo||"",r.noshi||"",r.kagoBefore||"",r.kagoAfter||""].join("|");
+      const have=new Set(DB.records.map(sig));
+      d.records.forEach(src=>{
+        const r=Object.assign({},src);
+        if(r.noshiFromName){ r.noshiFrom=ensureNoshi(r.noshiFromName); delete r.noshiFromName; }
+        if(r.noshiToName){ r.noshiTo=ensureNoshi(r.noshiToName); delete r.noshiToName; }
+        if(r.noshiName){ r.noshi=ensureNoshi(r.noshiName); delete r.noshiName; }
+        r.id=uid(); r.season=r.season||DB.season;
+        if(have.has(sig(r))){ skipped++; return; }
+        have.add(sig(r)); DB.records.push(r); addedRec++;
+      });
+      if(!confirm("記録 "+addedRec+"件、のし "+addedNoshi+"件を追加します。\n（重複スキップ "+skipped+"件／既存データは消えません）\nよろしいですか？")){
+        DB=load(); refreshAll(); toast("取りやめました"); input.value=""; return;
+      }
+      save(); refreshAll();
+      toast("➕ 記録"+addedRec+"件・のし"+addedNoshi+"件を追加しました");
+    }catch(err){ toast("追記に失敗："+err.message); DB=load(); refreshAll(); }
     input.value="";
   };
   rd.readAsText(file);

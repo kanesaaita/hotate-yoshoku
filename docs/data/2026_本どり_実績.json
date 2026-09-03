@@ -1,0 +1,214 @@
+{
+  "_format": "hotate-merge-v1",
+  "_note": "2026年 本どり 9/1・9/2の実績。設定タブの「➕ 追記読み込み（マージ）」から読み込む。既存データは消えず、記録が追加される。",
+  "_assumption": "kagoBefore／kagoAfter は【連数】で入れている。アプリ内部の丸籠の単位が『籠』で1連=10籠の扱いなら、読み込み前にこのファイルの数値を10倍すること。まず1件だけ試して在庫表示を確認してから全部入れるのが安全。",
+  "noshi": [
+    {
+      "name": "ちかまA-2",
+      "area": "ちかま"
+    },
+    {
+      "name": "ちかまB-2",
+      "area": "ちかま"
+    },
+    {
+      "name": "ちかまB-3",
+      "area": "ちかま"
+    },
+    {
+      "name": "ちかまD-1",
+      "area": "ちかま"
+    },
+    {
+      "name": "大枠A",
+      "area": "大枠"
+    },
+    {
+      "name": "大枠B",
+      "area": "大枠"
+    },
+    {
+      "name": "大枠C（山側）",
+      "area": "大枠"
+    },
+    {
+      "name": "前田A（上側）",
+      "area": "前田"
+    },
+    {
+      "name": "前田B",
+      "area": "前田"
+    },
+    {
+      "name": "長いのしA",
+      "area": "長いのし"
+    },
+    {
+      "name": "長いのしB",
+      "area": "長いのし"
+    }
+  ],
+  "records": [
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "大枠A",
+      "kagoBefore": 2,
+      "kagoAfter": 9,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "大枠B",
+      "kagoBefore": 24,
+      "kagoAfter": 142,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "大枠C（山側）",
+      "kagoBefore": 24,
+      "kagoAfter": 142,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "前田A（上側）",
+      "kagoBefore": 4,
+      "kagoAfter": 21,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "前田B",
+      "kagoBefore": 24,
+      "kagoAfter": 142,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-3",
+      "noshiToName": "長いのしA",
+      "kagoBefore": 22,
+      "kagoAfter": 143,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり1日目／通し16mm／元の網目1部2厘／①100連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "長いのしB",
+      "kagoBefore": 30,
+      "kagoAfter": 173,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "ちかまD-1",
+      "kagoBefore": 25,
+      "kagoAfter": 145,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "大枠A",
+      "kagoBefore": 23,
+      "kagoAfter": 133,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "前田A（上側）",
+      "kagoBefore": 21,
+      "kagoAfter": 121,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "ちかまA-2",
+      "kagoBefore": 16,
+      "kagoAfter": 95,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "irekae",
+      "season": 2026,
+      "noshiFromName": "ちかまB-2",
+      "noshiToName": "長いのしA",
+      "kagoBefore": 5,
+      "kagoAfter": 27,
+      "amime": "3部5厘",
+      "chigaiPerKago": 1775,
+      "memo": "本どり2日目／通し17mm／元の網目1部2厘／①120連を下げ先の比率で按分"
+    },
+    {
+      "date": "2026-09-01",
+      "koutei": "seiiku",
+      "season": 2026,
+      "noshiName": "ちかまB-3",
+      "sagyo": "水温測定",
+      "suion": 19.9,
+      "memo": "1:00と3:00ともに19.9℃／塩分計45.1mS/cm＝十分／中止ライン23℃に3.1℃の余裕"
+    },
+    {
+      "date": "2026-09-02",
+      "koutei": "seiiku",
+      "season": 2026,
+      "noshiName": "ちかまB-2",
+      "sagyo": "その他",
+      "memo": "通し17mm。通しより小さく落ちた稚貝 約150kg。増幅5.78倍（16mmは5.99倍）"
+    }
+  ]
+}
