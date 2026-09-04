@@ -120,6 +120,34 @@
   .hh-warn{margin-top:9px;background:rgba(255,214,150,.16);border:1px solid rgba(255,214,150,.45);
     border-radius:10px;padding:8px 11px;font-size:12px;color:#ffe3b8;display:flex;align-items:center;
     flex-wrap:wrap;gap:6px;line-height:1.5}
+  /* 予定カレンダー */
+  .sc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:15px}
+  .sc-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:11px;color:var(--sub);text-align:center;margin-bottom:3px}
+  .sc-sun{color:#c0392b}
+  .sc-sat{color:#2874a6}
+  .sc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .sc-cell{position:relative;min-height:52px;border:1px solid var(--line);border-radius:8px;padding:3px 2px 2px;cursor:pointer;background:#fff;overflow:hidden}
+  .sc-cell:active{background:var(--ice)}
+  .sc-empty{border:none;background:transparent;cursor:default}
+  .sc-d{font-size:12px;font-weight:700;text-align:center;line-height:1.3}
+  .sc-m{display:flex;flex-wrap:wrap;gap:1px;justify-content:center;margin-top:1px}
+  .sc-dot{font-size:9.5px;border-radius:4px;padding:0 2px;line-height:1.5}
+  .sc-more{font-size:9px;color:var(--sub)}
+  .sc-rec{position:absolute;right:2px;bottom:1px;font-size:8.5px;color:#1d5b8f}
+  .sc-today{box-shadow:inset 0 0 0 2px var(--navy2,#1c4587)}
+  .sc-today .sc-d{color:var(--navy2,#1c4587)}
+  .sc-sel{background:#eaf3fb}
+  .sc-legend{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .sc-lg{font-size:10px;border-radius:999px;padding:2px 7px;color:#33475b}
+  .sd-row{padding:9px 0 9px 8px;border-bottom:1px solid var(--ice2)}
+  .sd-row:last-child{border-bottom:none}
+  .sd-t{font-size:11.5px;color:var(--sub)}
+  .sd-b{font-size:13.5px;margin-top:1px}
+  .sd-a{display:flex;gap:4px;justify-content:flex-end;margin-top:6px}
+  .sd-a .btn{padding:3px 7px!important;font-size:12px!important;text-decoration:none}
+  .gc-step{background:var(--ice);border-radius:12px;padding:11px 12px}
+  .gc-n{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:6px}
+  .gc-step code{background:#fff;padding:1px 5px;border-radius:4px;font-size:11.5px}
   /* のし在庫表：セルのその場修正と 最終玉つけバッジ */
   .inv-table td,.inv-table th{white-space:nowrap}
   .inv-cell{cursor:pointer;position:relative;border-radius:6px}
@@ -129,8 +157,14 @@
   .inv-editing{background:#fff8e6}
   .inv-editing input{width:74px;padding:4px 6px;font-size:14px;text-align:right;border:1.5px solid var(--navy2,#1c4587);border-radius:6px}
   .inv-eb{display:flex;gap:4px;margin-top:4px;justify-content:flex-end}
-  .tama-cell{white-space:nowrap}
-  .tama-b{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;line-height:1.6}
+  .tama-cell{white-space:nowrap;display:flex;align-items:center;gap:3px}
+  .inv-table .inv-name{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 -1px var(--line)}
+  .inv-table thead .inv-name{background:var(--ice);z-index:3}
+  .inv-table tfoot .inv-name{background:#fff}
+  .inv-table tbody tr:hover .inv-name{background:var(--ice)}
+  .tama-b{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;line-height:1.7;border:none;font-family:inherit}
+  button.tama-b{cursor:pointer}
+  button.tama-b:active{filter:brightness(.94)}
   .tama-b b{font-weight:800}
   .tama-ok{background:#dff0e2;color:#1f6b3f}
   .tama-mid{background:#fdeecb;color:#8a6008}
@@ -173,6 +207,7 @@
   <button data-tab="home" class="active">🏠 ホーム</button>
   <button data-tab="entry">📥 記録入力</button>
   <button data-tab="list">📋 記録一覧</button>
+  <button data-tab="sched">📅 予定カレンダー</button>
   <button data-tab="noshi">🎣 のし在庫</button>
   <button data-tab="buoy">🎈 浮力管理</button>
   <button data-tab="kaizu">🗺 のし海図</button>
@@ -191,6 +226,19 @@
   <!-- ===== ホーム（UI v2） ===== -->
   <section id="home" class="active">
     <div id="homeArea"></div>
+  </section>
+  <!-- ===== 予定カレンダー ===== -->
+  <section id="sched">
+    <div class="card">
+      <h2>📅 予定カレンダー</h2>
+      <div class="hint">作業の<b>予定</b>を入れておくと、この画面と ホームの「次の予定」に出ます。実際に入力した<b>記録（実績）</b>も同じカレンダーに重ねて出るので、予定どおりだったかが一目で分かります。<br>予定は <b>Googleカレンダーへ送れます</b>（下の「Googleカレンダー連動」）。</div>
+      <div id="schedCal"></div>
+    </div>
+    <div id="schedDay"></div>
+    <div class="card">
+      <h2>🔗 Googleカレンダー連動</h2>
+      <div id="gcalBox"></div>
+    </div>
   </section>
   <!-- ===== 記録入力 ===== -->
   <section id="entry">
@@ -1168,7 +1216,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.04-5";
+const APP_VERSION = "2026.09.05-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1198,6 +1246,8 @@ function normalizeDB(d){
   d.trials = d.trials||[];
   d.trials2 = d.trials2||[];
   d.fixes = d.fixes||{};
+  d.sched = d.sched||[];
+  d.gcal  = Object.assign({clientId:"", calendarId:"primary", lastPushAt:null, lastPullAt:null}, d.gcal||{});
   d.placePlan = d.placePlan||[];
   d.saibyoEst = d.saibyoEst||{};
   d.houseName = d.houseName!=null ? d.houseName : "";
@@ -1267,9 +1317,9 @@ function noshiUid(){ return "n"+Date.now().toString(36)+(_idc++).toString(36)+Ma
 
 /* ============ タブ ============ */
 /* UI v2: 画面切替は showView() に一本化。旧 #tabs は非表示のまま残し、gotoTab()/既存の .click() 呼び出しはそのまま動く */
-const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",kaizu:"nav-stock",analysis:"nav-insight",calc:"nav-insight",hayadori:"nav-haya",plan726:"nav-haya",plan727:"nav-haya",data:"nav-data"};
+const NAV_OF_SECTION={home:"nav-home",entry:"nav-entry",list:"nav-entry",sched:"nav-entry",noshi:"nav-stock",buoy:"nav-stock",kaizu:"nav-stock",analysis:"nav-insight",calc:"nav-insight",hayadori:"nav-haya",plan726:"nav-haya",plan727:"nav-haya",data:"nav-data"};
 const SEGMENTS={
-  "nav-entry":[["entry","✍️ 入力"],["list","📋 一覧"]],
+  "nav-entry":[["entry","✍️ 入力"],["list","📋 一覧"],["sched","📅 予定"]],
   "nav-stock":[["noshi","🎣 のし在庫"],["buoy","🎈 浮力調整"],["kaizu","🗺 海図"]],
   "nav-insight":[["analysis","📊 分析"],["calc","🧮 育成計算"]],
   "nav-haya":[["hayadori","📊 進捗"],["plan726","📅 7/26"],["plan727","📅 7/27"]]
@@ -1288,6 +1338,7 @@ function showView(key){
   }
   if(key==="home") renderHome();
   if(key==="list") renderList();
+  if(key==="sched") renderSched();
   if(key==="noshi") renderNoshiInv();
   if(key==="buoy") renderBuoy();
   if(key==="kaizu") renderKaizu();
@@ -1492,11 +1543,12 @@ function renderHome(){
   </div>
   <button class="cta-big" onclick="gotoTab('entry')">✍️ 記録する</button>
   <div class="quick-grid">
+    <button onclick="gotoTab('sched')">📅<span>予定</span></button>
     <button onclick="gotoTab('list')">📋<span>記録一覧</span></button>
     <button onclick="gotoTab('noshi')">🎣<span>のし在庫</span></button>
     <button onclick="gotoTab('buoy')">🎈<span>浮力調整</span></button>
-    <button onclick="gotoTab('calc')">🧮<span>育成計算</span></button>
   </div>
+  ${homeNextSched()}
   <div class="card" style="margin-top:14px">
     <h2>🕐 直近の記録 <button class="btn sm ghost" style="margin-left:auto" onclick="gotoTab('list')">すべて見る</button></h2>
     ${recent.length? recent.map(r=>{ const k=KMAP[r.koutei]; return `<div class="recent-row"><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:escapeHtml(r.koutei||"")}</span><div class="rr-body"><div class="rr-date">${escapeHtml(r.date||"—")}</div><div class="rr-sum">${summary(r)}</div></div></div>`; }).join("") : `<div class="empty">まだ記録がありません。「✍️ 記録する」から始めましょう。</div>`}
@@ -1607,13 +1659,18 @@ function lastTamatsuke(id){
   return {date:dt, days:isNaN(days)?null:days};
 }
 /* 経過日数のバッジ（〜7日=順調 / 8〜14日=そろそろ / 15日〜=要確認） */
-function tamaBadge(t){
-  if(!t.date) return '<span class="tama-b tama-none" title="玉つけの記録がありません">未記録</span>';
+function tamaCls(t){
+  if(!t.date) return "tama-none";
   const d=t.days==null?0:t.days;
-  const cls = d<=7?"tama-ok":(d<=14?"tama-mid":"tama-old");
-  const lab = d===0?"今日":(d===1?"昨日":d+"日前");
-  return '<span class="tama-b '+cls+'">'+escapeHtml(t.date.slice(5).replace("-","/"))+' <b>'+lab+'</b></span>';
+  return d<=7?"tama-ok":(d<=14?"tama-mid":"tama-old");
 }
+function tamaText(t){
+  if(!t.date) return "未記録";
+  const d=t.days==null?0:t.days;
+  const lab = d===0?"今日":(d===1?"昨日":d+"日前");
+  return escapeHtml(t.date.slice(5).replace("-","/"))+" "+lab;
+}
+function tamaBadge(t){ return '<span class="tama-b '+tamaCls(t)+'">'+tamaText(t)+'</span>'; }
 /* 丸籠の世代判定：3部5厘＝②本どり丸籠、それ以外(1部2厘/1部5厘/1部8厘)＝①早どり丸籠 */
 const KAGO_MESH_2 = "3部5厘";
 function splitKago(kagoObj){
@@ -1695,19 +1752,19 @@ function renderNoshiInv(){
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
     const cells=MESH_ORDER.map(m=>cellNum(n.id,m,num(kg[m]),num(kg[m])?(m===KAGO_MESH_2?"color:var(--ok);font-weight:700":"color:var(--navy)"):"color:#bbb")).join("");
     const oth=Object.keys(kg).filter(m=>MESH_ORDER.indexOf(m)<0).reduce((a,m)=>a+num(kg[m]),0);
-    return `<tr><td>${escapeHtml(n.name)}${n.area?`<div class="muted" style="font-size:10.5px">${escapeHtml(n.area)}</div>`:""}</td>`
+    return `<tr><td class="inv-name"><div><b>${escapeHtml(n.name)}</b></div>`
+      + `<div style="margin-top:2px"><button class="tama-b ${tamaCls(tm)}" onclick="logTamatsuke('${safeId(n.id)}')" title="最終の玉つけ日。押すと「今日やった」として記録します">🎈 ${tamaText(tm)}</button></div></td>`
       + cellNum(n.id,"ren",rv,rv?"color:var(--navy)":"color:#bbb")
       + cells
       + `<td class="num" style="${oth?"":"color:#bbb"}">${oth?fmt(oth):"—"}</td>`
-      + `<td class="tama-cell">${tamaBadge(tm)}<button class="btn sm ghost tama-btn" onclick="logTamatsuke('${safeId(n.id)}')" title="今日 玉つけをやった、として記録します">🎈 今日</button></td>`
       + `<td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
   const km2=kagoByMesh();
-  const foot=`<tfoot><tr><td>合計</td><td class="num">${fmt(Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0))}</td>${MESH_ORDER.map(m=>`<td class="num">${fmt(km2.byMesh[m])}</td>`).join("")}<td class="num">${km2.other?fmt(km2.other):"—"}</td><td colspan="3"></td></tr></tfoot>`;
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table class="inv-table"><thead><tr><th>のし場所</th><th class="num">採苗器</th>${MESH_ORDER.map(m=>`<th class="num">${m}</th>`).join("")}<th class="num">その他</th><th>最終 玉つけ</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody>${foot}</table></div>
-    <div class="hint" style="margin-top:6px">数はすべて<b>連</b>。1部2厘／1部5厘／1部8厘＝<b>①早どり丸籠</b>、3部5厘＝<b>②本どり丸籠</b>。「その他」は網目未記入や棚卸し調整分です。<br>
+  const foot=`<tfoot><tr><td class="inv-name">合計</td><td class="num">${fmt(Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0))}</td>${MESH_ORDER.map(m=>`<td class="num">${fmt(km2.byMesh[m])}</td>`).join("")}<td class="num">${km2.other?fmt(km2.other):"—"}</td><td colspan="2"></td></tr></tfoot>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table class="inv-table"><thead><tr><th class="inv-name">のし場所 / 🎈最終玉つけ</th><th class="num">採苗器</th>${MESH_ORDER.map(m=>`<th class="num">${m}</th>`).join("")}<th class="num">その他</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody>${foot}</table></div>
+    <div class="hint" style="margin-top:6px">📱 表は<b>横にスクロール</b>できます（のし名の列は固定されます）。数はすべて<b>連</b>。1部2厘／1部5厘／1部8厘＝<b>①早どり丸籠</b>、3部5厘＝<b>②本どり丸籠</b>。「その他」は網目未記入や棚卸し調整分です。<br>
     <b>✎ の付いた数字はタップするとその場で直せます。</b>実際にあった数を入れると「棚卸し・実測合わせ」の記録が1件つくられ、履歴に残ります（あとから取り消せます）。<br>
-    <b>最終 玉つけ</b>＝浮力管理（生育管理）を最後にやった日と、そこからの経過日数。<span class="tama-b tama-ok">〜7日</span> <span class="tama-b tama-mid">8〜14日</span> <span class="tama-b tama-old">15日〜</span>。「🎈 今日」を押すと今日の日付で記録します。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+    <b>🎈最終玉つけ</b>＝浮力管理（生育管理）を最後にやった日と、そこからの経過日数（<span class="tama-b tama-ok">〜7日</span> <span class="tama-b tama-mid">8〜14日</span> <span class="tama-b tama-old">15日〜</span>）。<b>この🎈バッジを押すと、今日やったとして記録できます。</b></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
   const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
 }
 /* ---- のし在庫表のその場修正（セルをタップ→実測数を入れる→棚卸し記録が1件つく） ---- */
@@ -1745,6 +1802,10 @@ function invEditSave(){
 /* 玉つけ（浮力管理）を今日の日付で1件記録する */
 function logTamatsuke(id){
   const n=DB.noshi.find(x=>x.id===id); if(!n) return;
+  const prev=lastTamatsuke(id);
+  if(prev.date===today()){ toast("🎈 "+n.name+" は今日すでに記録ずみです"); return; }
+  if(!confirm(n.name+"\n\n今日（"+today()+"）玉つけ（浮力管理）をやった、として記録します。\n"
+    +(prev.date?"前回は "+prev.date+"（"+prev.days+"日前）でした。":"前回の記録はありません。")+"\n\nよろしいですか？")) return;
   const it=noshiItems()[id]; const kx=splitKago(it&&it.kago);
   DB.records.push({ id:uid(), koutei:"seiiku", season:DB.season, date:today(), noshi:id,
     sagyo:"浮力調整", taishoKago:kx.total||"", memo:"玉つけ（のし在庫表から記録）" });
@@ -1781,6 +1842,415 @@ function chouseiPrefill(id){
   pickKoutei('chousei');
   const sel=document.getElementById("f_noshi"); if(sel) sel.value=id;
   const j=document.getElementById("f_tanaJissoku"); if(j) j.focus();
+}
+
+/* ============ 予定カレンダー ============ */
+/* 予定は DB.sched に入れる。{id,date,start,end,kind,title,memo,gcalId}
+   実績（DB.records）も同じカレンダーに重ねて出すので、予定どおりだったかが見える。 */
+const SCHED_KINDS=[
+  {k:"hondori",  icon:"🔄", label:"本どり（入替）",     bg:"#e5ddf2", start:"00:00", end:"07:30"},
+  {k:"mizuage",  icon:"🪝", label:"水揚げ・早どり",     bg:"#cfe4f2", start:"00:00", end:"06:00"},
+  {k:"tamatsuke",icon:"🎈", label:"玉つけ（浮力管理）", bg:"#fdeecb", start:"05:00", end:"09:00"},
+  {k:"chinka",   icon:"⬇️", label:"沈下・浮上",         bg:"#d9e7f0", start:"05:00", end:"09:00"},
+  {k:"tenkan",   icon:"💰", label:"転換・出荷",         bg:"#fbe0cf", start:"05:00", end:"12:00"},
+  {k:"houryu",   icon:"🌊", label:"放流",               bg:"#cfeef0", start:"04:00", end:"10:00"},
+  {k:"tenken",   icon:"🔍", label:"点検・見回り",       bg:"#dcecd6", start:"06:00", end:"09:00"},
+  {k:"junbi",    icon:"🧰", label:"準備・資材",         bg:"#e8e4dc", start:"08:00", end:"12:00"},
+  {k:"other",    icon:"📌", label:"その他",             bg:"#eef1f4", start:"08:00", end:"12:00"},
+];
+function skind(k){ return SCHED_KINDS.find(x=>x.k===k)||SCHED_KINDS[SCHED_KINDS.length-1]; }
+let _schedMonth=null, _schedDay=null, _schedEdit=null;
+
+function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function parseYmd(s){ const p=String(s||"").split("-").map(Number); return new Date(p[0],(p[1]||1)-1,p[2]||1); }
+function addDays(s,n){ const d=parseYmd(s); d.setDate(d.getDate()+n); return ymd(d); }
+function monthOf(s){ return String(s||"").slice(0,7); }
+function schedList(day){ return (DB.sched||[]).filter(x=>x.date===day).sort((a,b)=>String(a.start||"").localeCompare(String(b.start||""))); }
+function recsOn(day){ return (DB.records||[]).filter(r=>r.date===day); }
+
+/* ---- 月カレンダー ---- */
+function renderSched(){
+  const box=document.getElementById("schedCal"); if(!box) return;
+  if(!_schedMonth) _schedMonth=monthOf(today());
+  if(!_schedDay)   _schedDay=today();
+  const [Y,M]=_schedMonth.split("-").map(Number);
+  const first=new Date(Y,M-1,1), last=new Date(Y,M,0);
+  const lead=first.getDay(); // 0=日
+  const cells=[];
+  for(let i=0;i<lead;i++) cells.push(null);
+  for(let d=1;d<=last.getDate();d++) cells.push(ymd(new Date(Y,M-1,d)));
+  while(cells.length%7) cells.push(null);
+  const tdy=today();
+  const wk=["日","月","火","水","木","金","土"];
+  const grid=cells.map((day,i)=>{
+    if(!day) return `<div class="sc-cell sc-empty"></div>`;
+    const dow=i%7;
+    const sl=schedList(day), rc=recsOn(day);
+    const marks=sl.slice(0,3).map(x=>`<span class="sc-dot" style="background:${skind(x.kind).bg}">${skind(x.kind).icon}</span>`).join("");
+    const more=sl.length>3?`<span class="sc-more">+${sl.length-3}</span>`:"";
+    const rec=rc.length?`<span class="sc-rec" title="この日の記録 ${rc.length}件">●${rc.length}</span>`:"";
+    const cls=["sc-cell"];
+    if(day===tdy) cls.push("sc-today");
+    if(day===_schedDay) cls.push("sc-sel");
+    if(dow===0) cls.push("sc-sun"); if(dow===6) cls.push("sc-sat");
+    return `<div class="${cls.join(" ")}" onclick="schedPickDay('${day}')"><div class="sc-d">${parseInt(day.slice(8),10)}</div><div class="sc-m">${marks}${more}</div>${rec}</div>`;
+  }).join("");
+  box.innerHTML=`
+    <div class="sc-head">
+      <button class="btn sm ghost" onclick="schedMove(-1)">◀</button>
+      <b>${Y}年 ${M}月</b>
+      <button class="btn sm ghost" onclick="schedMove(1)">▶</button>
+      <button class="btn sm ghost" style="margin-left:auto" onclick="schedPickDay('${tdy}');schedGoMonth('${monthOf(tdy)}')">今日</button>
+    </div>
+    <div class="sc-wk">${wk.map((w,i)=>`<div class="${i===0?"sc-sun":(i===6?"sc-sat":"")}">${w}</div>`).join("")}</div>
+    <div class="sc-grid">${grid}</div>
+    <div class="sc-legend">${SCHED_KINDS.slice(0,7).map(k=>`<span class="sc-lg" style="background:${k.bg}">${k.icon} ${k.label}</span>`).join("")}<span class="sc-lg" style="background:#fff;border:1px solid var(--line)">● ＝その日の記録（実績）</span></div>`;
+  renderSchedDay();
+  renderGcalBox();
+}
+function schedMove(n){
+  const [Y,M]=_schedMonth.split("-").map(Number);
+  const d=new Date(Y,M-1+n,1);
+  _schedMonth=ymd(d).slice(0,7); renderSched();
+}
+function schedGoMonth(m){ _schedMonth=m; renderSched(); }
+function schedPickDay(day){ _schedDay=day; _schedEdit=null; if(monthOf(day)!==_schedMonth) _schedMonth=monthOf(day); renderSched(); }
+
+/* ---- 選んだ日の詳細 ---- */
+function renderSchedDay(){
+  const box=document.getElementById("schedDay"); if(!box) return;
+  const day=_schedDay||today();
+  const wk=["日","月","火","水","木","金","土"][parseYmd(day).getDay()];
+  const sl=schedList(day), rc=recsOn(day);
+  const rows=sl.map(x=>{
+    const k=skind(x.kind);
+    if(_schedEdit===x.id) return schedForm(x);
+    return `<div class="sd-row" style="border-left:5px solid ${k.bg}">
+      <div class="sd-t">${escapeHtml(x.start||"")}${x.end?"〜"+escapeHtml(x.end):""}${schedIsOvernight(x)?'<span class="muted" style="font-size:10.5px">（翌朝まで）</span>':""}</div>
+      <div class="sd-b"><b>${k.icon} ${escapeHtml(x.title||k.label)}</b>${x.memo?`<div class="muted" style="font-size:12px;margin-top:2px;white-space:pre-wrap">${escapeHtml(x.memo)}</div>`:""}
+        ${x.gcalId?`<div class="muted" style="font-size:10.5px;margin-top:3px">🔗 Googleカレンダーに送信済み</div>`:""}</div>
+      <div class="sd-a">
+        <button class="btn sm ghost" onclick="schedEdit('${safeId(x.id)}')">✏️</button>
+        <a class="btn sm ghost" href="${gcalTemplateUrl(x)}" target="_blank" rel="noopener" title="Googleカレンダーに追加（ログイン中のGoogleで開きます）">📅＋</a>
+        <button class="btn sm ghost" onclick="schedCopyNext('${safeId(x.id)}')" title="同じ予定を翌日にもコピー">📋</button>
+        <button class="btn sm ghost" onclick="schedDel('${safeId(x.id)}')">🗑</button>
+      </div></div>`;
+  }).join("");
+  const recRows=rc.length? rc.map(r=>{ const k=KMAP[r.koutei];
+    return `<div class="recent-row"><span class="tag" style="background:${tagColor(r.koutei)}">${k?k.icon+" "+k.name:escapeHtml(r.koutei||"")}</span><div class="rr-body"><div class="rr-sum">${summary(r)}</div></div></div>`; }).join("")
+    : `<div class="empty" style="padding:10px">この日の記録はまだありません。</div>`;
+  box.innerHTML=`<div class="card" style="margin-top:12px">
+    <h2>${escapeHtml(day.slice(5).replace("-","/"))}（${wk}）の予定
+      <button class="btn sm" style="margin-left:auto" onclick="schedNew()">＋ 予定を追加</button></h2>
+    ${_schedEdit==="new"?schedForm(null):""}
+    ${rows|| (_schedEdit==="new"?"":`<div class="empty">予定はありません。「＋ 予定を追加」から入れられます。</div>`)}
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <div style="font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:5px">この日の記録（実績）</div>
+      ${recRows}
+    </div>
+  </div>`;
+}
+function schedIsOvernight(x){ return !!(x.start&&x.end&&x.end<=x.start); }
+function schedForm(x){
+  const isNew=!x;
+  const v=x||{id:"new", date:_schedDay||today(), kind:"hondori", title:"", start:"00:00", end:"07:30", memo:""};
+  return `<div class="card" style="box-shadow:none;background:var(--ice);margin:8px 0">
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="field" style="grid-column:1/-1"><label>種類</label>
+        <select id="sf_kind" onchange="schedKindChanged()">${SCHED_KINDS.map(k=>`<option value="${k.k}" ${k.k===v.kind?"selected":""}>${k.icon} ${k.label}</option>`).join("")}</select></div>
+      <div class="field" style="grid-column:1/-1"><label>タイトル（空なら種類の名前）</label><input type="text" id="sf_title" value="${escapeHtml(v.title||"")}" placeholder="例）本どり4日目 ちかまA-1→古館A"></div>
+      <div class="field"><label>日付</label><input type="date" id="sf_date" value="${escapeHtml(v.date)}"></div>
+      <div class="field"><label>&nbsp;</label><div class="muted" style="font-size:11px;padding-top:9px">終わりが始まりより前なら<b>翌朝</b>扱い</div></div>
+      <div class="field"><label>開始</label><input type="time" id="sf_start" value="${escapeHtml(v.start||"")}"></div>
+      <div class="field"><label>終了</label><input type="time" id="sf_end" value="${escapeHtml(v.end||"")}"></div>
+      <div class="field" style="grid-column:1/-1"><label>メモ（引き上げ先・下げ先・連数など）</label><textarea id="sf_memo" rows="2">${escapeHtml(v.memo||"")}</textarea></div>
+      ${isNew?`<div class="field" style="grid-column:1/-1"><label>何日つづけて入れるか（本どりのように連日やる作業に）</label>
+        <select id="sf_rep">${[1,2,3,4,5,6,7,8,9,10,12,14].map(d=>`<option value="${d}">${d===1?"この日だけ":d+"日連続"}</option>`).join("")}</select></div>`:""}
+    </div>
+    <div class="row-actions"><button class="btn" onclick="schedSave('${isNew?"new":safeId(v.id)}')">💾 保存</button>
+      <button class="btn ghost" onclick="schedCancel()">やめる</button></div>
+  </div>`;
+}
+function schedKindChanged(){
+  const k=skind(document.getElementById("sf_kind").value);
+  const st=document.getElementById("sf_start"), en=document.getElementById("sf_end");
+  if(st&&en){ st.value=k.start; en.value=k.end; }
+}
+function schedNew(){ _schedEdit="new"; renderSchedDay(); }
+function schedEdit(id){ _schedEdit=id; renderSchedDay(); }
+function schedCancel(){ _schedEdit=null; renderSchedDay(); }
+function schedSave(id){
+  const kind=document.getElementById("sf_kind").value;
+  const rec={ kind:kind,
+    title:(document.getElementById("sf_title").value||"").trim(),
+    date:document.getElementById("sf_date").value,
+    start:document.getElementById("sf_start").value,
+    end:document.getElementById("sf_end").value,
+    memo:(document.getElementById("sf_memo").value||"").trim() };
+  if(!rec.date){ toast("日付を入れてください"); return; }
+  DB.sched=DB.sched||[];
+  if(id==="new"){
+    const repEl=document.getElementById("sf_rep");
+    const rep=Math.max(1,Math.min(31,parseInt(repEl?repEl.value:1,10)||1));
+    for(let i=0;i<rep;i++){
+      const r2=Object.assign({}, rec, {date:addDays(rec.date,i)});
+      if(rep>1 && r2.title) r2.title=r2.title+"（"+(i+1)+"/"+rep+"日目）";
+      DB.sched.push(Object.assign({id:uid(), gcalId:""}, r2));
+    }
+    if(rep>1) toast("📅 "+rep+"日ぶんの予定を入れました");
+  }
+  else{
+    const i=DB.sched.findIndex(x=>x.id===id);
+    if(i<0){ toast("予定が見つかりません"); return; }
+    DB.sched[i]=Object.assign({}, DB.sched[i], rec);
+  }
+  _schedEdit=null; _schedDay=rec.date; _schedMonth=monthOf(rec.date);
+  save(); renderSched(); renderHome();
+  toast("📅 予定を保存しました");
+}
+function schedCopyNext(id){
+  const x=(DB.sched||[]).find(s=>s.id===id); if(!x) return;
+  const c=Object.assign({}, x, {id:uid(), gcalId:"", date:addDays(x.date,1)});
+  DB.sched.push(c); _schedDay=c.date; _schedMonth=monthOf(c.date);
+  save(); renderSched(); renderHome(); toast("📋 翌日（"+c.date.slice(5).replace("-","/")+"）にコピーしました");
+}
+function schedDel(id){
+  const x=(DB.sched||[]).find(s=>s.id===id); if(!x) return;
+  if(!confirm("この予定を消します。よろしいですか？\n\n"+(x.date||"")+" "+(x.start||"")+" "+(x.title||skind(x.kind).label)
+    +(x.gcalId?"\n\n※ Googleカレンダー側の予定は消えません。Google側でも消してください。":""))) return;
+  DB.sched=DB.sched.filter(s=>s.id!==id);
+  _schedEdit=null; save(); renderSched(); renderHome(); toast("🗑 予定を消しました");
+}
+/* ホームの「次の予定」 */
+function homeNextSched(){
+  const tdy=today();
+  const up=(DB.sched||[]).filter(x=>x.date>=tdy).sort((a,b)=>(a.date+" "+(a.start||"")).localeCompare(b.date+" "+(b.start||""))).slice(0,3);
+  if(!up.length) return `<div class="card" style="margin-top:14px"><h2>📅 次の予定 <button class="btn sm ghost" style="margin-left:auto" onclick="gotoTab('sched')">カレンダー</button></h2><div class="empty">これからの予定はありません。カレンダーから入れられます。</div></div>`;
+  return `<div class="card" style="margin-top:14px"><h2>📅 次の予定 <button class="btn sm ghost" style="margin-left:auto" onclick="gotoTab('sched')">カレンダー</button></h2>
+    ${up.map(x=>{ const k=skind(x.kind); const dd=parseYmd(x.date);
+      const rel=x.date===tdy?"今日":(x.date===addDays(tdy,1)?"明日":((dd-parseYmd(tdy))/86400000)+"日後");
+      return `<div class="recent-row"><span class="tag" style="background:${k.bg}">${k.icon} ${rel}</span><div class="rr-body"><div class="rr-date">${escapeHtml(x.date.slice(5).replace("-","/"))} ${escapeHtml(x.start||"")}${x.end?"〜"+escapeHtml(x.end):""}</div><div class="rr-sum">${escapeHtml(x.title||k.label)}</div></div></div>`; }).join("")}
+  </div>`;
+}
+
+/* ============ Googleカレンダー連動 ============ */
+/* 3つの方法を用意している。
+   ① 1件ずつ「📅＋」ボタン … 設定不要。Googleの登録画面がひらく
+   ② .ics で書き出し        … 設定不要。Googleカレンダーの「設定→インポート」で丸ごと取り込む
+   ③ クライアントIDを入れて直接送る/取り込む … 一度だけGoogle側の準備が必要。以後はボタン1つ */
+function pad2(n){ return String(n).padStart(2,"0"); }
+/* JSTの「日付＋時刻」をUTCの ICS 形式にする。終了が開始以前なら翌日にまわす */
+function icsRange(x){
+  const st=(x.start||"00:00"), en=(x.end||x.start||"23:59");
+  const [Y,M,D]=x.date.split("-").map(Number);
+  const [h1,m1]=st.split(":").map(Number);
+  let [h2,m2]=en.split(":").map(Number);
+  let endD=D; if(en<=st) endD=D+1;
+  const tz=new Date(Y,M-1,D,h1,m1).getTimezoneOffset()*60000; // 端末のローカル時刻として解釈する
+  const a=new Date(Date.UTC(Y,M-1,D,h1,m1)+tz);
+  const b=new Date(Date.UTC(Y,M-1,endD,h2,m2)+tz);
+  const f=d=>d.getUTCFullYear()+pad2(d.getUTCMonth()+1)+pad2(d.getUTCDate())+"T"+pad2(d.getUTCHours())+pad2(d.getUTCMinutes())+"00Z";
+  return {start:f(a), end:f(b), isoStart:a.toISOString(), isoEnd:b.toISOString()};
+}
+function schedTitle(x){ const k=skind(x.kind); return (x.title||k.label); }
+function schedSummary(x){ return skind(x.kind).icon+" "+schedTitle(x); }
+/* ① Googleの登録画面をひらくURL（設定不要） */
+function gcalTemplateUrl(x){
+  const r=icsRange(x);
+  const q=new URLSearchParams({ action:"TEMPLATE", text:schedSummary(x),
+    dates:r.start+"/"+r.end, details:(x.memo||"")+"\n\n（ホタテ養殖アプリの予定）" });
+  return "https://calendar.google.com/calendar/render?"+q.toString();
+}
+/* ② .ics 書き出し */
+function icsEscape(s){ return String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
+function icsFold(line){ // ICSは1行75オクテットまで。日本語は1文字3バイトなのでバイト数で折る
+  const enc=c=>encodeURIComponent(c).replace(/%[0-9A-F]{2}/g,"x").length;
+  const out=[]; let cur="", bytes=0, first=true;
+  for(const ch of String(line)){
+    const b=enc(ch);
+    if(bytes+b > (first?73:72)){ out.push(cur); cur=" "; bytes=1; first=false; }
+    cur+=ch; bytes+=b;
+  }
+  out.push(cur);
+  return out.join("\r\n");
+}
+function buildIcs(items){
+  const stamp=icsRange({date:today(),start:"00:00",end:"00:01"}).start;
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//hotate-yoshoku//schedule//JA","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:ホタテ養殖の予定"];
+  items.forEach(x=>{
+    const r=icsRange(x);
+    L.push("BEGIN:VEVENT");
+    L.push("UID:"+x.id+"@hotate-yoshoku");
+    L.push("DTSTAMP:"+stamp);
+    L.push("DTSTART:"+r.start);
+    L.push("DTEND:"+r.end);
+    L.push(icsFold("SUMMARY:"+icsEscape(schedSummary(x))));
+    if(x.memo) L.push(icsFold("DESCRIPTION:"+icsEscape(x.memo)));
+    L.push("END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  return L.join("\r\n")+"\r\n";
+}
+function exportIcs(){
+  const items=(DB.sched||[]).slice().sort((a,b)=>(a.date+(a.start||"")).localeCompare(b.date+(b.start||"")));
+  if(!items.length){ toast("書き出す予定がありません"); return; }
+  download("hotate_yotei_"+today()+".ics", buildIcs(items), "text/calendar;charset=utf-8");
+  toast("📅 "+items.length+"件を .ics に書き出しました");
+}
+
+/* ③ Googleカレンダーに直接送る／取り込む（要クライアントID） */
+const GCAL_SCOPE="https://www.googleapis.com/auth/calendar.events";
+let _gtok=null, _gtokExp=0, _gclient=null;
+function gcalSaveCfg(){
+  DB.gcal=DB.gcal||{};
+  DB.gcal.clientId=(document.getElementById("gc_cid").value||"").trim();
+  DB.gcal.calendarId=(document.getElementById("gc_cal").value||"primary").trim()||"primary";
+  _gtok=null; _gtokExp=0; _gclient=null;
+  save(); renderGcalBox(); toast("🔗 Googleの設定を保存しました");
+}
+function loadGis(){
+  return new Promise((res,rej)=>{
+    if(window.google && google.accounts && google.accounts.oauth2) return res();
+    const s=document.createElement("script");
+    s.src="https://accounts.google.com/gsi/client"; s.async=true; s.defer=true;
+    s.onload=()=>res(); s.onerror=()=>rej(new Error("Googleの読み込みに失敗しました（通信環境をご確認ください）"));
+    document.head.appendChild(s);
+  });
+}
+function gcalToken(){
+  return new Promise((res,rej)=>{
+    const cid=(DB.gcal&&DB.gcal.clientId)||"";
+    if(!cid) return rej(new Error("クライアントIDが未設定です"));
+    if(_gtok && Date.now()<_gtokExp-60000) return res(_gtok);
+    loadGis().then(()=>{
+      _gclient=google.accounts.oauth2.initTokenClient({
+        client_id:cid, scope:GCAL_SCOPE,
+        callback:(r)=>{ if(r&&r.access_token){ _gtok=r.access_token; _gtokExp=Date.now()+((r.expires_in||3500)*1000); res(_gtok); }
+                        else rej(new Error("Googleの許可が得られませんでした")); },
+        error_callback:(e)=>rej(new Error("Googleのログインが閉じられました"+(e&&e.type?"（"+e.type+"）":"")))
+      });
+      _gclient.requestAccessToken({prompt:""});
+    }).catch(rej);
+  });
+}
+function gcalApi(path, opt){
+  return gcalToken().then(t=>{
+    const o=Object.assign({}, opt||{});
+    o.headers=Object.assign({Authorization:"Bearer "+t, "Content-Type":"application/json"}, o.headers||{});
+    return fetch("https://www.googleapis.com/calendar/v3"+path, o);
+  }).then(r=>{
+    if(r.status===401||r.status===403){ _gtok=null; }
+    if(!r.ok) return r.text().then(t=>{ throw new Error("Google側のエラー "+r.status+"：\n"+t.slice(0,300)); });
+    return r.status===204?null:r.json();
+  });
+}
+function gcalBody(x){
+  const r=icsRange(x);
+  return { summary:schedSummary(x),
+    description:(x.memo||"")+"\n\n（ホタテ養殖アプリの予定）",
+    start:{dateTime:r.isoStart}, end:{dateTime:r.isoEnd} };
+}
+/* これから先の予定をまとめてGoogleへ。1度送ったものは同じ予定を書き換える（増えない） */
+function gcalPush(){
+  const cal=encodeURIComponent((DB.gcal&&DB.gcal.calendarId)||"primary");
+  const from=today();
+  const items=(DB.sched||[]).filter(x=>x.date>=from).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!items.length){ toast("これから先の予定がありません"); return; }
+  if(!confirm("これから先の予定 "+items.length+"件 をGoogleカレンダーに送ります。\n（前に送った分は上書きされるので、二重には増えません）\n\nよろしいですか？")) return;
+  let ok=0, ng=0;
+  const step=i=>{
+    if(i>=items.length){
+      DB.gcal.lastPushAt=new Date().toISOString(); save(); renderSched();
+      alert("Googleカレンダーへ送りました。\n\n成功 "+ok+"件"+(ng?"／失敗 "+ng+"件":""));
+      return;
+    }
+    const x=items[i];
+    const p = x.gcalId
+      ? gcalApi("/calendars/"+cal+"/events/"+encodeURIComponent(x.gcalId), {method:"PATCH", body:JSON.stringify(gcalBody(x))})
+      : gcalApi("/calendars/"+cal+"/events", {method:"POST", body:JSON.stringify(gcalBody(x))});
+    p.then(ev=>{ if(ev&&ev.id) x.gcalId=ev.id; ok++; })
+     .catch(e=>{ ng++; if(x.gcalId && /404/.test(e.message)) x.gcalId=""; try{console.warn(e);}catch(_){} })
+     .then(()=>step(i+1));
+  };
+  step(0);
+}
+/* Googleカレンダー側の予定を、この先60日ぶん取り込む */
+function gcalPull(){
+  const cal=encodeURIComponent((DB.gcal&&DB.gcal.calendarId)||"primary");
+  const tMin=new Date(parseYmd(today()).getTime()-7*86400000).toISOString();
+  const tMax=new Date(parseYmd(today()).getTime()+60*86400000).toISOString();
+  gcalApi("/calendars/"+cal+"/events?singleEvents=true&orderBy=startTime&maxResults=250&timeMin="+encodeURIComponent(tMin)+"&timeMax="+encodeURIComponent(tMax))
+    .then(res=>{
+      const evs=(res&&res.items)||[];
+      DB.sched=DB.sched||[];
+      const byG={}; DB.sched.forEach(x=>{ if(x.gcalId) byG[x.gcalId]=x; });
+      let add=0, upd=0;
+      evs.forEach(ev=>{
+        if(ev.status==="cancelled") return;
+        const sdt=(ev.start&&(ev.start.dateTime||ev.start.date))||"";
+        const edt=(ev.end&&(ev.end.dateTime||ev.end.date))||"";
+        if(!sdt) return;
+        const sd=new Date(sdt), ed=edt?new Date(edt):null;
+        const allDay=!(ev.start&&ev.start.dateTime);
+        const date=allDay?String(sdt).slice(0,10):ymd(sd);
+        const start=allDay?"":pad2(sd.getHours())+":"+pad2(sd.getMinutes());
+        const end=(allDay||!ed)?"":pad2(ed.getHours())+":"+pad2(ed.getMinutes());
+        const title=String(ev.summary||"（無題）").replace(/^[^\w\u3040-\u30ff\u4e00-\u9fff]+\s*/,"");
+        const guess=SCHED_KINDS.find(k=>String(ev.summary||"").indexOf(k.icon)===0) || skind("other");
+        const cur=byG[ev.id];
+        if(cur){ Object.assign(cur,{date:date,start:start,end:end,title:title}); upd++; }
+        else{ DB.sched.push({id:uid(), gcalId:ev.id, date:date, start:start||"00:00", end:end||"", kind:guess.k, title:title, memo:String(ev.description||"").replace(/\n*（ホタテ養殖アプリの予定）\s*$/,"")}); add++; }
+      });
+      DB.gcal.lastPullAt=new Date().toISOString();
+      save(); renderSched(); renderHome();
+      alert("Googleカレンダーから取り込みました。\n\n新規 "+add+"件／更新 "+upd+"件");
+    })
+    .catch(e=>alert("取り込めませんでした。\n\n"+e.message));
+}
+function renderGcalBox(){
+  const box=document.getElementById("gcalBox"); if(!box) return;
+  const g=DB.gcal||{};
+  const n=(DB.sched||[]).length, nFuture=(DB.sched||[]).filter(x=>x.date>=today()).length;
+  const sent=(DB.sched||[]).filter(x=>x.gcalId).length;
+  box.innerHTML=`
+  <div class="gc-step">
+    <div class="gc-n">かんたん（設定なし）</div>
+    <div style="font-size:13px;line-height:1.8">
+      ・予定1件ずつなら、予定の右の <b>📅＋</b> を押すとGoogleの登録画面がひらきます。<br>
+      ・まとめてなら <b>.ics で書き出し</b> →
+      パソコンのGoogleカレンダー「設定 → インポート / エクスポート → インポート」で取り込めます。
+    </div>
+    <div class="row-actions" style="margin-top:8px">
+      <button class="btn" onclick="exportIcs()">📅 .ics で書き出し（${fmt(n)}件）</button>
+    </div>
+  </div>
+  <div class="gc-step" style="margin-top:12px">
+    <div class="gc-n">ボタン1つで送る／取り込む（最初だけ準備が必要）</div>
+    <div style="font-size:12.5px;line-height:1.9;color:var(--sub)">
+      Google側で「クライアントID」を1度だけ作ります。<br>
+      ① <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud コンソール</a> でプロジェクトを作る<br>
+      ② 「API とサービス」→ ライブラリ → <b>Google Calendar API</b> を有効にする<br>
+      ③ OAuth 同意画面を作る（外部・テスト でOK。テストユーザーに自分のGmailを追加）<br>
+      ④ 認証情報 → OAuth クライアント ID → <b>ウェブ アプリケーション</b><br>
+      　 承認済みの JavaScript 生成元に <b><code>${escapeHtml(location.origin)}</code></b> を入れる<br>
+      ⑤ できた「クライアントID」を下に貼る
+    </div>
+    <div class="grid" style="grid-template-columns:1fr;margin-top:8px">
+      <div class="field"><label>クライアントID（….apps.googleusercontent.com）</label>
+        <input type="text" id="gc_cid" value="${escapeHtml(g.clientId||"")}" placeholder="1234567890-xxxxxxxx.apps.googleusercontent.com"></div>
+      <div class="field"><label>送り先カレンダー（既定はメインの primary。別カレンダーならそのID）</label>
+        <input type="text" id="gc_cal" value="${escapeHtml(g.calendarId||"primary")}" placeholder="primary"></div>
+    </div>
+    <div class="row-actions"><button class="btn ghost" onclick="gcalSaveCfg()">💾 設定を保存</button></div>
+    <div class="row-actions" style="margin-top:6px">
+      <button class="btn" ${g.clientId?"":"disabled"} onclick="gcalPush()">⬆️ これから先の予定をGoogleへ送る（${fmt(nFuture)}件）</button>
+      <button class="btn ghost" ${g.clientId?"":"disabled"} onclick="gcalPull()">⬇️ Googleから取り込む（前後の期間）</button>
+    </div>
+    <div class="muted" style="font-size:11.5px;margin-top:6px">
+      ${g.clientId?`送信済み ${fmt(sent)}件${g.lastPushAt?"・最終送信 "+escapeHtml(String(g.lastPushAt).slice(0,16).replace("T"," ")):""}${g.lastPullAt?"・最終取り込み "+escapeHtml(String(g.lastPullAt).slice(0,16).replace("T"," ")):""}`:"クライアントIDを入れると使えます。"}<br>
+      送信は<b>上書き</b>なので、何度押しても二重には増えません。アプリで予定を消してもGoogle側は消えないので、Google側でも消してください。
+    </div>
+  </div>`;
 }
 
 /* ============ 浮力管理 ============ */
@@ -2601,7 +3071,8 @@ function renderCagePlan(){
 }
 
 /* ============ ユーティリティ ============ */
-function today(){ return new Date().toISOString().slice(0,10); }
+/* 深夜0時〜朝の作業中に前日の日付になってしまうため、UTCではなく端末のローカル日付を使う */
+function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function download(name,content,mime){
   const blob=new Blob([content],{type:mime});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
@@ -2909,7 +3380,7 @@ function renderHaya727(){
   </div>`;
 }
 
-function refreshAll(){ renderSeasonSel(); renderHome(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderKaizu(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); renderHayaProg(); renderHaya726(); renderHaya727(); }
+function refreshAll(){ renderSeasonSel(); renderHome(); renderSched(); renderForm(); renderRecent(); renderList(); renderNoshiInv(); renderBuoy(); renderKaizu(); renderAnalysis(); renderCalc(); renderNoshiMaster(); refreshNoshiSelectors(); renderBackupBar(); renderWelcome(); renderShare(); renderHayaProg(); renderHaya726(); renderHaya727(); }
 
 /* ============ T04 初回起動オンボーディングウィザード ============
    規約同意フラグ(hotate_saibou_v1_tos)が無く、既存データも無い時だけ表示する3ステップの案内。
