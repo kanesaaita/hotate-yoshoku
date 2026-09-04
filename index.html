@@ -991,7 +991,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.03-2";
+const APP_VERSION = "2026.09.03-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1393,6 +1393,16 @@ function bars(rows, unit){
 function reduceBucket(obj, amt){ let left=num(amt);
   Object.keys(obj).sort((a,b)=>obj[b]-obj[a]).forEach(k=>{ if(left<=0)return; const t=Math.min(obj[k],left); obj[k]-=t; left-=t; if(obj[k]<=0) delete obj[k]; });
 }
+/* 丸籠の世代判定：3部5厘＝②本どり丸籠、それ以外(1部2厘/1部5厘/1部8厘)＝①早どり丸籠 */
+const KAGO_MESH_2 = "3部5厘";
+function splitKago(kagoObj){
+  let ichi=0, ni=0, adj=0;
+  Object.keys(kagoObj||{}).forEach(m=>{
+    const v=num(kagoObj[m]); if(v<=0) return;
+    if(m===KAGO_MESH_2) ni+=v; else if(m==="棚卸し調整") adj+=v; else ichi+=v;
+  });
+  return {ichi:ichi, ni:ni, adj:adj, total:ichi+ni+adj};
+}
 function noshiItems(){
   const map={}; const ens=id=>{ if(!map[id]) map[id]={chochin:{},kago:{}}; return map[id]; };
   DB.records.filter(r=>r.season===DB.season).forEach(r=>{
@@ -1423,16 +1433,19 @@ function renderNoshiInv(){
   const totalKago=Object.values(kago).reduce((a,b)=>a+Math.max(0,b),0);
   const active=new Set([...renIds,...kagoIds]).size;
   const hasNeg=Object.values(ren).some(v=>v<0)||Object.values(kago).some(v=>v<0);
+  const items=noshiItems();
+  const sp={}; let t1=0,t2=0,tadj=0;
+  DB.noshi.forEach(n=>{ const x=splitKago(items[n.id]&&items[n.id].kago); sp[n.id]=x; t1+=x.ichi; t2+=x.ni; tadj+=x.adj; });
   document.getElementById("noshiKpi").innerHTML=`
     <div class="kpi"><div class="v">${fmt(totalRen)}<span style="font-size:13px">連</span></div><div class="l">採苗器 下がり合計</div></div>
-    <div class="kpi"><div class="v">${fmt(totalKago)}<span style="font-size:13px">籠</span></div><div class="l">丸籠 下がり合計</div></div>
+    <div class="kpi"><div class="v">${fmt(t1)}<span style="font-size:13px">連</span></div><div class="l">①早どり丸籠（残）</div></div>
+    <div class="kpi"><div class="v">${fmt(t2)}<span style="font-size:13px">連</span></div><div class="l">②本どり丸籠（3部5厘）</div></div>
     <div class="kpi"><div class="v">${active}</div><div class="l">稼働中ののし場所</div></div>`;
-  const items=noshiItems();
   const brk=DB.noshi.map(n=>{
     const it=items[n.id]; if(!it) return "";
     const chips=[];
     Object.entries(it.chochin).forEach(([o,v])=>{ if(v>0) chips.push(o==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}連</span>`:`<span class="chip">🏮 ちょうちん(元${escapeHtml(o)}) ${fmt(v)}連</span>`); });
-    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(m==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}籠</span>`:`<span class="chip" style="background:#e5ddf2">📦 丸籠${escapeHtml(m)} ${fmt(v)}籠</span>`); });
+    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(m==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}籠</span>`:`<span class="chip" style="background:${m===KAGO_MESH_2?"#d9f0e2":"#e5ddf2"}">${m===KAGO_MESH_2?"🧺 ②本どり":"📦 ①早どり"} ${escapeHtml(m)} ${fmt(v)}連</span>`); });
     if(!chips.length) return "";
     return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${escapeHtml(n.name)}</b>${n.depth?`<span class="muted" style="font-size:11px"> ・${escapeHtml(n.area||"")} ${n.depth}m</span>`:""}<div style="margin-top:5px">${chips.join(" ")}</div></div>`;
   }).filter(Boolean).join("");
@@ -1441,12 +1454,13 @@ function renderNoshiInv(){
   // 状態
   const st=noshiState();
   const stRows=DB.noshi.map(n=>{
-    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
+    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0; const x=sp[n.id]||{ichi:0,ni:0,adj:0};
     if(!s && rv===0 && kv===0) return "";
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
-    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
+    const adjTxt=x.adj?`<span class="muted" style="font-size:11px"> +調整${fmt(x.adj)}</span>`:"";
+    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num" style="color:${x.ichi?"var(--navy)":"inherit"}">${x.ichi?fmt(x.ichi)+"連":"—"}</td><td class="num" style="color:${x.ni?"var(--ok)":"inherit"};font-weight:${x.ni?700:400}">${x.ni?fmt(x.ni)+"連":"—"}${adjTxt}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">①早どり丸籠</th><th class="num">②本どり丸籠</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div><div class="hint" style="margin-top:6px">①＝早どりで入れた丸籠（1部2厘／1部5厘／1部8厘）。②＝本どりで詰め替えた3部5厘。棚卸し調整分は②の欄に「+調整」で添えています。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
   const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
 }
 /* この数字はどの記録から来たか（内訳トレース）：記入漏れ・誤記を見つけて、その場で編集する */
@@ -1505,13 +1519,15 @@ function renderBuoy(){
   const rows=DB.noshi.map(n=>{
     const it=items[n.id]; const b=n.buoy||{};
     const chochin=it?Object.values(it.chochin).reduce((a,v)=>a+v,0):0;
-    const kago=it?Object.values(it.kago).reduce((a,v)=>a+v,0):0;
+    const kx=splitKago(it&&it.kago); const kago=kx.total;
     const hasLoad=chochin>0||kago>0;
     const hasBuoy=b.floats!=null||b.depth!=null||b.stones!=null||(b.memo&&b.memo.length);
     if(!hasLoad&&!hasBuoy) return "";
     const loadChips=[];
     if(chochin>0) loadChips.push(`🏮 ちょうちん ${fmt(chochin)}連`);
-    if(kago>0) loadChips.push(`📦 丸籠 ${fmt(kago)}籠`);
+    if(kx.ichi>0) loadChips.push(`📦 ①早どり丸籠 ${fmt(kx.ichi)}連`);
+    if(kx.ni>0) loadChips.push(`🧺 ②本どり丸籠 ${fmt(kx.ni)}連`);
+    if(kx.adj>0) loadChips.push(`📏 棚卸し調整 ${fmt(kx.adj)}連`);
     return `<div class="card" style="box-shadow:none;background:var(--ice);margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <div><b style="color:var(--navy);font-size:15px">${escapeHtml(n.name)}</b> <span class="muted" style="font-size:12px">${escapeHtml(n.area||"")}${n.depth?" ・水深"+n.depth+"m":""}</span></div>
