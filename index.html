@@ -867,6 +867,20 @@ const SEED_2026 = [
   }
 ];
 
+/* 網目ごとの丸籠在庫を のし横断で集計する（表示用） */
+const MESH_ORDER=["1部2厘","1部5厘","1部8厘","3部5厘"];
+function kagoByMesh(){
+  const items=noshiItems(); const out={}; let other=0;
+  MESH_ORDER.forEach(m=>out[m]=0);
+  Object.keys(items).forEach(id=>{
+    const kg=items[id].kago||{};
+    Object.keys(kg).forEach(m=>{
+      const v=num(kg[m]); if(v<=0) return;
+      if(out[m]!=null) out[m]+=v; else other+=v;
+    });
+  });
+  return {byMesh:out, other:other, total:MESH_ORDER.reduce((a,m)=>a+out[m],0)+other};
+}
 /* のし名の照合は空白を無視する（「ちかま B-3」と「ちかまB-3」を同じ扱いにする） */
 function normNoshiName(x){ return String(x||"").replace(/[\s\u3000]/g,"").trim(); }
 function findNoshiByName(d,nm){
@@ -900,6 +914,26 @@ function applySeed2026(d, kind){
   return n;
 }
 function loadSeed2026(){ loadSeedHondori(); }
+/* 採苗器はすべて引き上げ済み → 残っている連数を のしごとに棚卸し調整で0にする */
+function zeroSaibyoki(){
+  const inv=computeInventory();
+  const targets=DB.noshi.filter(n=>(inv.ren[n.id]||0)>0).map(n=>({id:n.id,name:n.name,ren:inv.ren[n.id]}));
+  if(!targets.length){ toast("採苗器の残りはありません"); return; }
+  const tot=targets.reduce((a,x)=>a+x.ren,0);
+  const msg="採苗器の在庫を0にします（全部引き上げ済みという前提）。\n\n"
+    +targets.map(x=>"・"+x.name+"　"+fmt(x.ren)+"連 → 0").join("\n")
+    +"\n────────────\n合計 "+fmt(tot)+"連 を差し引きます。\n\n"
+    +"「棚卸し・実測合わせ」の記録として残るので、あとから取り消せます。よろしいですか？";
+  if(!confirm(msg)) return;
+  const d=today();
+  targets.forEach((x,i)=>{
+    DB.records.push({ id:"z"+Math.random().toString(36).slice(2,10)+i, koutei:"chousei", season:DB.season,
+      date:d, noshi:x.id, tanaUnit:"採苗器（連）", tanaJissoku:0, tanaDelta:-x.ren,
+      memo:"採苗器は早どりで全て引き上げ済み。実測0に合わせる（自動）" });
+  });
+  save(); refreshAll();
+  toast("🧹 採苗器 "+fmt(tot)+"連 を0にしました（"+targets.length+"箇所）");
+}
 function loadSeedHondori(){
   const n=applySeed2026(DB,"hondori");
   if(!n){ toast("本どりの記録は取り込み済みでした"); return; }
@@ -1078,7 +1112,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.04-2";
+const APP_VERSION = "2026.09.04-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1361,6 +1395,7 @@ function renderHome(){
   const inv=computeInventory();
   const renTotal=Object.values(inv.ren).reduce((a,v)=>a+v,0);
   const kagoTotal=Object.values(inv.kago).reduce((a,v)=>a+v,0);
+  const km=kagoByMesh();
   const activeSpots=DB.noshi.filter(n=>(inv.ren[n.id]||0)>0||(inv.kago[n.id]||0)>0).length;
   const recent=[...rs].sort(byDateDesc).slice(0,3);
   const m=shareMeta();
@@ -1377,9 +1412,15 @@ function renderHome(){
     <div class="hh-kpis">
       <div class="hk"><div class="v">${fmt(rs.length)}</div><div class="l">記録</div></div>
       <div class="hk"><div class="v">${fmt(renTotal)}</div><div class="l">採苗器（連）</div></div>
-      <div class="hk"><div class="v">${fmt(kagoTotal)}</div><div class="l">丸籠（籠）</div></div>
+      <div class="hk"><div class="v">${fmt(km.total)}</div><div class="l">丸籠 合計（連）</div></div>
       <div class="hk"><div class="v">${fmt(activeSpots)}</div><div class="l">稼働のし</div></div>
     </div>
+    <div class="hh-mesh">
+      ${MESH_ORDER.map(m=>`<div class="hm${km.byMesh[m]?"":" z"}"><div class="v">${fmt(km.byMesh[m])}</div><div class="l">${m}${m==="3部5厘"?"（本どり）":""}</div></div>`).join("")}
+      ${km.other?`<div class="hm"><div class="v">${fmt(km.other)}</div><div class="l">その他</div></div>`:""}
+    </div>
+    ${renTotal>0?`<div class="hh-warn">⚠️ 採苗器が ${fmt(renTotal)}連 残っている計算です。全部引き上げ済みなら
+      <button class="btn sm" style="margin-left:6px" onclick="zeroSaibyoki()">🧹 採苗器を0にする</button></div>`:""}
     <div class="hh-status">${sync}<span class="hh-sep">・</span>${bak}</div>
   </div>
   <button class="cta-big" onclick="gotoTab('entry')">✍️ 記録する</button>
@@ -1541,13 +1582,18 @@ function renderNoshiInv(){
   // 状態
   const st=noshiState();
   const stRows=DB.noshi.map(n=>{
-    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0; const x=sp[n.id]||{ichi:0,ni:0,adj:0};
+    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
     if(!s && rv===0 && kv===0) return "";
+    const kg=(items[n.id]&&items[n.id].kago)||{};
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
-    const adjTxt=x.adj?`<span class="muted" style="font-size:11px"> +調整${fmt(x.adj)}</span>`:"";
-    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num" style="color:${x.ichi?"var(--navy)":"inherit"}">${x.ichi?fmt(x.ichi)+"連":"—"}</td><td class="num" style="color:${x.ni?"var(--ok)":"inherit"};font-weight:${x.ni?700:400}">${x.ni?fmt(x.ni)+"連":"—"}${adjTxt}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
+    const cells=MESH_ORDER.map(m=>{ const v=num(kg[m]);
+      return `<td class="num" style="${v?(m==="3部5厘"?"color:var(--ok);font-weight:700":"color:var(--navy)"):"color:#bbb"}">${v?fmt(v):"—"}</td>`; }).join("");
+    const oth=Object.keys(kg).filter(m=>MESH_ORDER.indexOf(m)<0).reduce((a,m)=>a+num(kg[m]),0);
+    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv):"—"}</td>${cells}<td class="num">${oth?fmt(oth):"—"}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">①早どり丸籠</th><th class="num">②本どり丸籠</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div><div class="hint" style="margin-top:6px">①＝早どりで入れた丸籠（1部2厘／1部5厘／1部8厘）。②＝本どりで詰め替えた3部5厘。棚卸し調整分は②の欄に「+調整」で添えています。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  const km2=kagoByMesh();
+  const foot=`<tfoot><tr><td>合計</td><td class="num">${fmt(Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0))}</td>${MESH_ORDER.map(m=>`<td class="num">${fmt(km2.byMesh[m])}</td>`).join("")}<td class="num">${km2.other?fmt(km2.other):"—"}</td><td colspan="2"></td></tr></tfoot>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器</th>${MESH_ORDER.map(m=>`<th class="num">${m}</th>`).join("")}<th class="num">その他</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody>${foot}</table></div><div class="hint" style="margin-top:6px">数はすべて<b>連</b>。1部2厘／1部5厘／1部8厘＝<b>①早どり丸籠</b>、3部5厘＝<b>②本どり丸籠</b>。「その他」は網目未記入や棚卸し調整分です。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
   const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
 }
 /* この数字はどの記録から来たか（内訳トレース）：記入漏れ・誤記を見つけて、その場で編集する */
