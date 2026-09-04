@@ -120,6 +120,23 @@
   .hh-warn{margin-top:9px;background:rgba(255,214,150,.16);border:1px solid rgba(255,214,150,.45);
     border-radius:10px;padding:8px 11px;font-size:12px;color:#ffe3b8;display:flex;align-items:center;
     flex-wrap:wrap;gap:6px;line-height:1.5}
+  /* のし在庫表：セルのその場修正と 最終玉つけバッジ */
+  .inv-table td,.inv-table th{white-space:nowrap}
+  .inv-cell{cursor:pointer;position:relative;border-radius:6px}
+  .inv-cell:hover{background:#eef5fb}
+  .inv-cell:active{background:#dceaf6}
+  .inv-pen{font-size:9.5px;color:#9bb2c7;margin-left:3px;vertical-align:2px}
+  .inv-editing{background:#fff8e6}
+  .inv-editing input{width:74px;padding:4px 6px;font-size:14px;text-align:right;border:1.5px solid var(--navy2,#1c4587);border-radius:6px}
+  .inv-eb{display:flex;gap:4px;margin-top:4px;justify-content:flex-end}
+  .tama-cell{white-space:nowrap}
+  .tama-b{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;line-height:1.6}
+  .tama-b b{font-weight:800}
+  .tama-ok{background:#dff0e2;color:#1f6b3f}
+  .tama-mid{background:#fdeecb;color:#8a6008}
+  .tama-old{background:#fbdcd6;color:#a3302a}
+  .tama-none{background:#eef1f4;color:#8a9aa8}
+  .tama-btn{margin-left:6px;padding:2px 7px!important;font-size:11px!important}
   .hh-status{font-size:11.5px;opacity:.85;margin-top:10px}
   .hh-sep{opacity:.5;margin:0 2px}
   .cta-big{width:100%;border:none;border-radius:16px;background:linear-gradient(120deg,var(--navy2),#2b74ad);color:#fff;font-size:18px;font-weight:800;padding:16px;cursor:pointer;box-shadow:0 4px 14px rgba(29,91,143,.35);margin-bottom:12px}
@@ -925,6 +942,32 @@ function applySeed2026(d, kind){
   });
   return n;
 }
+/* 2026-09-04 現物確認：①1部2厘の残りは ちかまB-2 60連／ちかまB-3 20連。
+   帳簿（早どり集計 B-3 141連 − 9/1引き上げ 100連 ＝ 41連）と合わないので、
+   実測を正として棚卸し調整を1度だけ自動で入れる。すでに合っていれば何もしない。 */
+const FIX_MESH12 = [
+  {name:"ちかまB-2", mesh:"1部2厘", actual:60},
+  {name:"ちかまB-3", mesh:"1部2厘", actual:20},
+];
+function applyFixMesh12(){
+  DB.fixes = DB.fixes || {};
+  if(DB.fixes.mesh12_20260904) return 0;
+  DB.fixes.mesh12_20260904 = true;
+  if(DB.season!==2026){ _skipHist=true; save(); _skipHist=false; return 0; }
+  const items=noshiItems(); let n=0;
+  FIX_MESH12.forEach((f,i)=>{
+    const t=findNoshiByName(DB,f.name); if(!t) return;
+    const it=items[t.id]; const cur=num(it && it.kago && it.kago[f.mesh]);
+    if(cur===f.actual) return;
+    DB.records.push({ id:"fx12"+i+Math.random().toString(36).slice(2,8), koutei:"chousei", season:2026,
+      date:"2026-09-04", noshi:t.id, tanaUnit:"丸籠（籠）", tanaMesh:f.mesh,
+      tanaJissoku:f.actual, tanaDelta:f.actual-cur,
+      memo:"9/4 現物確認：①"+f.mesh+"の残りを実測 "+f.actual+"連 に合わせる（自動補正）" });
+    n++;
+  });
+  _skipHist=true; save(); _skipHist=false;
+  return n;
+}
 function loadSeed2026(){ loadSeedHondori(); }
 /* 採苗器はすべて引き上げ済み → 残っている連数を のしごとに棚卸し調整で0にする */
 function zeroSaibyoki(){
@@ -1099,6 +1142,7 @@ const KOUTEI = [
     fields:[
       {k:"noshi", label:"のし場所", type:"noshi"},
       {k:"tanaUnit", label:"数え直した対象", type:"select", opts:["丸籠（籠）","採苗器（連）"]},
+      {k:"tanaMesh", label:"網目（丸籠のときだけ・指定するとその網目だけを合わせます）", type:"select", opts:["（指定しない）","1部2厘","1部5厘","1部8厘","3部5厘"]},
       {k:"tanaJissoku", label:"実測数（実際にあった数）", type:"number"},
     ]},
 ];
@@ -1124,7 +1168,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.04-4";
+const APP_VERSION = "2026.09.04-5";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -1153,6 +1197,7 @@ function normalizeDB(d){
   d.calc = Object.assign({}, CALC_DEFAULTS, d.calc||{});
   d.trials = d.trials||[];
   d.trials2 = d.trials2||[];
+  d.fixes = d.fixes||{};
   d.placePlan = d.placePlan||[];
   d.saibyoEst = d.saibyoEst||{};
   d.houseName = d.houseName!=null ? d.houseName : "";
@@ -1334,8 +1379,15 @@ function saveRecord(){
     if(!rec.noshi){ toast("のし場所を選んでください"); return; }
     if(rec.tanaJissoku===""||rec.tanaJissoku==null){ toast("実測数を入れてください"); return; }
     const unit=(rec.tanaUnit==="採苗器（連）")?"ren":"kago";
-    const invNow=computeInventory(editingId); // 編集時は自分の旧調整分を除いた在庫と比較
-    const cur=(unit==="ren"?invNow.ren:invNow.kago)[rec.noshi]||0;
+    const mesh=(unit==="kago")?meshOf(rec):"";
+    let cur;
+    if(mesh){ // 網目を指定したときは その網目の現在数と比べる
+      const it=noshiItems(editingId)[rec.noshi];
+      cur=num(it && it.kago && it.kago[mesh]);
+    }else{
+      const invNow=computeInventory(editingId); // 編集時は自分の旧調整分を除いた在庫と比較
+      cur=(unit==="ren"?invNow.ren:invNow.kago)[rec.noshi]||0;
+    }
     rec.tanaDelta=num(rec.tanaJissoku)-cur;
   }
   const wasEditing=!!editingId;
@@ -1501,7 +1553,7 @@ function summary(r){
     case "fujo": return `${e(noshiName(r.noshi))}／浮上 ${fmt(num(r.taishoKago))}籠`;
     case "tenkan": return `${e(noshiName(r.noshi))}／${fmt(num(r.hanbaiKago))}籠・${fmt(num(r.suryo))}個・売上¥${fmt(num(r.uriage))}${r.hanbaisaki?"・"+e(r.hanbaisaki):""}`;
     case "houryu": return `${e(r.basho||noshiName(r.noshi))}／放流 ${fmt(num(r.houryuKago))}籠・${fmt(num(r.houryuSuryo))}個`;
-    case "chousei": { const d=num(r.tanaDelta); return `${e(noshiName(r.noshi))}／${e(r.tanaUnit||"丸籠（籠）")} 実測 ${fmt(num(r.tanaJissoku))} <span class="muted">(調整 ${d>=0?"+":""}${fmt(d)})</span>`; }
+    case "chousei": { const d=num(r.tanaDelta); const mm=meshOf(r); return `${e(noshiName(r.noshi))}／${e(r.tanaUnit||"丸籠（籠）")}${mm?" "+e(mm):""} 実測 ${fmt(num(r.tanaJissoku))} <span class="muted">(調整 ${d>=0?"+":""}${fmt(d)})</span>`; }
     default: return "";
   }
 }
@@ -1536,6 +1588,32 @@ function bars(rows, unit){
 function reduceBucket(obj, amt){ let left=num(amt);
   Object.keys(obj).sort((a,b)=>obj[b]-obj[a]).forEach(k=>{ if(left<=0)return; const t=Math.min(obj[k],left); obj[k]-=t; left-=t; if(obj[k]<=0) delete obj[k]; });
 }
+/* 棚卸し記録に網目の指定があるか（無指定・旧データは "" を返す） */
+function meshOf(r){
+  const m=String((r&&r.tanaMesh)||"").trim();
+  return (m && MESH_ORDER.indexOf(m)>=0) ? m : "";
+}
+/* 最終の「玉つけ（＝浮力管理）」日。生育管理(浮力)の記録日と、浮力管理タブの保存日の新しい方を採る */
+function lastTamatsuke(id){
+  let dt="";
+  DB.records.filter(r=>r.season===DB.season && r.koutei==="seiiku" && r.noshi===id)
+    .forEach(r=>{ const x=String(r.date||""); if(x>dt) dt=x; });
+  const n=DB.noshi.find(x=>x.id===id);
+  const b=(n&&n.buoy&&n.buoy.updatedAt)?String(n.buoy.updatedAt).slice(0,10):"";
+  if(b>dt) dt=b;
+  if(!dt) return {date:"", days:null};
+  const ms=new Date(today()+"T00:00:00")-new Date(dt+"T00:00:00");
+  const days=Math.floor(ms/86400000);
+  return {date:dt, days:isNaN(days)?null:days};
+}
+/* 経過日数のバッジ（〜7日=順調 / 8〜14日=そろそろ / 15日〜=要確認） */
+function tamaBadge(t){
+  if(!t.date) return '<span class="tama-b tama-none" title="玉つけの記録がありません">未記録</span>';
+  const d=t.days==null?0:t.days;
+  const cls = d<=7?"tama-ok":(d<=14?"tama-mid":"tama-old");
+  const lab = d===0?"今日":(d===1?"昨日":d+"日前");
+  return '<span class="tama-b '+cls+'">'+escapeHtml(t.date.slice(5).replace("-","/"))+' <b>'+lab+'</b></span>';
+}
 /* 丸籠の世代判定：3部5厘＝②本どり丸籠、それ以外(1部2厘/1部5厘/1部8厘)＝①早どり丸籠 */
 const KAGO_MESH_2 = "3部5厘";
 function splitKago(kagoObj){
@@ -1546,9 +1624,9 @@ function splitKago(kagoObj){
   });
   return {ichi:ichi, ni:ni, adj:adj, total:ichi+ni+adj};
 }
-function noshiItems(){
+function noshiItems(excludeId){
   const map={}; const ens=id=>{ if(!map[id]) map[id]={chochin:{},kago:{}}; return map[id]; };
-  DB.records.filter(r=>r.season===DB.season).forEach(r=>{
+  DB.records.filter(r=>r.season===DB.season && (!excludeId || r.id!==excludeId)).forEach(r=>{
     if(r.koutei==="iko"){ const o=r.kaikuFrom||"?"; ikoDests(r).forEach(d=>{ if(!d.noshi) return; const m=ens(d.noshi); m.chochin[o]=(m.chochin[o]||0)+num(d.ren); }); }
     else if(r.koutei==="mizuage"){
       if(r.noshiFrom) reduceBucket(ens(r.noshiFrom).chochin, num(r.renUp));
@@ -1563,7 +1641,12 @@ function noshiItems(){
     else if(r.koutei==="chousei" && r.noshi){ // 棚卸し調整もチップ内訳に反映（在庫表とチップの数字を一致させる）
       const m=ens(r.noshi); const d=num(r.tanaDelta);
       const bucket=(r.tanaUnit==="採苗器（連）")?m.chochin:m.kago; // ⚠️この判定文言はデータに保存済みのため変更禁止
-      if(d>=0) bucket["棚卸し調整"]=(bucket["棚卸し調整"]||0)+d; else reduceBucket(bucket,-d);
+      const mesh=(r.tanaUnit==="採苗器（連）")?"":meshOf(r);
+      if(mesh){ // 網目を指定した棚卸しは、その網目だけを増減する（他の網目に影響させない）
+        bucket[mesh]=Math.max(0,(bucket[mesh]||0)+d);
+        if(bucket[mesh]<=0) delete bucket[mesh];
+      }
+      else if(d>=0) bucket["棚卸し調整"]=(bucket["棚卸し調整"]||0)+d; else reduceBucket(bucket,-d);
     }
   });
   return map;
@@ -1596,21 +1679,79 @@ function renderNoshiInv(){
   document.getElementById("noshiInv").innerHTML = warn + (brk || `<div class="empty">移動・水揚げを記録すると、のしごとに「何が下がっているか」（ちょうちん／丸籠の網目別）が出ます。</div>`);
   // 状態
   const st=noshiState();
+  /* 数字のセルはタップでその場修正できる（＝棚卸し・実測合わせの記録が1件つくられる）。
+     編集中のセルは _invEdit に持ち、この関数の再描画で入力欄に差し替わる。 */
+  const cellNum=(id,key,v,style)=>{
+    if(_invEdit && _invEdit.id===id && _invEdit.key===key){
+      return `<td class="num inv-editing"><input id="invEditInput" type="number" step="1" inputmode="numeric" value="${v}" onkeydown="if(event.key==='Enter')invEditSave();if(event.key==='Escape')invEditCancel();"><div class="inv-eb"><button class="btn sm" onclick="invEditSave()">✓</button><button class="btn sm ghost" onclick="invEditCancel()">✕</button></div></td>`;
+    }
+    return `<td class="num inv-cell" style="${style}" onclick="invEdit('${safeId(id)}','${key}')" title="タップすると、この数を実測に合わせられます">${v?fmt(v):"—"}<span class="inv-pen">✎</span></td>`;
+  };
   const stRows=DB.noshi.map(n=>{
     const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
-    if(!s && rv===0 && kv===0) return "";
+    const tm=lastTamatsuke(n.id);
+    if(!s && rv===0 && kv===0 && !tm.date) return "";
     const kg=(items[n.id]&&items[n.id].kago)||{};
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
-    const cells=MESH_ORDER.map(m=>{ const v=num(kg[m]);
-      return `<td class="num" style="${v?(m==="3部5厘"?"color:var(--ok);font-weight:700":"color:var(--navy)"):"color:#bbb"}">${v?fmt(v):"—"}</td>`; }).join("");
+    const cells=MESH_ORDER.map(m=>cellNum(n.id,m,num(kg[m]),num(kg[m])?(m===KAGO_MESH_2?"color:var(--ok);font-weight:700":"color:var(--navy)"):"color:#bbb")).join("");
     const oth=Object.keys(kg).filter(m=>MESH_ORDER.indexOf(m)<0).reduce((a,m)=>a+num(kg[m]),0);
-    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv):"—"}</td>${cells}<td class="num">${oth?fmt(oth):"—"}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
+    return `<tr><td>${escapeHtml(n.name)}${n.area?`<div class="muted" style="font-size:10.5px">${escapeHtml(n.area)}</div>`:""}</td>`
+      + cellNum(n.id,"ren",rv,rv?"color:var(--navy)":"color:#bbb")
+      + cells
+      + `<td class="num" style="${oth?"":"color:#bbb"}">${oth?fmt(oth):"—"}</td>`
+      + `<td class="tama-cell">${tamaBadge(tm)}<button class="btn sm ghost tama-btn" onclick="logTamatsuke('${safeId(n.id)}')" title="今日 玉つけをやった、として記録します">🎈 今日</button></td>`
+      + `<td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
   const km2=kagoByMesh();
-  const foot=`<tfoot><tr><td>合計</td><td class="num">${fmt(Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0))}</td>${MESH_ORDER.map(m=>`<td class="num">${fmt(km2.byMesh[m])}</td>`).join("")}<td class="num">${km2.other?fmt(km2.other):"—"}</td><td colspan="2"></td></tr></tfoot>`;
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器</th>${MESH_ORDER.map(m=>`<th class="num">${m}</th>`).join("")}<th class="num">その他</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody>${foot}</table></div><div class="hint" style="margin-top:6px">数はすべて<b>連</b>。1部2厘／1部5厘／1部8厘＝<b>①早どり丸籠</b>、3部5厘＝<b>②本どり丸籠</b>。「その他」は網目未記入や棚卸し調整分です。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  const foot=`<tfoot><tr><td>合計</td><td class="num">${fmt(Object.values(ren).reduce((a,b)=>a+Math.max(0,b),0))}</td>${MESH_ORDER.map(m=>`<td class="num">${fmt(km2.byMesh[m])}</td>`).join("")}<td class="num">${km2.other?fmt(km2.other):"—"}</td><td colspan="3"></td></tr></tfoot>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table class="inv-table"><thead><tr><th>のし場所</th><th class="num">採苗器</th>${MESH_ORDER.map(m=>`<th class="num">${m}</th>`).join("")}<th class="num">その他</th><th>最終 玉つけ</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody>${foot}</table></div>
+    <div class="hint" style="margin-top:6px">数はすべて<b>連</b>。1部2厘／1部5厘／1部8厘＝<b>①早どり丸籠</b>、3部5厘＝<b>②本どり丸籠</b>。「その他」は網目未記入や棚卸し調整分です。<br>
+    <b>✎ の付いた数字はタップするとその場で直せます。</b>実際にあった数を入れると「棚卸し・実測合わせ」の記録が1件つくられ、履歴に残ります（あとから取り消せます）。<br>
+    <b>最終 玉つけ</b>＝浮力管理（生育管理）を最後にやった日と、そこからの経過日数。<span class="tama-b tama-ok">〜7日</span> <span class="tama-b tama-mid">8〜14日</span> <span class="tama-b tama-old">15日〜</span>。「🎈 今日」を押すと今日の日付で記録します。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
   const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
 }
+/* ---- のし在庫表のその場修正（セルをタップ→実測数を入れる→棚卸し記録が1件つく） ---- */
+let _invEdit=null; // {id, key}  key は "ren"（採苗器）か 網目名
+function invEditLabel(key){ return key==="ren" ? "採苗器（連）" : (key+" の丸籠（連）"); }
+function invCurrent(id,key){
+  const it=noshiItems()[id]||{chochin:{},kago:{}};
+  if(key==="ren") return Object.values(it.chochin||{}).reduce((a,v)=>a+num(v),0);
+  return num((it.kago||{})[key]);
+}
+function invEdit(id,key){
+  _invEdit={id:id,key:key}; renderNoshiInv();
+  setTimeout(()=>{ const el=document.getElementById("invEditInput"); if(el){ el.focus(); el.select(); } },0);
+}
+function invEditCancel(){ _invEdit=null; renderNoshiInv(); }
+function invEditSave(){
+  if(!_invEdit) return;
+  const el=document.getElementById("invEditInput"); if(!el) return;
+  const id=_invEdit.id, key=_invEdit.key;
+  const n=DB.noshi.find(x=>x.id===id); if(!n){ invEditCancel(); return; }
+  const t=String(el.value).trim();
+  if(t===""){ toast("数字を入れてください"); return; }
+  const v=Math.round(parseFloat(t));
+  if(isNaN(v)||v<0){ toast("0以上の数字を入れてください"); return; }
+  const cur=invCurrent(id,key);
+  if(v===cur){ toast("同じ数でした（変更なし）"); invEditCancel(); return; }
+  const isRen=(key==="ren");
+  DB.records.push({ id:uid(), koutei:"chousei", season:DB.season, date:today(), noshi:id,
+    tanaUnit:isRen?"採苗器（連）":"丸籠（籠）", tanaMesh:isRen?"":key,
+    tanaJissoku:v, tanaDelta:v-cur,
+    memo:"のし在庫表からその場修正（"+invEditLabel(key)+"　"+cur+" → "+v+"）" });
+  _invEdit=null; save(); refreshAll();
+  toast("📏 "+n.name+" の"+invEditLabel(key)+"を "+fmt(v)+" に合わせました（"+((v-cur)>=0?"+":"")+fmt(v-cur)+"）");
+}
+/* 玉つけ（浮力管理）を今日の日付で1件記録する */
+function logTamatsuke(id){
+  const n=DB.noshi.find(x=>x.id===id); if(!n) return;
+  const it=noshiItems()[id]; const kx=splitKago(it&&it.kago);
+  DB.records.push({ id:uid(), koutei:"seiiku", season:DB.season, date:today(), noshi:id,
+    sagyo:"浮力調整", taishoKago:kx.total||"", memo:"玉つけ（のし在庫表から記録）" });
+  save(); refreshAll();
+  toast("🎈 "+n.name+" の玉つけを "+today()+" で記録しました");
+}
+
 /* この数字はどの記録から来たか（内訳トレース）：記入漏れ・誤記を見つけて、その場で編集する */
 function showNoshiDetail(id){
   const box=document.getElementById("noshiDetail"); if(!box) return;
@@ -2213,7 +2354,7 @@ function mergeImportJSON(input){
 }
 function exportCSV(){
   const rs=DB.records.slice().sort((a,b)=>(a.season-b.season)||(a.date||"").localeCompare(b.date||""));
-  const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo","tanaUnit","tanaJissoku","tanaDelta"];
+  const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo","tanaUnit","tanaMesh","tanaJissoku","tanaDelta"];
   const head=["シーズン","日付","工程","投入海区","区画番号","投入連数","投入段数","沈下方法","引上げ海区","移動 下げ先明細","移動後段数","採苗器のあるのし","引上げ連数","付着個/袋","イガイ個/袋","殻長mm","丸籠数","網目","のし","入替前籠","入替後籠","稚貝個/籠","作業","対象籠","水深m","水温","販売籠","販売個","単価","売上","販売先","放流場所","放流籠","放流個","天候","メモ","棚卸し対象","実測数","調整差分"];
   const rows=rs.map(r=>cols.map(c=>{
     let v=r[c]!=null?r[c]:"";
@@ -2884,6 +3025,7 @@ function maybeShowOnboarding(){ if(obShouldShow()) obRender(1); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();
+applyFixMesh12(); // 2026-09-04 現物確認ぶんの自動補正（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
