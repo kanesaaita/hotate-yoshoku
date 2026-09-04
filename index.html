@@ -367,7 +367,10 @@
       <div class="row-actions">
         <button class="btn ghost" onclick="exportJSON()">⬇️ 全データ書き出し（JSON・完全バックアップ）</button>
         <label class="btn ghost" style="cursor:pointer">⬆️ JSON読み込み<input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
+        <label class="btn" style="cursor:pointer">➕ 追記読み込み（マージ）<input type="file" accept=".json" onchange="mergeImportJSON(this)" style="display:none"></label>
+        <button class="btn ghost" onclick="loadSeed2026()">📥 2026年の記録を取り込む（早どり＋本どり）</button>
       </div>
+      <div class="hint" style="margin-top:6px">「JSON読み込み」は<b>全部を置き換え</b>ます。<b>「追記読み込み」は既存データを消さずに記録とのしを足すだけ</b>です。まとめて入れる前に、1件だけ入れて在庫表示を確かめてください。</div>
       <div class="row-actions">
         <button class="btn ghost" onclick="exportCSV()">⬇️ 記録をCSV書き出し（Excel用）</button>
         <button class="btn ghost" onclick="restorePrev()">↩️ 直前の自動控えに戻す（1手前）</button>
@@ -569,8 +572,316 @@
 <script>
 /* ============ 定数：工程スキーマ ============ */
 const AREAS = ["A海区","B海区","トウフツ沖","その他"];
-/* 公開版: NOSHI_LIST は空。各家で自分ののしを設定タブから登録する */
-const NOSHI_LIST = []; /* 公開版: 各家で自分ののしを登録 */
+/* のしマスタ（2026年9月時点・28本＋予備1本）。他家で使う場合は設定タブで入れ替える */
+const NOSHI_LIST = [
+  {name:"ちかまA-1", area:"ちかま", depth:null},
+  {name:"ちかまA-2", area:"ちかま", depth:null},
+  {name:"ちかまB-1", area:"ちかま", depth:null},
+  {name:"ちかまB-2", area:"ちかま", depth:null},
+  {name:"ちかまB-3", area:"ちかま", depth:null},
+  {name:"ちかまC", area:"ちかま", depth:null},
+  {name:"ちかまD-1", area:"ちかま", depth:null},
+  {name:"ちかまD-2", area:"ちかま", depth:null},
+  {name:"赤川通路A", area:"赤川", depth:null},
+  {name:"赤川通路B", area:"赤川", depth:null},
+  {name:"赤川かみ", area:"赤川", depth:null},
+  {name:"大瀬A", area:"大瀬", depth:null},
+  {name:"大瀬B", area:"大瀬", depth:null},
+  {name:"千谷A", area:"千谷", depth:null},
+  {name:"千谷B", area:"千谷", depth:null},
+  {name:"採苗地", area:"採苗地", depth:null},
+  {name:"古館A", area:"古館・遠目", depth:null},
+  {name:"古館B", area:"古館・遠目", depth:null},
+  {name:"古館C", area:"古館・遠目", depth:null},
+  {name:"古館D", area:"古館・遠目", depth:null},
+  {name:"古館E", area:"古館・遠目", depth:null},
+  {name:"大枠A", area:"大枠・遠目", depth:null},
+  {name:"大枠B", area:"大枠・遠目", depth:null},
+  {name:"大枠C", area:"大枠・遠目", depth:null},
+  {name:"前田A", area:"前田・遠目", depth:null},
+  {name:"前田B", area:"前田・遠目", depth:null},
+  {name:"長いのしA", area:"長いのし・遠目", depth:null},
+  {name:"長いのしB", area:"長いのし・遠目", depth:null},
+  {name:"大井", area:"予備", depth:null},
+];
+
+/* 2026年の記録の種。データが空のときだけ自動で入る。
+   既にデータがある端末には触れない（取り込みたい場合は設定タブの「📥 2026年の記録を取り込む」） */
+const SEED_2026 = [
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 180,
+    "amime": "1部2厘",
+    "noshiToName": "ちかまB-2",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 141,
+    "amime": "1部2厘",
+    "noshiToName": "ちかまB-3",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 82,
+    "amime": "1部5厘",
+    "noshiToName": "赤川通路A",
+    "memo": "早どり2026 集計（山側）／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 180,
+    "amime": "1部5厘",
+    "noshiToName": "千谷A",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 155,
+    "amime": "1部8厘",
+    "noshiToName": "採苗地",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 126,
+    "amime": "1部8厘",
+    "noshiToName": "赤川通路B",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 170,
+    "amime": "1部8厘",
+    "noshiToName": "千谷B",
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 71,
+    "amime": "1部8厘",
+    "noshiToName": "赤川通路A",
+    "memo": "早どり2026 集計（海側）／7/27完了・累計1,105連／日別の内訳は未入力"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠A",
+    "kagoBefore": 2,
+    "kagoAfter": 9,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠B",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "大枠C",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "前田A",
+    "kagoBefore": 4,
+    "kagoAfter": 21,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "前田B",
+    "kagoBefore": 24,
+    "kagoAfter": 142,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-3",
+    "noshiToName": "長いのしA",
+    "kagoBefore": 22,
+    "kagoAfter": 143,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "長いのしB",
+    "kagoBefore": 30,
+    "kagoAfter": 173,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "ちかまD-1",
+    "kagoBefore": 25,
+    "kagoAfter": 145,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "大枠A",
+    "kagoBefore": 23,
+    "kagoAfter": 133,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "前田A",
+    "kagoBefore": 21,
+    "kagoAfter": 121,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "ちかまA-2",
+    "kagoBefore": 16,
+    "kagoAfter": 95,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "ちかまB-2",
+    "noshiToName": "長いのしA",
+    "kagoBefore": 5,
+    "kagoAfter": 27,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-01",
+    "koutei": "seiiku",
+    "season": 2026,
+    "noshiName": "ちかまB-3",
+    "sagyo": "水温測定",
+    "suion": 19.9,
+    "memo": "1:00・3:00とも19.9℃／塩分計45.1mS/cm＝十分／中止ライン23℃に3.1℃の余裕"
+  },
+  {
+    "date": "2026-09-02",
+    "koutei": "seiiku",
+    "season": 2026,
+    "noshiName": "ちかまB-2",
+    "sagyo": "その他",
+    "memo": "通し17mm。落ちた稚貝 約150kg。増幅5.78倍（16mmは5.99倍）。0:00発〜9:00帰港"
+  }
+];
+
+/* 種の のし名 → id を解決して records に積む。既存と重複する記録は入れない。 */
+function applySeed2026(d){
+  const byName={}; (d.noshi||[]).forEach(n=>{ byName[(n.name||"").trim()]=n.id; });
+  const sig=r=>[r.date,r.koutei,r.noshiFrom||"",r.noshiTo||"",r.noshi||"",r.kagoBefore||"",r.kagoAfter||"",r.marukago||""].join("|");
+  const have=new Set((d.records||[]).map(sig));
+  let n=0;
+  SEED_2026.forEach(src=>{
+    const r=Object.assign({},src);
+    if(r.noshiFromName!==undefined){ r.noshiFrom=byName[r.noshiFromName]||""; delete r.noshiFromName; }
+    if(r.noshiToName!==undefined){ r.noshiTo=byName[r.noshiToName]||""; delete r.noshiToName; }
+    if(r.noshiName!==undefined){ r.noshi=byName[r.noshiName]||""; delete r.noshiName; }
+    r.id="s"+Math.random().toString(36).slice(2,10)+n;
+    if(have.has(sig(r))) return;
+    have.add(sig(r)); d.records.push(r); n++;
+  });
+  return n;
+}
+function loadSeed2026(){
+  if(!confirm("2026年の記録（早どり集計8件＋本どり9/1・9/2の12件＋生育管理2件）を取り込みます。\n既存の記録は消えません。よろしいですか？")) return;
+  const n=applySeed2026(DB);
+  if(!n){ toast("すべて取り込み済みでした"); return; }
+  save(); refreshAll(); toast("📥 記録を"+n+"件 取り込みました");
+}
 const KOUTEI = [
   { key:"tounyu", name:"採苗器投入（海へ）", icon:"⚓", inv:()=>[], dateLabel:"海への投入日",
     fields:[
@@ -680,7 +991,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.07.27-1";
+const APP_VERSION = "2026.09.03-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -727,13 +1038,18 @@ function normalizeDB(d){
 function load(){
   let d=null;
   try{ const raw=localStorage.getItem(LS_KEY); if(raw) d=JSON.parse(raw); }catch(e){}
-  if(!d) d={
-    version:1,
-    season: new Date().getFullYear(),
-    noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
-    records: []
-  };
+  let seedNew=false;
+  if(!d){
+    d={
+      version:1,
+      season: 2026,
+      noshi: NOSHI_LIST.map((n,i)=>({id:"n"+(i+1), name:n.name, area:n.area, depth:n.depth})),
+      records: []
+    };
+    seedNew=true;
+  }
   normalizeDB(d);
+  if(seedNew) applySeed2026(d); // 新規インストール時だけ2026年の記録を入れておく
   // --- アプリ更新（バージョン変化）検知：データは引き継ぎ、更新前を自動バックアップ ---
   if(d.appVersion !== APP_VERSION){
     if(d.records && d.records.length){
@@ -1077,6 +1393,16 @@ function bars(rows, unit){
 function reduceBucket(obj, amt){ let left=num(amt);
   Object.keys(obj).sort((a,b)=>obj[b]-obj[a]).forEach(k=>{ if(left<=0)return; const t=Math.min(obj[k],left); obj[k]-=t; left-=t; if(obj[k]<=0) delete obj[k]; });
 }
+/* 丸籠の世代判定：3部5厘＝②本どり丸籠、それ以外(1部2厘/1部5厘/1部8厘)＝①早どり丸籠 */
+const KAGO_MESH_2 = "3部5厘";
+function splitKago(kagoObj){
+  let ichi=0, ni=0, adj=0;
+  Object.keys(kagoObj||{}).forEach(m=>{
+    const v=num(kagoObj[m]); if(v<=0) return;
+    if(m===KAGO_MESH_2) ni+=v; else if(m==="棚卸し調整") adj+=v; else ichi+=v;
+  });
+  return {ichi:ichi, ni:ni, adj:adj, total:ichi+ni+adj};
+}
 function noshiItems(){
   const map={}; const ens=id=>{ if(!map[id]) map[id]={chochin:{},kago:{}}; return map[id]; };
   DB.records.filter(r=>r.season===DB.season).forEach(r=>{
@@ -1107,16 +1433,19 @@ function renderNoshiInv(){
   const totalKago=Object.values(kago).reduce((a,b)=>a+Math.max(0,b),0);
   const active=new Set([...renIds,...kagoIds]).size;
   const hasNeg=Object.values(ren).some(v=>v<0)||Object.values(kago).some(v=>v<0);
+  const items=noshiItems();
+  const sp={}; let t1=0,t2=0,tadj=0;
+  DB.noshi.forEach(n=>{ const x=splitKago(items[n.id]&&items[n.id].kago); sp[n.id]=x; t1+=x.ichi; t2+=x.ni; tadj+=x.adj; });
   document.getElementById("noshiKpi").innerHTML=`
     <div class="kpi"><div class="v">${fmt(totalRen)}<span style="font-size:13px">連</span></div><div class="l">採苗器 下がり合計</div></div>
-    <div class="kpi"><div class="v">${fmt(totalKago)}<span style="font-size:13px">籠</span></div><div class="l">丸籠 下がり合計</div></div>
+    <div class="kpi"><div class="v">${fmt(t1)}<span style="font-size:13px">連</span></div><div class="l">①早どり丸籠（残）</div></div>
+    <div class="kpi"><div class="v">${fmt(t2)}<span style="font-size:13px">連</span></div><div class="l">②本どり丸籠（3部5厘）</div></div>
     <div class="kpi"><div class="v">${active}</div><div class="l">稼働中ののし場所</div></div>`;
-  const items=noshiItems();
   const brk=DB.noshi.map(n=>{
     const it=items[n.id]; if(!it) return "";
     const chips=[];
     Object.entries(it.chochin).forEach(([o,v])=>{ if(v>0) chips.push(o==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}連</span>`:`<span class="chip">🏮 ちょうちん(元${escapeHtml(o)}) ${fmt(v)}連</span>`); });
-    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(m==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}籠</span>`:`<span class="chip" style="background:#e5ddf2">📦 丸籠${escapeHtml(m)} ${fmt(v)}籠</span>`); });
+    Object.entries(it.kago).forEach(([m,v])=>{ if(v>0) chips.push(m==="棚卸し調整"?`<span class="chip" style="background:#f2e6cc">📏 棚卸し調整 +${fmt(v)}籠</span>`:`<span class="chip" style="background:${m===KAGO_MESH_2?"#d9f0e2":"#e5ddf2"}">${m===KAGO_MESH_2?"🧺 ②本どり":"📦 ①早どり"} ${escapeHtml(m)} ${fmt(v)}連</span>`); });
     if(!chips.length) return "";
     return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${escapeHtml(n.name)}</b>${n.depth?`<span class="muted" style="font-size:11px"> ・${escapeHtml(n.area||"")} ${n.depth}m</span>`:""}<div style="margin-top:5px">${chips.join(" ")}</div></div>`;
   }).filter(Boolean).join("");
@@ -1125,12 +1454,13 @@ function renderNoshiInv(){
   // 状態
   const st=noshiState();
   const stRows=DB.noshi.map(n=>{
-    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0;
+    const s=st[n.id]; const rv=ren[n.id]||0, kv=kago[n.id]||0; const x=sp[n.id]||{ichi:0,ni:0,adj:0};
     if(!s && rv===0 && kv===0) return "";
     const badge=s?`<span class="tag" style="background:${s.state==="沈下中"?"#d9e7f0":"#e7f0d9"}">${s.state}（${escapeHtml(s.date||"")}）</span>`:`<span class="muted">—</span>`;
-    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num">${kv?fmt(kv)+"籠":"—"}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
+    const adjTxt=x.adj?`<span class="muted" style="font-size:11px"> +調整${fmt(x.adj)}</span>`:"";
+    return `<tr><td>${escapeHtml(n.name)}</td><td class="num">${rv?fmt(rv)+"連":"—"}</td><td class="num" style="color:${x.ichi?"var(--navy)":"inherit"}">${x.ichi?fmt(x.ichi)+"連":"—"}</td><td class="num" style="color:${x.ni?"var(--ok)":"inherit"};font-weight:${x.ni?700:400}">${x.ni?fmt(x.ni)+"連":"—"}${adjTxt}</td><td>${badge}</td><td><button class="btn sm ghost" onclick="showNoshiDetail('${safeId(n.id)}')">🔍 内訳</button></td></tr>`;
   }).filter(Boolean).join("");
-  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">丸籠(籠)</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
+  document.getElementById("noshiState").innerHTML = stRows? `<div class="table-wrap"><table><thead><tr><th>のし場所</th><th class="num">採苗器(連)</th><th class="num">①早どり丸籠</th><th class="num">②本どり丸籠</th><th>状態</th><th></th></tr></thead><tbody>${stRows}</tbody></table></div><div class="hint" style="margin-top:6px">①＝早どりで入れた丸籠（1部2厘／1部5厘／1部8厘）。②＝本どりで詰め替えた3部5厘。棚卸し調整分は②の欄に「+調整」で添えています。</div>` : `<div class="empty">在庫や沈下/浮上の記録がまだありません。</div>`;
   const det=document.getElementById("noshiDetail"); if(det && det.dataset.noshi){ showNoshiDetail(det.dataset.noshi); } // 開いている内訳は最新化
 }
 /* この数字はどの記録から来たか（内訳トレース）：記入漏れ・誤記を見つけて、その場で編集する */
@@ -1189,13 +1519,15 @@ function renderBuoy(){
   const rows=DB.noshi.map(n=>{
     const it=items[n.id]; const b=n.buoy||{};
     const chochin=it?Object.values(it.chochin).reduce((a,v)=>a+v,0):0;
-    const kago=it?Object.values(it.kago).reduce((a,v)=>a+v,0):0;
+    const kx=splitKago(it&&it.kago); const kago=kx.total;
     const hasLoad=chochin>0||kago>0;
     const hasBuoy=b.floats!=null||b.depth!=null||b.stones!=null||(b.memo&&b.memo.length);
     if(!hasLoad&&!hasBuoy) return "";
     const loadChips=[];
     if(chochin>0) loadChips.push(`🏮 ちょうちん ${fmt(chochin)}連`);
-    if(kago>0) loadChips.push(`📦 丸籠 ${fmt(kago)}籠`);
+    if(kx.ichi>0) loadChips.push(`📦 ①早どり丸籠 ${fmt(kx.ichi)}連`);
+    if(kx.ni>0) loadChips.push(`🧺 ②本どり丸籠 ${fmt(kx.ni)}連`);
+    if(kx.adj>0) loadChips.push(`📏 棚卸し調整 ${fmt(kx.adj)}連`);
     return `<div class="card" style="box-shadow:none;background:var(--ice);margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <div><b style="color:var(--navy);font-size:15px">${escapeHtml(n.name)}</b> <span class="muted" style="font-size:12px">${escapeHtml(n.area||"")}${n.depth?" ・水深"+n.depth+"m":""}</span></div>
@@ -1691,6 +2023,46 @@ function importJSON(input){
   };
   rd.readAsText(file);
 }
+/* 追記読み込み（マージ）：既存データを消さずに、のしと記録を足すだけ。
+   のしは name で照合し、無ければ新規作成。記録は日付+工程+のし+数量が一致するものを重複としてスキップ。 */
+function mergeImportJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!Array.isArray(d.records)) throw new Error("records がありません");
+      const findNoshi=nm=>{ const t=(nm||"").trim(); return DB.noshi.find(n=>(n.name||"").trim()===t); };
+      const ensureNoshi=(nm,area)=>{
+        if(!nm) return "";
+        let x=findNoshi(nm); if(x) return x.id;
+        const id="n"+(Date.now().toString(36))+Math.floor(Math.random()*1e6).toString(36);
+        DB.noshi.push({id:id, name:String(nm).trim(), area:area||"", depth:null});
+        addedNoshi++; return id;
+      };
+      let addedNoshi=0, addedRec=0, skipped=0;
+      (d.noshi||[]).forEach(n=>ensureNoshi(n.name,n.area));
+      const sig=r=>[r.date,r.koutei,r.noshiFrom||"",r.noshiTo||"",r.noshi||"",r.kagoBefore||"",r.kagoAfter||""].join("|");
+      const have=new Set(DB.records.map(sig));
+      d.records.forEach(src=>{
+        const r=Object.assign({},src);
+        if(r.noshiFromName){ r.noshiFrom=ensureNoshi(r.noshiFromName); delete r.noshiFromName; }
+        if(r.noshiToName){ r.noshiTo=ensureNoshi(r.noshiToName); delete r.noshiToName; }
+        if(r.noshiName){ r.noshi=ensureNoshi(r.noshiName); delete r.noshiName; }
+        r.id=uid(); r.season=r.season||DB.season;
+        if(have.has(sig(r))){ skipped++; return; }
+        have.add(sig(r)); DB.records.push(r); addedRec++;
+      });
+      if(!confirm("記録 "+addedRec+"件、のし "+addedNoshi+"件を追加します。\n（重複スキップ "+skipped+"件／既存データは消えません）\nよろしいですか？")){
+        DB=load(); refreshAll(); toast("取りやめました"); input.value=""; return;
+      }
+      save(); refreshAll();
+      toast("➕ 記録"+addedRec+"件・のし"+addedNoshi+"件を追加しました");
+    }catch(err){ toast("追記に失敗："+err.message); DB=load(); refreshAll(); }
+    input.value="";
+  };
+  rd.readAsText(file);
+}
 function exportCSV(){
   const rs=DB.records.slice().sort((a,b)=>(a.season-b.season)||(a.date||"").localeCompare(b.date||""));
   const cols=["season","date","koutei","kaiku","kukaku","saibyoRen","danInput","chinkaMemo","kaikuFrom","ikoDests","danMove","noshiFrom","renUp","chakusoPerBukuro","igaiPerBukuro","kakcho","marukago","amime","noshi","kagoBefore","kagoAfter","chigaiPerKago","sagyo","taishoKago","suishin","suion","hanbaiKago","suryo","tanka","uriage","hanbaisaki","basho","houryuKago","houryuSuryo","tenko","memo","tanaUnit","tanaJissoku","tanaDelta"];
@@ -1717,9 +2089,10 @@ function loadNoshiList(){
   save(); renderNoshiMaster(); refreshNoshiSelectors();
   toast(added?`のし ${added}本を追加しました`:"のしは既に全部登録済みです");
 }
-function loadPreset2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
-function loadHayadori2026(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
-function loadHayadori0716(){ toast("公開版にサンプルデータは含まれていません。設定→JSON読み込みで自分のデータを読み込めます"); }
+/* 旧・サンプル読み込みの入口。2026年の記録は loadSeed2026() に一本化した */
+function loadPreset2026(){ loadSeed2026(); }
+function loadHayadori2026(){ loadSeed2026(); }
+function loadHayadori0716(){ loadSeed2026(); }
 function wipeAll(){
   if(!confirm("本当にすべてのデータを削除しますか？この操作は元に戻せません。")) return;
   if(!confirm("最終確認：全記録・全のし設定を消去します。よろしいですか？")) return;
