@@ -373,8 +373,9 @@
       </div>
       <div class="hint" style="margin-top:6px">
         <b>本どり</b>＝9/1・9/2の入替12件＋水温メモ2件（②丸籠1,293連）。まだ無ければそのまま押して大丈夫です。<br>
-        <b>早どり集計</b>＝7/27時点の①丸籠1,105連を のし別に1件ずつ入れたもの。
-        <b>既に「水揚げ（早撮り）」の記録がある場合は二重計上になります。</b><br>
+        <b>早どり集計</b>＝7/27時点の①丸籠1,105連が目標。
+        <b>すでに入っている水揚げ記録を のし×網目 で差し引いて、足りない分だけを入れます。</b>
+        押す前に明細が出ます。何度押しても二重になりません。<br>
         のし名は<b>空白を無視して照合</b>します（「ちかま B-3」と「ちかまB-3」は同じ扱い）。
       </div>
       <div class="hint" style="margin-top:6px">「JSON読み込み」は<b>全部を置き換え</b>ます。<b>「追記読み込み」は既存データを消さずに記録とのしを足すだけ</b>です。まとめて入れる前に、1件だけ入れて在庫表示を確かめてください。</div>
@@ -904,14 +905,69 @@ function loadSeedHondori(){
   if(!n){ toast("本どりの記録は取り込み済みでした"); return; }
   save(); refreshAll(); toast("📥 本どり（9/1・9/2）を "+n+"件 取り込みました");
 }
+/* 早どりは「差分だけ」入れる。
+   7/27時点の①丸籠の配置（のし×網目）を目標として、
+   既に入っている 水揚げ（早撮り）の記録を差し引き、足りない分だけ記録を作る。
+   何度押しても二重にならない。 */
+function hayadoriDiff(){
+  const target={}, label={};
+  SEED_2026.filter(r=>r.koutei==="mizuage").forEach(r=>{
+    const nm=r.noshiToName, me=r.amime||"";
+    const k=normNoshiName(nm)+"|"+me;
+    target[k]=(target[k]||0)+num(r.marukago);
+    label[k]={name:nm, mesh:me};
+  });
+  const cur={};
+  DB.records.filter(r=>r.season===DB.season && r.koutei==="mizuage").forEach(r=>{
+    const nm=noshiName(r.noshiTo), me=r.amime||"";
+    const k=normNoshiName(nm)+"|"+me;
+    cur[k]=(cur[k]||0)+num(r.marukago);
+  });
+  const add=[], over=[];
+  Object.keys(target).forEach(k=>{
+    const d=target[k]-(cur[k]||0);
+    if(d>0) add.push({name:label[k].name, mesh:label[k].mesh, ren:d, target:target[k], cur:cur[k]||0});
+    else if(d<0) over.push({name:label[k].name, mesh:label[k].mesh, ren:-d, target:target[k], cur:cur[k]||0});
+  });
+  // 目標に無い のし×網目 が既存にある場合も拾う（借り場所など）
+  const extra=[];
+  Object.keys(cur).forEach(k=>{ if(target[k]==null && cur[k]>0){ const [n,m]=k.split("|"); extra.push({key:n, mesh:m, ren:cur[k]}); } });
+  return {add:add, over:over, extra:extra,
+    targetTotal:Object.values(target).reduce((a,b)=>a+b,0),
+    curTotal:Object.values(cur).reduce((a,b)=>a+b,0)};
+}
 function loadSeedHayadori(){
-  const already=DB.records.filter(r=>r.koutei==="mizuage").length;
-  let msg="早どりの集計8件（7/27時点・①丸籠1,105連）を取り込みます。";
-  if(already) msg+="\n\n⚠️ この端末には既に 水揚げ（早撮り）の記録が "+already+"件 あります。\nこの集計を足すと二重計上になります。\n\n本当に取り込みますか？";
+  const df=hayadoriDiff();
+  const addTotal=df.add.reduce((a,x)=>a+x.ren,0);
+  let msg="【早どり 差分取り込み】\n"
+    +"7/27時点の目標 "+fmt(df.targetTotal)+"連\n"
+    +"すでに記録済み "+fmt(df.curTotal)+"連\n"
+    +"────────────\n";
+  if(!df.add.length){
+    msg+="足りない分はありません。取り込むものがありません。";
+    if(df.over.length) msg+="\n\n⚠️ 記録が目標を超えている箇所:\n"+df.over.map(x=>"・"+x.name+" "+x.mesh+" +"+fmt(x.ren)+"連").join("\n");
+    alert(msg); return;
+  }
+  msg+="足す分 "+fmt(addTotal)+"連（"+df.add.length+"件）\n\n"
+    +df.add.map(x=>"・"+x.name+" "+x.mesh+"　"+fmt(x.cur)+" → "+fmt(x.target)+"（+"+fmt(x.ren)+"）").join("\n");
+  if(df.over.length) msg+="\n\n⚠️ 目標を超えている箇所（そのままにします）:\n"+df.over.map(x=>"・"+x.name+" "+x.mesh+" +"+fmt(x.ren)+"連").join("\n");
+  if(df.extra.length) msg+="\n\n（目標に無い記録: "+df.extra.map(x=>x.key+" "+x.mesh+" "+fmt(x.ren)+"連").join("／")+"）";
+  msg+="\n\nこの差分だけを取り込みます。よろしいですか？";
   if(!confirm(msg)) return;
-  const n=applySeed2026(DB,"hayadori");
-  if(!n){ toast("早どりの記録は取り込み済みでした"); return; }
-  save(); refreshAll(); toast("📥 早どり集計を "+n+"件 取り込みました");
+  const ensure=nm=>{
+    const x=findNoshiByName(DB,nm); if(x) return x.id;
+    const src=NOSHI_LIST.find(n=>normNoshiName(n.name)===normNoshiName(nm));
+    const id="n"+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36);
+    DB.noshi.push({id:id, name:String(nm).trim(), area:(src&&src.area)||"", depth:null});
+    return id;
+  };
+  df.add.forEach((x,i)=>{
+    DB.records.push({ id:"h"+Math.random().toString(36).slice(2,10)+i, koutei:"mizuage", season:DB.season,
+      date:"2026-07-27", noshiFrom:"", renUp:"", marukago:x.ren, amime:x.mesh, noshiTo:ensure(x.name),
+      memo:"早どり2026 差分補正（7/27時点の①丸籠 "+fmt(x.target)+"連 に対する不足分）／日別の内訳は未入力" });
+  });
+  save(); refreshAll();
+  toast("📥 早どりの差分 "+fmt(addTotal)+"連（"+df.add.length+"件）を取り込みました");
 }
 const KOUTEI = [
   { key:"tounyu", name:"採苗器投入（海へ）", icon:"⚓", inv:()=>[], dateLabel:"海への投入日",
@@ -1022,7 +1078,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.04-1";
+const APP_VERSION = "2026.09.04-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
