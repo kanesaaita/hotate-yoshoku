@@ -670,11 +670,7 @@ const NOSHI_LIST = [
   {name:"赤川通路A", area:"赤川", depth:null},
   {name:"赤川通路B", area:"赤川", depth:null},
   {name:"赤川かみ", area:"赤川", depth:null},
-  {name:"赤川A-1", area:"赤川", depth:null},
-  {name:"赤川A-2", area:"赤川", depth:null},
-  {name:"赤川C", area:"赤川", depth:null},
-  {name:"大瀬A-1", area:"大瀬", depth:null},
-  {name:"大瀬A-2", area:"大瀬", depth:null},
+  {name:"大瀬A", area:"大瀬", depth:null},
   {name:"大瀬B", area:"大瀬", depth:null},
   {name:"千谷A", area:"千谷", depth:null},
   {name:"千谷B", area:"千谷", depth:null},
@@ -989,7 +985,7 @@ const SEED_2026 = [
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "ちかまB-2",
-    "noshiToName": "赤川A-2",
+    "noshiToName": "ちかまA-2",
     "amimeFrom": "1部2厘",
     "kagoBefore": 13,
     "kagoAfter": 48,
@@ -1015,7 +1011,7 @@ const SEED_2026 = [
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "ちかまB-3",
-    "noshiToName": "赤川C",
+    "noshiToName": "ちかまC",
     "amimeFrom": "1部2厘",
     "kagoBefore": 20,
     "kagoAfter": 75,
@@ -1028,7 +1024,7 @@ const SEED_2026 = [
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "赤川通路A",
-    "noshiToName": "赤川C",
+    "noshiToName": "ちかまC",
     "amimeFrom": "1部5厘",
     "kagoBefore": 6,
     "kagoAfter": 23,
@@ -1041,7 +1037,7 @@ const SEED_2026 = [
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "赤川通路A",
-    "noshiToName": "赤川A-1",
+    "noshiToName": "ちかまA-1",
     "amimeFrom": "1部5厘",
     "kagoBefore": 38,
     "kagoAfter": 142,
@@ -1054,7 +1050,7 @@ const SEED_2026 = [
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "赤川通路A",
-    "noshiToName": "大瀬A-1",
+    "noshiToName": "大瀬A",
     "amimeFrom": "1部5厘",
     "kagoBefore": 38,
     "kagoAfter": 142,
@@ -1134,6 +1130,37 @@ function applyFixMesh12(){
       memo:"9/4 現物確認：①"+f.mesh+"の残りを実測 "+f.actual+"連 に合わせる（自動補正）" });
     n++;
   });
+  _skipHist=true; save(); _skipHist=false;
+  return n;
+}
+/* のしを1本に統合する（名前の付け替え・重複の解消）。
+   記録・配置予定・海図ピンが持つ のしid を まとめて付け替えてから、元ののしを消す。 */
+function mergeNoshiInto(fromName, toName){
+  const f=findNoshiByName(DB,fromName); if(!f) return 0;
+  const t=findNoshiByName(DB,toName);
+  if(!t){ f.name=toName; return 1; }        // 相手がいなければ名前を変えるだけ
+  if(t.id===f.id) return 0;
+  let n=0;
+  (DB.records||[]).forEach(r=>{
+    ["noshi","noshiFrom","noshiTo"].forEach(k=>{ if(r[k]===f.id){ r[k]=t.id; n++; } });
+    if(Array.isArray(r.dests)) r.dests.forEach(d=>{ if(d.noshi===f.id){ d.noshi=t.id; n++; } });
+  });
+  (DB.placePlan||[]).forEach(p=>{ if(p.noshi===f.id){ p.noshi=t.id; n++; } });
+  (DB.mapPins||[]).forEach(p=>{ if(Array.isArray(p.noshiIds)) p.noshiIds=p.noshiIds.map(x=>x===f.id?t.id:x); });
+  if(f.buoy && !t.buoy) t.buoy=f.buoy;       // 浮力の設定は残っているほうを活かす
+  if(f.depth!=null && t.depth==null) t.depth=f.depth;
+  DB.noshi=DB.noshi.filter(x=>x.id!==f.id);
+  return n;
+}
+/* 2026-09-06 社長確認：9/5の下げ先は 赤川A-1/A-2/C ではなく ちかまA-1/A-2/C だった。
+   大瀬は A-1/A-2 ではなく 大瀬A・大瀬B の2本。取り込み済みの端末を1度だけ直す。 */
+const NOSHI_RENAME_20260906 = [["赤川A-1","ちかまA-1"],["赤川A-2","ちかまA-2"],["赤川C","ちかまC"],["大瀬A-1","大瀬A"],["大瀬A-2","大瀬A"]];
+function applyFixNoshiName(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.noshiName_20260906) return 0;
+  DB.fixes.noshiName_20260906=true;
+  let n=0;
+  NOSHI_RENAME_20260906.forEach(pair=>{ n+=mergeNoshiInto(pair[0],pair[1]); });
   _skipHist=true; save(); _skipHist=false;
   return n;
 }
@@ -1338,7 +1365,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.05-3";
+const APP_VERSION = "2026.09.06-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -3628,6 +3655,7 @@ function maybeShowOnboarding(){ if(obShouldShow()) obRender(1); }
 
 /* ============ 初期化 ============ */
 initKouteiSel();
+applyFixNoshiName(); // 2026-09-06 のし名の訂正（1度だけ）
 applyFixMesh12(); // 2026-09-04 現物確認ぶんの自動補正（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
