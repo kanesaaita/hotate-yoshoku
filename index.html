@@ -918,10 +918,10 @@ const SEED_2026 = [
     "noshiFromName": "ちかまB-2",
     "noshiToName": "ちかまA-2",
     "kagoBefore": 16,
-    "kagoAfter": 95,
+    "kagoAfter": 94,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分",
+    "memo": "本どり2日目／通し17mm／①120連を下げ先の比率で按分／9/6訂正:95→94連",
     "amimeFrom": "1部2厘"
   },
   {
@@ -1365,7 +1365,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.06-2";
+const APP_VERSION = "2026.09.06-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -2594,7 +2594,38 @@ function renderYearCompare(){
 
 /* ============ のしマスター ============ */
 function renderNoshiMaster(){
-  document.getElementById("noshiMaster").innerHTML = DB.noshi.map(n=>`<div class="noshi-item">${escapeHtml(n.name)}${(n.area||n.depth)?`<span class="muted">(${escapeHtml(n.area||"")}${n.depth?" "+n.depth+"m":""})</span>`:""}<button onclick="removeNoshi('${n.id}')" title="削除">✕</button></div>`).join("") || `<span class="muted">場所が未登録です</span>`;
+  const box=document.getElementById("noshiMaster"); if(!box) return;
+  box.innerHTML = dupNoshiBanner() + (DB.noshi.map(n=>`<div class="noshi-item">${escapeHtml(n.name)}${(n.area||n.depth)?`<span class="muted">(${escapeHtml(n.area||"")}${n.depth?" "+n.depth+"m":""})</span>`:""}<button onclick="removeNoshi('${n.id}')" title="削除">✕</button></div>`).join("") || `<span class="muted">場所が未登録です</span>`);
+}
+/* 同じ名前ののしが2つ以上あると在庫が分かれてしまう。見つけたら1タップで1本にまとめる。 */
+function dupNoshiGroups(){
+  const by={};
+  (DB.noshi||[]).forEach(n=>{ const k=normNoshiName(n.name); if(!k) return; (by[k]=by[k]||[]).push(n); });
+  return Object.keys(by).filter(k=>by[k].length>1).map(k=>by[k]);
+}
+function dupNoshiBanner(){
+  const g=dupNoshiGroups(); if(!g.length) return "";
+  const cnt=(id)=>(DB.records||[]).filter(r=>[r.noshi,r.noshiFrom,r.noshiTo].includes(id)||(r.dests||[]).some(d=>d.noshi===id)).length;
+  return `<div style="background:#fdeee0;border:1px solid #f0c7a0;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#b45309">
+    ⚠️ <b>同じ名前ののしが${g.length}組あります。</b>このままだと在庫が2つに分かれて数が合いません。<br>
+    ${g.map(list=>`<div style="margin-top:6px">・<b>${escapeHtml(list[0].name)}</b> が ${list.length}件
+      <span class="muted" style="font-size:11.5px">（記録 ${list.map(x=>cnt(x.id)).join(" / ")}件）</span>
+      <button class="btn sm" style="margin-left:6px" onclick="mergeDupNoshi('${safeId(normNoshiName(list[0].name))}')">🔗 1つにまとめる</button></div>`).join("")}
+  </div>`;
+}
+function mergeDupNoshi(key){
+  const g=dupNoshiGroups().find(list=>safeId(normNoshiName(list[0].name))===key);
+  if(!g){ toast("対象が見つかりません"); return; }
+  const cnt=(id)=>(DB.records||[]).filter(r=>[r.noshi,r.noshiFrom,r.noshiTo].includes(id)||(r.dests||[]).some(d=>d.noshi===id)).length;
+  const keep=g.slice().sort((a,b)=>cnt(b.id)-cnt(a.id))[0];   // 記録が多いほうを残す
+  const drop=g.filter(x=>x.id!==keep.id);
+  if(!confirm(`「${keep.name}」を1本にまとめます。\n\n`
+    +g.map(x=>`・${x.name}　記録${cnt(x.id)}件${x.id===keep.id?"　← これに寄せます":""}`).join("\n")
+    +`\n\n記録・配置予定・海図ピンの参照をすべて付け替えます。数は変わりません。よろしいですか？`)) return;
+  let moved=0;
+  drop.forEach(x=>{ const nm=x.name; x.name=nm+"__dup"+Math.random().toString(36).slice(2,6); moved+=mergeNoshiInto(x.name, keep.name); });
+  save(); refreshAll();
+  toast("🔗 「"+keep.name+"」を1本にまとめました（参照 "+moved+"件を移動）");
 }
 function addNoshi(){
   const name=document.getElementById("newNoshiName").value.trim();
