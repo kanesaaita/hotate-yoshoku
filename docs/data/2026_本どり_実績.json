@@ -48,11 +48,7 @@
       "area": "赤川"
     },
     {
-      "name": "大瀬A-1",
-      "area": "大瀬"
-    },
-    {
-      "name": "大瀬A-2",
+      "name": "大瀬A",
       "area": "大瀬"
     },
     {
@@ -482,7 +478,7 @@
       "koutei": "irekae",
       "season": 2026,
       "noshiFromName": "赤川通路A",
-      "noshiToName": "大瀬A-1",
+      "noshiToName": "大瀬A",
       "amimeFrom": "1部5厘",
       "kagoBefore": 38,
       "kagoAfter": 142,
