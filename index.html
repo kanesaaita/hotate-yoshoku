@@ -732,10 +732,10 @@ const SEED_2026 = [
     "season": 2026,
     "noshiFromName": "",
     "renUp": "",
-    "marukago": 180,
+    "marukago": 131,
     "amime": "1部5厘",
     "noshiToName": "千谷A",
-    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+    "memo": "早どり2026 集計／7/27完了／9/6訂正:千谷A 180連の内訳＝1部5厘131＋1部8厘49"
   },
   {
     "date": "2026-07-27",
@@ -743,10 +743,21 @@ const SEED_2026 = [
     "season": 2026,
     "noshiFromName": "",
     "renUp": "",
-    "marukago": 155,
+    "marukago": 49,
+    "amime": "1部8厘",
+    "noshiToName": "千谷A",
+    "memo": "早どり2026 集計／7/27完了／9/6訂正:千谷A 180連の内訳＝1部5厘131＋1部8厘49"
+  },
+  {
+    "date": "2026-07-27",
+    "koutei": "mizuage",
+    "season": 2026,
+    "noshiFromName": "",
+    "renUp": "",
+    "marukago": 170,
     "amime": "1部8厘",
     "noshiToName": "採苗地",
-    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力"
+    "memo": "早どり2026 集計／7/27完了・累計1,105連／日別の内訳は未入力／9/6訂正:155→170連"
   },
   {
     "date": "2026-07-27",
@@ -840,10 +851,10 @@ const SEED_2026 = [
     "noshiFromName": "ちかまB-3",
     "noshiToName": "前田B",
     "kagoBefore": 24,
-    "kagoAfter": 142,
+    "kagoAfter": 138,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分",
+    "memo": "本どり1日目／通し16mm／①100連を下げ先の比率で按分／9/6訂正:142→138連",
     "amimeFrom": "1部2厘"
   },
   {
@@ -1164,6 +1175,37 @@ function applyFixNoshiName(){
   _skipHist=true; save(); _skipHist=false;
   return n;
 }
+/* 2026-09-06 社長確認による数の訂正。取り込み済みの端末を1度だけ直す。
+   ・前田B（9/1に下げた②）  142 → 138連
+   ・千谷A（①の配置）       1部5厘180 → 1部5厘131 ＋ 1部8厘49（合計180は変わらない）
+   ・採苗地（①の配置）       1部8厘155 → 170連
+   古い値と一致したときだけ直すので、すでに正しい端末では何も起きない。 */
+function applyFixCounts20260906(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.counts_20260906) return 0;
+  DB.fixes.counts_20260906=true;
+  const at=nm=>{ const x=findNoshiByName(DB,nm); return x?x.id:""; };
+  let n=0;
+  const maedaB=at("前田B"), chiyaA=at("千谷A"), saibyo=at("採苗地");
+  (DB.records||[]).forEach(r=>{
+    if(r.koutei==="irekae" && r.date==="2026-09-01" && r.noshiTo===maedaB && num(r.kagoAfter)===142){
+      r.kagoAfter=138; r.memo=(r.memo||"")+"／9/6訂正:142→138連"; n++;
+    }
+    if(r.koutei==="mizuage" && r.noshiTo===saibyo && num(r.marukago)===155){
+      r.marukago=170; r.memo=(r.memo||"")+"／9/6訂正:155→170連"; n++;
+    }
+  });
+  // 千谷A は 1部5厘180連 を 131＋49 に割り直す（記録を1件足す）
+  const cA=(DB.records||[]).find(r=>r.koutei==="mizuage" && r.noshiTo===chiyaA && r.amime==="1部5厘" && num(r.marukago)===180);
+  if(cA){
+    cA.marukago=131;
+    cA.memo="早どり2026 集計／7/27完了／9/6訂正:千谷A 180連の内訳＝1部5厘131＋1部8厘49";
+    DB.records.push(Object.assign({}, cA, {id:"fx6"+Math.random().toString(36).slice(2,8), marukago:49, amime:"1部8厘"}));
+    n++;
+  }
+  if(n){ _skipHist=true; save(); _skipHist=false; }
+  return n;
+}
 function loadSeed2026(){ loadSeedHondori(); }
 /* 採苗器はすべて引き上げ済み → 残っている連数を のしごとに棚卸し調整で0にする */
 function zeroSaibyoki(){
@@ -1365,7 +1407,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.06-3";
+const APP_VERSION = "2026.09.06-4";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -3688,6 +3730,7 @@ function maybeShowOnboarding(){ if(obShouldShow()) obRender(1); }
 initKouteiSel();
 applyFixNoshiName(); // 2026-09-06 のし名の訂正（1度だけ）
 applyFixMesh12(); // 2026-09-04 現物確認ぶんの自動補正（1度だけ）
+applyFixCounts20260906(); // 2026-09-06 の数の訂正（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
