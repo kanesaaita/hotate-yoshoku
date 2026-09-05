@@ -673,8 +673,8 @@ const NOSHI_LIST = [
   {name:"赤川A-1", area:"赤川", depth:null},
   {name:"赤川A-2", area:"赤川", depth:null},
   {name:"赤川C", area:"赤川", depth:null},
-  {name:"大瀬A", area:"大瀬", depth:null},
   {name:"大瀬A-1", area:"大瀬", depth:null},
+  {name:"大瀬A-2", area:"大瀬", depth:null},
   {name:"大瀬B", area:"大瀬", depth:null},
   {name:"千谷A", area:"千谷", depth:null},
   {name:"千谷B", area:"千谷", depth:null},
@@ -969,7 +969,7 @@ const SEED_2026 = [
     "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -982,7 +982,7 @@ const SEED_2026 = [
     "kagoAfter": 21,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -995,7 +995,7 @@ const SEED_2026 = [
     "kagoAfter": 48,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -1008,7 +1008,7 @@ const SEED_2026 = [
     "kagoAfter": 8,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -1021,7 +1021,7 @@ const SEED_2026 = [
     "kagoAfter": 75,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -1034,7 +1034,7 @@ const SEED_2026 = [
     "kagoAfter": 23,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm（1部5厘 前半40連）／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -1047,7 +1047,7 @@ const SEED_2026 = [
     "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し19mm（1部5厘 前半40連）／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-05",
@@ -1060,7 +1060,7 @@ const SEED_2026 = [
     "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり3日目（9/5）／通し18mm／①162連→②601連＝3.71倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり3日目（9/5）／通し20mm（1部5厘 後半42連）／①162連→②601連＝3.71倍（日合計）／①の配分は下げ先の比率で按分"
   }
 ];
 
@@ -1338,7 +1338,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.05-2";
+const APP_VERSION = "2026.09.05-3";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
