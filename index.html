@@ -1076,24 +1076,37 @@ const SEED_2026 = [
     "noshiFromName": "赤川通路A",
     "noshiToName": "大瀬B",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 63,
+    "kagoBefore": 49,
     "kagoAfter": 132,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり4日目（9/6）／通し20mm／①197連→②416連＝2.11倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-06",
     "koutei": "irekae",
     "season": 2026,
     "noshiFromName": "赤川通路A",
-    "noshiToName": "赤川通路A",
+    "noshiToName": "古館D",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 8,
-    "kagoAfter": 17,
+    "kagoBefore": 22,
+    "kagoAfter": 61,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり4日目（9/6）／通し20mm／①197連→②416連＝2.11倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分"
+  },
+  {
+    "date": "2026-09-06",
+    "koutei": "irekae",
+    "season": 2026,
+    "noshiFromName": "赤川通路B",
+    "noshiToName": "古館D",
+    "amimeFrom": "1部8厘",
+    "kagoBefore": 20,
+    "kagoAfter": 55,
+    "amime": "3部5厘",
+    "chigaiPerKago": 1775,
+    "memo": "本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-06",
@@ -1102,11 +1115,11 @@ const SEED_2026 = [
     "noshiFromName": "赤川通路B",
     "noshiToName": "赤川通路A",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 59,
-    "kagoAfter": 125,
+    "kagoBefore": 53,
+    "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり4日目（9/6）／通し20mm／①197連→②416連＝2.11倍／①の配分は下げ先の比率で按分"
+    "memo": "本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-06",
@@ -1115,22 +1128,11 @@ const SEED_2026 = [
     "noshiFromName": "赤川通路B",
     "noshiToName": "赤川通路B",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 67,
+    "kagoBefore": 53,
     "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり4日目（9/6）／通し20mm／①197連→②416連＝2.11倍／①の配分は下げ先の比率で按分"
-  },
-  {
-    "date": "2026-09-06",
-    "koutei": "chousei",
-    "season": 2026,
-    "noshiName": "古館E",
-    "tanaUnit": "丸籠（籠）",
-    "tanaMesh": "3部5厘",
-    "tanaJissoku": 137,
-    "tanaDelta": -5,
-    "memo": "9/6 現物確認：古館Eの②を実測137連に合わせる（9/5の142連から−5）"
+    "memo": "本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分"
   }
 ];
 
@@ -1268,6 +1270,30 @@ function applyFixCounts20260906(){
   }
   if(n){ _skipHist=true; save(); _skipHist=false; }
   return n;
+}
+/* 2026-09-06の下げ先を訂正（古館E ではなく 古館D に137連だった）。
+   9/6の記録を1度だけ作り直す。取り込み前の端末では、単に正しい記録が入るだけ。 */
+const FIX0906 = [["赤川通路A","大瀬B",49,132],["赤川通路A","古館D",22,61],
+                 ["赤川通路B","古館D",20,55],["赤川通路B","赤川通路A",53,142],
+                 ["赤川通路B","赤川通路B",53,142]];
+function applyFix0906(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.day0906_v2) return 0;
+  DB.fixes.day0906_v2=true;
+  const had=(DB.records||[]).some(r=>r.date==="2026-09-06");
+  if(!had){ _skipHist=true; save(); _skipHist=false; return 0; } // まだ取り込んでいない端末は何もしない
+  DB.records=DB.records.filter(r=>r.date!=="2026-09-06");
+  const at=nm=>{ const x=findNoshiByName(DB,nm); return x?x.id:""; };
+  const memo="本どり4日目（9/6）／通し20mm／①197連→②532連＝2.70倍／①の配分は下げ先の比率で按分";
+  FIX0906.forEach((p,i)=>{
+    const fr=at(p[0]), to=at(p[1]);
+    if(!fr||!to) return;
+    DB.records.push({ id:"f96"+i+Math.random().toString(36).slice(2,8), koutei:"irekae", season:2026,
+      date:"2026-09-06", noshiFrom:fr, noshiTo:to, amimeFrom:"1部8厘",
+      kagoBefore:p[2], kagoAfter:p[3], amime:"3部5厘", chigaiPerKago:1775, memo:memo });
+  });
+  _skipHist=true; save(); _skipHist=false;
+  return FIX0906.length;
 }
 function loadSeed2026(){ loadSeedHondori(); }
 /* 採苗器はすべて引き上げ済み → 残っている連数を のしごとに棚卸し調整で0にする */
@@ -1470,7 +1496,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.06-5";
+const APP_VERSION = "2026.09.06-6";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -3794,6 +3820,7 @@ initKouteiSel();
 applyFixNoshiName(); // 2026-09-06 のし名の訂正（1度だけ）
 applyFixMesh12(); // 2026-09-04 現物確認ぶんの自動補正（1度だけ）
 applyFixCounts20260906(); // 2026-09-06 の数の訂正（1度だけ）
+applyFix0906();           // 9/6の下げ先の訂正（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
