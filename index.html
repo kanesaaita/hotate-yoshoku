@@ -1321,9 +1321,9 @@ const SEED_2026 = [
     "noshiName": "採苗地",
     "tanaUnit": "丸籠（籠）",
     "tanaMesh": "1部8厘",
-    "tanaJissoku": 190,
-    "tanaDelta": 20,
-    "memo": "9/10 水揚げ時の実測：採苗地の①は190連あった（記録は170連）"
+    "tanaJissoku": 180,
+    "tanaDelta": 10,
+    "memo": "9/10 水揚げ時の実測：採苗地の①は180連あった（記録は170連）"
   },
   {
     "date": "2026-09-10",
@@ -1336,7 +1336,7 @@ const SEED_2026 = [
     "kagoAfter": 7,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-10",
@@ -1345,11 +1345,11 @@ const SEED_2026 = [
     "noshiFromName": "採苗地",
     "noshiToName": "古館C",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 51,
+    "kagoBefore": 48,
     "kagoAfter": 134,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-10",
@@ -1358,11 +1358,11 @@ const SEED_2026 = [
     "noshiFromName": "採苗地",
     "noshiToName": "ちかまB-3",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 54,
+    "kagoBefore": 51,
     "kagoAfter": 142,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-10",
@@ -1371,11 +1371,11 @@ const SEED_2026 = [
     "noshiFromName": "採苗地",
     "noshiToName": "ちかまC",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 7,
+    "kagoBefore": 6,
     "kagoAfter": 18,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-10",
@@ -1384,11 +1384,11 @@ const SEED_2026 = [
     "noshiFromName": "採苗地",
     "noshiToName": "赤川かみ",
     "amimeFrom": "1部8厘",
-    "kagoBefore": 45,
+    "kagoBefore": 42,
     "kagoAfter": 118,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   },
   {
     "date": "2026-09-10",
@@ -1401,7 +1401,7 @@ const SEED_2026 = [
     "kagoAfter": 83,
     "amime": "3部5厘",
     "chigaiPerKago": 1775,
-    "memo": "本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
+    "memo": "本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分"
   }
 ];
 
@@ -1590,8 +1590,8 @@ function applyTamatsuke0907(){
 }
 /* 2026-09-10の記録。採苗地の①は実測190連（記録は170連）だったので、
    棚卸しで+20してから190連を引き当てる。取り込み済みの端末を1度だけ直す。 */
-const FIX0910=[["古館D",7,3],["古館C",134,51],["ちかまB-3",142,54],
-               ["ちかまC",18,7],["赤川かみ",118,45],["採苗地",83,30]];
+const FIX0910=[["古館D",7,3],["古館C",134,48],["ちかまB-3",142,51],
+               ["ちかまC",18,6],["赤川かみ",118,42],["採苗地",83,30]];
 function applyFix0910(){
   DB.fixes=DB.fixes||{};
   if(DB.fixes.day0910) return 0;
@@ -1600,10 +1600,10 @@ function applyFix0910(){
   if(had){ _skipHist=true; save(); _skipHist=false; return 0; } // すでに入っていれば触らない
   const at=nm=>{ const x=findNoshiByName(DB,nm); return x?x.id:""; };
   const from=at("採苗地"); if(!from){ _skipHist=true; save(); _skipHist=false; return 0; }
-  const memo="本どり5日目（9/10）／採苗地①190連（実測）→②502連＝2.64倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分";
+  const memo="本どり5日目（9/10）／採苗地①180連（実測）→②502連＝2.79倍／通し20・21・22mmを使い分け／①の配分は下げ先の比率で按分";
   DB.records.push({ id:"c910", koutei:"chousei", season:2026, date:"2026-09-10", noshi:from,
-    tanaUnit:"丸籠（籠）", tanaMesh:"1部8厘", tanaJissoku:190, tanaDelta:20,
-    memo:"9/10 水揚げ時の実測：採苗地の①は190連あった（記録は170連）" });
+    tanaUnit:"丸籠（籠）", tanaMesh:"1部8厘", tanaJissoku:180, tanaDelta:10,
+    memo:"9/10 水揚げ時の実測：採苗地の①は180連あった（記録は170連）" });
   let n=0;
   FIX0910.forEach((p,i)=>{
     const to=at(p[0]); if(!to) return;
@@ -1612,6 +1612,20 @@ function applyFix0910(){
       kagoBefore:p[2], kagoAfter:p[1], amime:"3部5厘", chigaiPerKago:1775, memo:memo });
     n++;
   });
+  _skipHist=true; save(); _skipHist=false;
+  return n;
+}
+/* 2026-09-10の採苗地①は190連ではなく180連だった（社長訂正）。
+   190連で入れてしまった端末の9/10の記録を作り直す。 */
+function applyFix0910b(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.day0910_v2) return 0;
+  DB.fixes.day0910_v2=true;
+  const bad=(DB.records||[]).some(r=>r.date==="2026-09-10" && r.koutei==="chousei" && num(r.tanaJissoku)===190);
+  if(!bad){ _skipHist=true; save(); _skipHist=false; return 0; }
+  DB.records=DB.records.filter(r=>r.date!=="2026-09-10");
+  DB.fixes.day0910=false;      // applyFix0910 を効かせ直す
+  const n=applyFix0910();
   _skipHist=true; save(); _skipHist=false;
   return n;
 }
@@ -1816,7 +1830,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.10-1";
+const APP_VERSION = "2026.09.10-2";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -4143,6 +4157,7 @@ applyFixCounts20260906(); // 2026-09-06 の数の訂正（1度だけ）
 applyFix0906();           // 9/6の下げ先の訂正（1度だけ）
 applyTamatsuke0907();     // 9/7の玉つけ（1度だけ）
 applyFix0910();           // 9/10の記録（1度だけ）
+applyFix0910b();          // 9/10の採苗地を180連に訂正（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
