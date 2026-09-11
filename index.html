@@ -1630,11 +1630,12 @@ function applyFix0910b(){
   return n;
 }
 /* 2026-09-11：本どり6日目。千谷A①180連（1部5厘131＋1部8厘49）を全部引き上げ、
-   上から43連は21mm・残り137連は20mmで通して ②432連＝2.40倍。
-   下げ先（増分）：ちかまD-2 142／ちかまC +26→142／ちかまB-1 142／ちかまB-2 37／赤川かみ +26→144／採苗地 +59→142。
-   ①の配分は下げ先の比率で按分（[下げ先, ②増分, ①1部5厘, ①1部8厘]）。 */
-const FIX0911=[["ちかまD-2",142,43,16],["ちかまC",26,8,3],["ちかまB-1",142,43,16],
-               ["ちかまB-2",37,11,4],["赤川かみ",26,8,3],["採苗地",59,18,7]];
+   上から43連は21mm・残り137連は20mmで通して ②564連＝3.13倍。
+   下げ先（増分）：ちかまD-2 142／ちかまC +26→142／ちかまB-1 142／ちかまB-2 37／赤川かみ +26→144／採苗地 +59→142／千谷A 132。
+   ①の配分は下げ先の比率で按分（[下げ先, ②増分, ①1部5厘, ①1部8厘]）。
+   ※最初の報告に千谷A 132連が抜けていた（9/12朝に社長訂正）→ applyFix0911b で作り直す。 */
+const FIX0911=[["ちかまD-2",142,33,13],["ちかまC",26,6,2],["ちかまB-1",142,33,12],
+               ["ちかまB-2",37,8,3],["赤川かみ",26,6,2],["採苗地",59,14,5],["千谷A",132,31,12]];
 function applyFix0911(){
   DB.fixes=DB.fixes||{};
   if(DB.fixes.day0911) return 0;
@@ -1643,19 +1644,36 @@ function applyFix0911(){
   if(had){ _skipHist=true; save(); _skipHist=false; return 0; } // すでに入っていれば触らない
   const at=nm=>{ const x=findNoshiByName(DB,nm); return x?x.id:""; };
   const from=at("千谷A"); if(!from){ _skipHist=true; save(); _skipHist=false; return 0; }
-  const memo="本どり6日目（9/11）／千谷A①180連→②432連＝2.40倍／上から43連は21mm・残り137連は20mm／①の配分は下げ先の比率で按分";
+  const memo="本どり6日目（9/11）／千谷A①180連→②564連＝3.13倍／上から43連は21mm・残り137連は20mm／①の配分は下げ先の比率で按分";
   let n=0;
   FIX0911.forEach((p,i)=>{
     const to=at(p[0]); if(!to) return;
-    [["1部5厘",p[2]],["1部8厘",p[3]]].forEach(([mesh,b],j)=>{
+    const a5=Math.round(p[1]*p[2]/(p[2]+p[3]));
+    [["1部5厘",p[2],a5],["1部8厘",p[3],p[1]-a5]].forEach(([mesh,b,after],j)=>{
       if(!b) return;
-      const after=Math.round(p[1]*b/(p[2]+p[3]));
       DB.records.push({ id:"i911"+i+j, koutei:"irekae", season:2026, date:"2026-09-11",
         noshiFrom:from, noshiTo:to, amimeFrom:mesh,
         kagoBefore:b, kagoAfter:after, amime:"3部5厘", chigaiPerKago:1775, memo:memo });
       n++;
     });
   });
+  _skipHist=true; save(); _skipHist=false;
+  return n;
+}
+/* 9/11の最初の報告に「千谷A 132連」が抜けていた（②432→564連）。
+   千谷Aへの9/11の記録が無い端末は、9/11の記録を作り直す。 */
+function applyFix0911b(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.day0911_v2) return 0;
+  DB.fixes.day0911_v2=true;
+  const at=nm=>{ const x=findNoshiByName(DB,nm); return x?x.id:""; };
+  const chiyaA=at("千谷A");
+  const recs=(DB.records||[]).filter(r=>r.date==="2026-09-11");
+  const hasA=recs.some(r=>r.koutei==="irekae" && r.noshiTo===chiyaA);
+  if(!recs.length || hasA){ _skipHist=true; save(); _skipHist=false; return 0; }
+  DB.records=DB.records.filter(r=>r.date!=="2026-09-11");
+  DB.fixes.day0911=false;      // applyFix0911 を効かせ直す
+  const n=applyFix0911();
   _skipHist=true; save(); _skipHist=false;
   return n;
 }
@@ -1860,7 +1878,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.11-1";
+const APP_VERSION = "2026.09.12-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -4189,6 +4207,7 @@ applyTamatsuke0907();     // 9/7の玉つけ（1度だけ）
 applyFix0910();           // 9/10の記録（1度だけ）
 applyFix0910b();          // 9/10の採苗地を180連に訂正（1度だけ）
 applyFix0911();           // 9/11の記録（1度だけ）
+applyFix0911b();          // 9/11に千谷A 132連を追加（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
