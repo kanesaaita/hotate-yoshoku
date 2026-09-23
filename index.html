@@ -1677,6 +1677,52 @@ function applyFix0911b(){
   _skipHist=true; save(); _skipHist=false;
   return n;
 }
+/* 2026-09-19（土）：最終の玉つけを全のしで実施。使わないのし（古館A・古館B・大井）は下側に石1個＋尺玉を付けて沈めた。
+   大瀬A・Bは水深8.5mほどと浅く、ふらし玉の綱が短い（通常は足し綱で1.5〜2m長い）ので沈みやすい。
+   次の玉つけは 9/25か26 の予定。 */
+function applyNote0919(){
+  DB.fixes=DB.fixes||{};
+  if(DB.fixes.note_20260919) return 0;
+  DB.fixes.note_20260919=true;
+  if(DB.season!==2026){ _skipHist=true; save(); _skipHist=false; return 0; }
+  const at=nm=>{ const x=findNoshiByName(DB,nm); return x||null; };
+  const items=noshiItems();
+  let n=0;
+  // 1) 9/19 玉つけ（在庫のある のし すべて）
+  (DB.noshi||[]).forEach((nn,i)=>{
+    const x=items[nn.id]; if(!x) return;
+    const tot=Object.values(x.kago||{}).reduce((a,v)=>a+num(v),0)
+             +Object.values(x.chochin||{}).reduce((a,v)=>a+num(v),0);
+    if(tot<=0) return;
+    const dup=(DB.records||[]).some(r=>r.date==="2026-09-19" && r.koutei==="seiiku" && r.noshi===nn.id);
+    if(dup) return;
+    DB.records.push({ id:"t919"+i+Math.random().toString(36).slice(2,7), koutei:"seiiku", season:2026,
+      date:"2026-09-19", noshi:nn.id, sagyo:"浮力調整", taishoKago:Math.round(tot),
+      memo:"9/19 本どり後の最終玉つけ（全のし）" });
+    n++;
+  });
+  // 2) 大瀬A・Bの水深と注意
+  ["大瀬A","大瀬B"].forEach(nm=>{ const x=at(nm); if(!x) return;
+    if(x.depth==null) x.depth=8.5;
+    x.buoy=x.buoy||{};
+    if(!x.buoy.memo) x.buoy.memo="水深8.5mと浅く、ふらし玉の綱が短い（足し綱なし）ので沈みやすい";
+  });
+  // 3) 使わないのし：石1個＋尺玉で沈めた
+  ["古館A","古館B","大井"].forEach(nm=>{ const x=at(nm); if(!x) return;
+    x.buoy=x.buoy||{};
+    if(x.buoy.stones==null) x.buoy.stones=1;
+    if(!x.buoy.memo) x.buoy.memo="2026年は使わない。9/19に下側へ石1個＋尺玉を付けて沈めた";
+    x.buoy.updatedAt=x.buoy.updatedAt||"2026-09-19T09:00:00";
+  });
+  // 4) 次の玉つけ予定
+  DB.sched=DB.sched||[];
+  if(!DB.sched.some(s=>s.date==="2026-09-25" && s.kind==="tamatsuke")){
+    DB.sched.push({ id:uid(), gcalId:"", date:"2026-09-25", start:"05:00", end:"09:00", kind:"tamatsuke",
+      title:"玉つけ（9/25か26）", memo:"前回9/19から6〜7日。全のしを回る" });
+  }
+  _skipHist=true; save(); _skipHist=false;
+  return n;
+}
 function loadSeed2026(){ loadSeedHondori(); }
 /* 採苗器はすべて引き上げ済み → 残っている連数を のしごとに棚卸し調整で0にする */
 function zeroSaibyoki(){
@@ -1878,7 +1924,7 @@ const FIREBASE_CONFIG = {
 const SHARE_LS = LS_KEY + "_share";   // {code, auto, lastAt}
 const DEVID_LS = LS_KEY + "_devid";   // この端末の識別子
 const FB_SDK_VER = "10.12.5";
-const APP_VERSION = "2026.09.12-1";
+const APP_VERSION = "2026.09.23-1";
 let VERSION_BUMPED = false;
 let editingId = null;
 function migrate(d, from){
@@ -4208,6 +4254,7 @@ applyFix0910();           // 9/10の記録（1度だけ）
 applyFix0910b();          // 9/10の採苗地を180連に訂正（1度だけ）
 applyFix0911();           // 9/11の記録（1度だけ）
 applyFix0911b();          // 9/11に千谷A 132連を追加（1度だけ）
+applyNote0919();          // 9/19の玉つけ・沈めたのし・大瀬の水深・次回予定（1度だけ）
 renderSeasonSel();
 renderHome(); // UI v2: 起動時はホームを表示
 renderForm();
